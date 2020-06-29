@@ -41,21 +41,20 @@ const Sequence = ({ newEvent, postTrack, rows, cols }) => {
       setLastNoteTime(note.time);
     }
     if (note.type == "keydown") {
-      // alert(JSON.stringify(note));
-      note.envelope = getNote(note.freq);
-      note.envelope.trigger();
       pendingNotes[note.index] = note;
+      pendingNotes[note.index].envelope = getNote(note.freq);
+      pendingNotes[note.index].envelope.trigger();
       setPendingNotes(pendingNotes);
-    } else if (note.type == "keydown") {
+    } else if (note.type !== "keydown") {
       var pendingNote = pendingNotes[note.index];
       if (pendingNote) {
         note.length = note.time - pendingNote.time;
       }
       if (note.type === "keyup") {
-        note.envelope.triggerRelease();
+        pendingNote.envelope.triggerRelease();
         delete pendingNotes[note.index];
       } else {
-        note.envelope.hold();
+        if (pendingNote.envelope) pendingNote.envelope.hold();
       }
     }
 
@@ -71,15 +70,7 @@ const Sequence = ({ newEvent, postTrack, rows, cols }) => {
       note.bar = bar;
 
       setPaintBar(note);
-      setLog(
-        log +
-          "\n painting " +
-          note.bar +
-          "|" +
-          note.index +
-          " length " +
-          note.length
-      );
+      setLog(log + "\n painting " + note.bar + "|" + note.index + " length " + note.length);
     }
   };
 
@@ -135,16 +126,17 @@ const Sequence = ({ newEvent, postTrack, rows, cols }) => {
 
   useEffect(() => {
     async function ensureAudioCtx() {
-      if (ctx == null || ctx._ctx.state === "running") {
+      if (ctx == null || ctx.state === "paused") {
         const audioCtx = await getContext();
         setCtx(audioCtx);
+        return audioCtx;
       }
-      return audioCtx;
+      return ctx;
     }
     //key start, release, hold
     if (newEvent !== null) {
-      ensureAudioCtx().then(function (ctx) {
-        pushNote(newEvent, ctx);
+      ensureAudioCtx().then((audioCtx) => {
+        pushNote(newEvent, audioCtx);
       });
     }
   }, [newEvent]);

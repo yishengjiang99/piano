@@ -1,12 +1,6 @@
 import styles from "./Piano.module.css";
-import React, {
-  useEffect,
-  useState,
-  createRef,
-  Component,
-  useRef,
-} from "react";
-import { keys, blackKeys, notes } from "../lib/SoundKeys";
+import React, { useEffect, useState, createRef, Component, useRef } from "react";
+import { keys, blackKeys, notes } from "../lib/sound-keys.js";
 const Piano = ({ onUserEvent, octave }) => {
   const octaves = [octave, octave + 1];
   const keyRefMap = keys.map((key, index) => createRef());
@@ -39,13 +33,24 @@ const Piano = ({ onUserEvent, octave }) => {
       {keys.map((key, index) => (
         <li
           data-note={notes[index]}
-          className={
-            blackKeys.indexOf(key) >= 0 ? styles.keyblack : styles.keywhite
-          }
+          className={blackKeys.indexOf(key) >= 0 ? styles.keyblack : styles.keywhite}
           key={index}
           ref={keyRefMap[index]}
           onTouchStart={(e) => onUserEvent("keydown", index, octave)}
           onTouchEnd={(e) => onUserEvent("keyup", index, octave)}
+        >
+          {JSON.stringify(keyRefMap[notes[index]])}
+          <br></br> {key} {index}
+        </li>
+      ))}
+      {keys.map((key, index) => (
+        <li
+          data-note={notes[index]}
+          className={blackKeys.indexOf(key) >= 0 ? styles.keyblack : styles.keywhite}
+          key={index}
+          ref={keyRefMap[index]}
+          onTouchStart={(e) => onUserEvent("keydown", index, octave + 1)}
+          onTouchEnd={(e) => onUserEvent("keyup", index, octave + 1)}
         >
           {JSON.stringify(keyRefMap[notes[index]])}
           <br></br> {key} {index}

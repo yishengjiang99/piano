@@ -23,8 +23,7 @@ export const IndexPage = (props) => {
   const [userEventHistory, setUserEventHistory] = useState([]);
   const [userEvent, setUserEvent] = useState(null);
   useEffect(() => {
-    if (userEvent !== null)
-      setUserEventHistory(userEventHistory.concat(userEvent));
+    if (userEvent !== null) setUserEventHistory(userEventHistory.concat(userEvent));
   }, [userEvent]);
 
   const pianoRef = useRef();
@@ -69,15 +68,7 @@ export const IndexPage = (props) => {
 
       <details>
         <summary>Console</summary>
-        <div id="console">
-          {userEventHistory.map((event) => {
-            return (
-              <p>
-                {event.type} {event.time} {event.freq}
-              </p>
-            );
-          })}
-        </div>
+        <div id="console"></div>
       </details>
     </>
   );

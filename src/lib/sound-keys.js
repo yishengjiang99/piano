@@ -1,3 +1,6 @@
+/* eslint-disable no-magic-numbers*/
+/* eslint-disable comma-dangle*/
+
 export const notes_ext = {
   C: [16.35, 32.7, 65.41, 130.81, 261.63, 523.25, 1046.5, 2093.0, 4186.01],
   Db: [17.32, 34.65, 69.3, 138.59, 277.18, 554.37, 1108.73, 2217.46, 4434.92],
@@ -39,7 +42,6 @@ export const chords = {
   Ab: ["Ab", "E", "B"],
   A: ["A", "D", "Gb"],
   Bb: ["Bb", "Gb", "Db"],
-  E: ["E", "Ab", "B"],
   B: ["B", "Ab", "E"],
 };
 export const melody = ["major", "major", "minor", "major"];
@@ -49,42 +51,19 @@ export const keyboardToFreq = (key, octave) => {
   const baseFreq = notesOfIndex[idx][octave];
   return baseFreq;
 };
-export const note_to_major_triad = (baseFreq, octave) => {
+export const noteToMajorTriad = (baseFreq, octave) => {
   const idx = notes.indexOf(baseFreq);
   const keynote = keynotes[idx];
-  const chords = chords[keynote];
-  return chords.map((n) => notes_ext[n][octave]);
+  const _chords = chords[keynote];
+  return _chords.map((n) => notes_ext[n][octave]);
 };
-export const note_to_minor_triad = (baseFreq, octave) => {
+export const noteToMinorTriad = (baseFreq, octave) => {
   const idx = notes.indexOf(baseFreq);
-  const chords = [
-    keynotes[idx],
-    keynotes[(idx + 2) % 12],
-    keynotes[(idx + 4) % 12],
-  ];
+  const _chords = [keynotes[idx], keynotes[(idx + 2) % 12], keynotes[(idx + 4) % 12]];
 
-  return chords.map((n) => notes_ext[n][octave]);
+  return _chords.map((n) => notes_ext[n][octave]);
 };
 
-export const keynotes = "C, Db, D,  Eb,  E,  F,  Gb, G,  Ab, A,  Bb, B, C".split(
-  /\s+/
-);
 export const blackKeys = ["w", "e", "t", "y", "u"];
-export const keys = [
-  "a",
-  "w",
-  "s",
-  "e",
-  "d",
-  "f",
-  "t",
-  "g",
-  "y",
-  "h",
-  "u",
-  "j",
-  "k",
-];
-export const keynotes = "C, Db, D,  Eb,  E,  F,  Gb, G,  Ab, A,  Bb, B, C".split(
-  /\s+/
-);
+export const keys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "k"];
+export const keynotes = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C"];
