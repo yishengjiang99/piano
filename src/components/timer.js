@@ -7,7 +7,7 @@ import {
   PauseCircleFilledSharp,
 } from "@material-ui/icons";
 import React from "react";
-import getAudioContext from "../lib/audioCtx.js";
+import { getContext } from "../lib/audioCtx.js";
 
 import { IconButton, Toolbar } from "@material-ui/core";
 
@@ -40,6 +40,7 @@ function Ticker(onTick, intervalLength) {
     },
   };
 }
+var ticker;
 var audioCtx;
 const Timer = (props) => {
   const [debug, setDebug] = useState("");
@@ -57,7 +58,6 @@ const Timer = (props) => {
     ...props,
   };
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
-  const ticker = Ticker(onTick, tickLength);
 
   const [seek, setSeek] = useState(0);
   const [ctx, setCtx] = useState(null);
@@ -67,21 +67,27 @@ const Timer = (props) => {
   const toolbarRef = useRef();
   useEffect(() => {
     // comp mount
-    audioCtx = getAudioContext();
-    setCtx(audioCtx._ctx);
-    setDebug(audioCtx._ctx.currentTime);
+    ticker = Ticker(onTick, tickLength);
   }, []);
 
   useEffect(() => {
     let lastTick;
-
+    async function startAudioCtx() {
+      if (ctx !== null && ctx._ctx.state === "running") {
+        const audioCtx = await getContext();
+        setCtx(audioCtx);
+      }
+      return audioCtx;
+    }
     if (playing) {
-      ticker.startTicker(() => {
-        setDebug("tick " + (tickCount + 1) * resolution);
-        setSeek((tickCount + 1) * resolution);
-        onTick(tickCount + 1);
-        setTickCount(tickCount + 1);
-      }, bpm);
+      startAudioCtx().then((_ctx) => {
+        ticker.startTicker(() => {
+          setDebug(JSON.stringify(_ctx));
+          setSeek((tickCount + 1) * resolution);
+          onTick(_ctx.currentTimem, tickCount + 1);
+          setTickCount(tickCount + 1);
+        }, bpm);
+      });
     } else {
       ticker.stopTicker();
     }

@@ -31,11 +31,44 @@ export const chords = {
   C: ["C", "E", "G"],
   Db: ["Db", "F", "Ab"],
   D: ["D", "Gb", "A"],
+  Eb: ["Eb", "F", "G"],
   E: ["E", "Ab", "B"],
   F: ["F", "A", "C"],
   Gb: ["Gb", "Bb", "Db"],
   G: ["G", "B", "D"],
+  Ab: ["Ab", "E", "B"],
+  A: ["A", "D", "Gb"],
+  Bb: ["Bb", "Gb", "Db"],
+  E: ["E", "Ab", "B"],
+  B: ["B", "Ab", "E"],
 };
+export const melody = ["major", "major", "minor", "major"];
+export const keyboardToFreq = (key, octave) => {
+  const idx = keys.indexOf(key);
+  const note = notes[idx];
+  const baseFreq = notesOfIndex[idx][octave];
+  return baseFreq;
+};
+export const note_to_major_triad = (baseFreq, octave) => {
+  const idx = notes.indexOf(baseFreq);
+  const keynote = keynotes[idx];
+  const chords = chords[keynote];
+  return chords.map((n) => notes_ext[n][octave]);
+};
+export const note_to_minor_triad = (baseFreq, octave) => {
+  const idx = notes.indexOf(baseFreq);
+  const chords = [
+    keynotes[idx],
+    keynotes[(idx + 2) % 12],
+    keynotes[(idx + 4) % 12],
+  ];
+
+  return chords.map((n) => notes_ext[n][octave]);
+};
+
+export const keynotes = "C, Db, D,  Eb,  E,  F,  Gb, G,  Ab, A,  Bb, B, C".split(
+  /\s+/
+);
 export const blackKeys = ["w", "e", "t", "y", "u"];
 export const keys = [
   "a",

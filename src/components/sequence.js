@@ -2,20 +2,7 @@ import styles from "./sequence.module.css";
 import React from "react";
 
 import { useState, useEffect, useRef } from "react";
-const notes = [
-  261.63,
-  277.18,
-  293.66,
-  311.13,
-  329.63,
-  349.23,
-  369.99,
-  392,
-  415.3,
-  440,
-  466.16,
-  493.88,
-];
+import { getContext, getNote } from "../lib/audioCtx";
 const PlaybackStateEnum = {
   initial: 0,
   recording: 1,
@@ -35,17 +22,18 @@ const Sequence = ({ newEvent, postTrack, rows, cols }) => {
   const [playbackState, setPlaybackState] = useState(PlaybackStateEnum.initial);
   const [msg, setMsg] = useState("");
   const [log, setLog] = useState("");
-
+  const [ctx, setCtx] = useState(null);
   const [pendingNotes, setPendingNotes] = useState({});
 
   var updateTimer, audioCtx;
   const toolbarRef = useRef();
   const canvasRef = useRef();
-  const pushNote = (note) => {
+  const pushNote = async (note, _ctx) => {
     if (playbackState === PlaybackStateEnum.playing) {
       setMsg("cannot push note during playback");
       return;
     }
+
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
       bar = currentBar + 1;
@@ -53,15 +41,21 @@ const Sequence = ({ newEvent, postTrack, rows, cols }) => {
       setLastNoteTime(note.time);
     }
     if (note.type == "keydown") {
+      // alert(JSON.stringify(note));
+      note.envelope = getNote(note.freq);
+      note.envelope.trigger();
       pendingNotes[note.index] = note;
       setPendingNotes(pendingNotes);
-    } else if (note.type !== "keydown") {
+    } else if (note.type == "keydown") {
       var pendingNote = pendingNotes[note.index];
       if (pendingNote) {
         note.length = note.time - pendingNote.time;
       }
       if (note.type === "keyup") {
+        note.envelope.triggerRelease();
         delete pendingNotes[note.index];
+      } else {
+        note.envelope.hold();
       }
     }
 
@@ -140,23 +134,21 @@ const Sequence = ({ newEvent, postTrack, rows, cols }) => {
   }, [paintBar]);
 
   useEffect(() => {
+    async function ensureAudioCtx() {
+      if (ctx == null || ctx._ctx.state === "running") {
+        const audioCtx = await getContext();
+        setCtx(audioCtx);
+      }
+      return audioCtx;
+    }
     //key start, release, hold
     if (newEvent !== null) {
-      pushNote(newEvent);
+      ensureAudioCtx().then(function (ctx) {
+        pushNote(newEvent, ctx);
+      });
     }
   }, [newEvent]);
 
-  const pauseTimer = () => {
-    setPlaybackState(PlaybackStateEnum.paused);
-    cancelAnimationFrame(updateTimer);
-  };
-  const playback = () => {
-    postTrack({
-      track: track,
-      events: eventz,
-    });
-    setPlaybackState(PlaybackStateEnum.playing);
-  };
   return (
     <>
       <div className="hud">{currentBar}</div>
