@@ -10,7 +10,11 @@ const Piano = ({ onUserEvent, octave }) => {
       const index = keys.indexOf(e.key);
       if (index < 0) return;
       const freq = notes[index];
-      _onUserEvent("keydown", freq, e.timeStamp, index);
+      if (e.repeat == true) {
+        _onUserEvent("keypress", freq, e.timeStamp, index);
+      } else {
+        _onUserEvent("keydown", freq, e.timeStamp, index);
+      }
       e.target.classList.add("pressed");
     };
     window.onkeyup = (e) => {

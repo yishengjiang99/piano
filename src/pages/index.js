@@ -20,13 +20,25 @@ export const IndexPage = (props) => {
       max: 6,
     },
   });
-  const [userEventHistory, setUserEventHistory] = useState([]);
   const [userEvent, setUserEvent] = useState(null);
-  useEffect(() => {
-    if (userEvent !== null) setUserEventHistory(userEventHistory.concat(userEvent));
-  }, [userEvent]);
+  const [playPosition, setPlayPosition] = useState({
+    tick: 0,
+    systemTime: null,
+  });
+  const [track, setTrack] = useState({});
+  const [newNote, setNewNote] = useState(null);
+  const [total, setTotal] = useState(0);
 
-  const pianoRef = useRef();
+  useEffect(() => {
+    if (newNote != null) {
+      track[newNote.bar] = track[newNote.bar] || {};
+      track[newNote.bar][newNote.noteIndex] = newNote;
+      if (newNote.bar > total) {
+        setTotal(newNote);
+      }
+      setTrack(track);
+    }
+  }, [newNote]);
 
   function updateAttribute(attribute, value) {
     setSettings({
@@ -45,16 +57,28 @@ export const IndexPage = (props) => {
           onInput={updateAttribute}
         ></EnvelopConfig>
       </details>
-      <Timer newEvent={userEvent}></Timer>
+      <Timer
+        playPosition={playPosition}
+        total={total}
+        track={track}
+        gOnTick={({ tick, time }) => {
+          setPlayPosition({
+            tick: tick,
+            systemTime: time,
+          });
+        }}
+      ></Timer>
       <Sequence
+        track={track}
         newEvent={userEvent}
-        postTrack={({ track, events }) => {
-          pianoRef.current.replayEvents(events);
+        onNewNote={({ frequency, bar, envelope }) => {
+          setNewNote({ frequency, bar, envelope });
         }}
         rows={12}
         cols={20}
       />
       <Piano
+        track={track}
         onUserEvent={(type, freq, time, index) => {
           setUserEvent({
             time: time,

@@ -7,41 +7,10 @@ import {
   PauseCircleFilledSharp,
 } from "@material-ui/icons";
 import React from "react";
-import { getContext } from "../lib/audioCtx.js";
-
+import { getContext, getNote, ensureAudioCtx } from "../lib/audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
+import { keyboardToFreq } from "../lib/sound-keys.js";
 
-function Ticker(onTick, intervalLength) {
-  // const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
-  var n = 0;
-  var timer = new Worker("./offlinetimer.js");
-  timer.onmessage = ({ data }) => {
-    switch (data) {
-      case "load":
-        timer.postMessage({ interval: intervalLength });
-        break;
-      case "ready":
-        break;
-
-      default:
-        onTick(n++);
-        break;
-    }
-  };
-  return {
-    startTicker: function () {
-      timer.postMessage("start");
-    },
-    stopTicker: function () {
-      timer.postMessage("stop");
-    },
-    resumeTicker: function () {
-      timer.postMessage("resume");
-    },
-  };
-}
-var ticker;
-var audioCtx;
 const Timer = (props) => {
   const [debug, setDebug] = useState("");
 
@@ -49,50 +18,73 @@ const Timer = (props) => {
     bpm: 120, //120 quarter notes per minute.. and we tick twice per beat
     noteLength: 1 / 4,
     resolution: 1 / 8,
-    onTick: (time, tickNumber) =>
-      setDebug("TICK at " + time + " n:" + tickNumber),
     total: 100,
   };
-  const { bpm, noteLength, resolution, onTick, total } = {
+  const { bpm, noteLength, resolution, gOnTick, playPosition, tracks, total } = {
     ...defaults,
     ...props,
   };
+
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
 
   const [seek, setSeek] = useState(0);
   const [ctx, setCtx] = useState(null);
   const [playing, setPlaying] = useState(false);
-  const [currentTick, setCurrentTick] = useState(null);
-  const [tickCount, setTickCount] = useState(-3);
   const toolbarRef = useRef();
-  useEffect(() => {
-    // comp mount
-    ticker = Ticker(onTick, tickLength);
-  }, []);
+  var timer;
+
+  const fromTop = () => {
+    ensureAudioCtx().then((audioCtx) => {
+      var now = audioCtx.currentTime;
+      var n = 0;
+      function loop(time) {
+        if (time - now > tickLength) {
+          var bar = n / 2;
+          if (bar == playPosition || bar - playPosition < 2) {
+            Object.keys(tracks[playPosition]).forEach((noteIdx) => {
+              var note = keyboardToFreq(noteIdx);
+              getNote(note, 3).triggerEnvelope(note.envelope);
+            });
+            playPosition++;
+            gOnTick(playPosition, ctx.currentTime);
+          }
+          now = time;
+          n++;
+        }
+        timer = requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    });
+  };
 
   useEffect(() => {
-    let lastTick;
-    async function startAudioCtx() {
-      if (ctx !== null && ctx._ctx.state === "running") {
-        const audioCtx = await getContext();
-        setCtx(audioCtx);
-      }
-      return audioCtx;
-    }
     if (playing) {
-      startAudioCtx().then((_ctx) => {
-        ticker.startTicker(() => {
-          setDebug(JSON.stringify(_ctx));
-          setSeek((tickCount + 1) * resolution);
-          onTick(_ctx.currentTimem, tickCount + 1);
-          setTickCount(tickCount + 1);
-        }, bpm);
-      });
+      debugger;
+      var now = ctx.currentTime;
+      function loop() {
+        if (ctx.currentTime - now > tickLength) {
+          var bar = bar || 0;
+          Object.keys(tracks[playPosition]).forEach((noteIdx) => {
+            var note = keyboardToFreq(noteIdx);
+            getNote(note, 3).triggerEnvelope(note.envelope);
+          });
+          playPosition++;
+          gOnTick(playPosition, ctx.currentTime);
+          now = ctx.currentTime;
+        }
+        timer = requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
     } else {
-      ticker.stopTicker();
+      cancelAnimationFrame(timer);
     }
   }, [playing]);
 
+  useEffect(() => {
+    ensureAudioCtx().then((audioCtx) => {
+      setCtx(audioCtx);
+    });
+  }, []);
   return (
     <div>
       <Toolbar ref={toolbarRef}>
@@ -113,10 +105,7 @@ const Timer = (props) => {
         </IconButton>
         {debug}
       </Toolbar>
-      <LinearProgress
-        variant="determinate"
-        value={(seek / total) * 100}
-      ></LinearProgress>
+      <LinearProgress variant="determinate" value={(playPosition / total) * 100}></LinearProgress>
     </div>
   );
 };
