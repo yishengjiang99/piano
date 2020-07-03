@@ -52,7 +52,7 @@ export let _settings = {
   chords: [1, 2, 4],
   gains: [1, 0.2, 0.1],
   adsr: [0.01, 0.2, 0.8, 0.3],
-  detune: [0, 2, 2],
+  detune: [0, 0, 2],
   delay: [0, 0, 1],
   lpf: 1600,
   hpf: 70,
@@ -68,6 +68,7 @@ export function getContext() {
   ctx = ctx || new AudioContext();
   if (ctx.state === "paused") ctx.resume();
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
+  window.outputAnalyzer = new AnalyzerNode(ctx, {fft:255})
   masterGain.connect(ctx.destination);
   return ctx;
 }
@@ -88,7 +89,7 @@ export function getNote(notefreq, octave = 3) {
   }
 
   const outputGain = new GainNode(ctx, { gain: 0 });
-  var chords = noteToMajorTriad(notefreq, octave);
+  var chords = _settings.chords.map((c) => c * notefreq);
 
   chords
     .map((freq, idx) => {

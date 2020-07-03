@@ -9,7 +9,6 @@ function initFileShare(dirname) {
   fileService.createShareIfNotExists(FILESHARE_TASK, function (
     error,
     result,
-    response
   ) {
     if (!error) {
       console.error(error);

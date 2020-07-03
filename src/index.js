@@ -37,3 +37,5 @@ window.redux = function () {
     mapDispatchToProps: () => alert("fuck off"),
   };
 };
+
+
