@@ -5,6 +5,18 @@ import React from "react";
 import EnvelopConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
+import { connect } from "react-redux";
+
+const addNote = () => {};
+const deleteNote = () => {};
+const getTracks = () => {};
+const mapStateToProps = (state /*, ownProps*/) => {
+  return {
+    tracks: state.tracks,
+  };
+};
+
+const mapDispatchToProps = { addNote, deleteNote, getTracks };
 
 export const IndexPage = (props) => {
   const [settings, setSettings] = useState({
@@ -83,3 +95,5 @@ export const IndexPage = (props) => {
     </>
   );
 };
+
+export default connect(mapStateToProps, mapDispatchToProps)(IndexPage);

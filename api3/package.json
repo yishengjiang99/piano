@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node lib/db.test.js",
-    "server": "node lib/dbfastify.js"
+    "start": "node lib/dbfastify.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,9 +13,7 @@
     "@xarc/fastify-server": "^2.0.0",
     "azure-storage": "^2.10.3",
     "fastify": "^2.15.1",
-    "fastify-static": "^2.7.0",
     "jest": "^26.1.0",
-    "mongodb": "^3.5.9",
     "mysql": "github:mysqljs/mysql"
   },
   "devDependencies": {

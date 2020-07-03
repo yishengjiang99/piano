@@ -3,7 +3,6 @@ import Slider from "@material-ui/core/Slider";
 import { Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { useState, Fragment } from "react";
-import NoSsr from "@material-ui/core/NoSsr";
 
 const useStyles = makeStyles({
   root: {
@@ -27,13 +26,11 @@ const EnvelopConfig = ({ defaults, onInput }) => {
       {["attack", "decay", "sustain", "release"].map((attribute) => {
         return (
           <Fragment key={attribute}>
-            <Typography
-              key={`${attribute}-slider-label`}
-              id={`${attribute}-slider-label`}
-            >
+            <Typography key={`${attribute}-slider-label`} id={`${attribute}-slider-label`}>
               {attribute}: {adsr[attribute]}
             </Typography>
-            <Slider
+            <input
+              type="range"
               key={`${attribute}-slider`}
               getAriaValueText={`${attribute}-slider-label`}
               defaultValue={defaults[attribute]}
@@ -45,7 +42,7 @@ const EnvelopConfig = ({ defaults, onInput }) => {
               max={3}
               step={0.01}
               getAriaValueText={valuetext}
-            ></Slider>
+            ></input>
           </Fragment>
         );
       })}
@@ -69,7 +66,7 @@ export const ParamConfig = ({
   const [val, setVal] = useState(1);
 
   return (
-    <NoSsr>
+    <>
       <Typography key={`${param}-slider-label`} id={`${param}-slider-label`}>
         {param}: {val}
       </Typography>
@@ -87,6 +84,6 @@ export const ParamConfig = ({
         step={step || 0.01}
         getAriaValueText={valuetext}
       ></Slider>
-    </NoSsr>
+    </>
   );
 };

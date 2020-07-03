@@ -12,7 +12,7 @@ const PlaybackStateEnum = {
 };
 var eventz = [];
 const secondsPerBar = 0.25;
-var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasCtx;
+var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
 const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
@@ -26,6 +26,7 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
 
   var updateTimer, audioCtx;
   const canvasRef = useRef();
+  const canvasHudRef = useRef();
   const pushNote = async (note, _ctx) => {
     if (playbackState === PlaybackStateEnum.playing) {
       setMsg("cannot push note during playback");
@@ -34,6 +35,10 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
 
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
+      var _log =
+        log + "\n" + "bar++ on note.type" + note.type + " " + note.time + " vs " + lastNoteTime;
+      setMsg("bar++ on note.type " + note.type + " " + note.time + " vs " + lastNoteTime);
+
       bar = currentBar + 1;
       setCurrentBar(bar);
       setLastNoteTime(note.time);
@@ -132,7 +137,7 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
     _resizeCanvas();
     window.onresize = _resizeCanvas();
     canvasCtx = canvasRef.current.getContext("2d");
-
+    canvasHudCtx = canvasHudRef.current.getContext("2d");
     _drawAxis();
   }, []);
 
@@ -144,22 +149,20 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
       canvasCtx.fillRect(
         (paintBar.bar - barCursor) * cellWidth,
         paintBar.index * cellHeight,
-        cellWidth * (paintBar.length / 125) - 1,
+        cellWidth * (paintBar.length / 250) - 1,
         cellHeight - 1
-      );
-      setMsg(
-        "paining now: " +
-          [
-            paintBar.bar * cellWidth,
-            paintBar.index * cellHeight,
-            cellWidth - 1,
-            cellHeight - 1,
-          ].join(", ")
       );
     }
   }, [paintBar]);
   useEffect(() => {
-    barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight) && _drawAxis();
+    canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
+    canvasHudCtx.clearRect(0, 0, currentBar * cellWidth, canvasHeight);
+
+    canvasHudCtx.fillRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
+  }, [currentBar]);
+  useEffect(() => {
+    barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    _drawAxis();
   }, [barCursor]);
   useEffect(() => {
     async function ensureAudioCtx() {
@@ -175,11 +178,7 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
       if (newEvent.type == "keydown" && newEvent.repeat == true) {
         newEvent.type = "keypress";
       }
-      setMsg(
-        Object.keys(newEvent)
-          .map((k) => `${k}:${newEvent[k]}`)
-          .join(",")
-      );
+
       setLog(log + "\n" + newEvent.type);
       ensureAudioCtx().then((audioCtx) => {
         pushNote(newEvent, audioCtx);
@@ -192,18 +191,34 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
       <div className="hud">{currentBar}</div>
       <div
         className={styles.gridContainer}
-        style={{ height: "auto", width: "auto", backgroundColor: "gray" }}
+        style={{
+          height: "auto",
+          width: "auto",
+          backgroundColor: "gray",
+          position: "relative",
+          height: rows * 20,
+          width: cols * 20,
+        }}
       >
         <canvas
+          style={{ position: "absolute" }}
           ref={canvasRef}
           onClick={_canvasClick}
           height={rows * 20}
           width={cols * 20}
         ></canvas>
+        <canvas
+          style={{ position: "absolute" }}
+          ref={canvasHudRef}
+          onClick={_canvasClick}
+          height={rows * 20}
+          width={cols * 20}
+        ></canvas>
       </div>
-      <div style={{ position: "fixed", bottom: 54 }}>
-        {log.split("\n").forEach((l) => (
-          <div>{l}</div>
+      <div style={{ maxHeight: 240, overflowY: "scroll" }}>
+        {msg}
+        {log.split("\n").map((l) => (
+          <p>{l}</p>
         ))}
       </div>
     </>

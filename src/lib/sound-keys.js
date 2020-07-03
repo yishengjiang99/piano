@@ -53,13 +53,13 @@ export const keyboardToFreq = (key, octave) => {
 };
 export const noteToMajorTriad = (baseFreq, octave) => {
   const idx = notes.indexOf(baseFreq);
-  const keynote = keynotes[idx];
-  const _chords = chords[keynote];
+  const _chords = [keynotes[idx], keynotes[(idx + 3) % 12], keynotes[(idx + 4) % 12]];
+
   return _chords.map((n) => notes_ext[n][octave]);
 };
 export const noteToMinorTriad = (baseFreq, octave) => {
   const idx = notes.indexOf(baseFreq);
-  const _chords = [keynotes[idx], keynotes[(idx + 2) % 12], keynotes[(idx + 4) % 12]];
+  const _chords = [keynotes[idx], keynotes[(idx + 4) % 12], keynotes[(idx + 3) % 12]];
 
   return _chords.map((n) => notes_ext[n][octave]);
 };

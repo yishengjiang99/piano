@@ -2,10 +2,39 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { IndexPage } from "./App";
 import * as serviceWorker from "./serviceWorker";
+import { createStore } from "redux";
+
+import { Provider } from "react-redux";
+const initialState = {
+  tracks: {},
+  userEvents: [],
+  settings: {},
+};
+const store = createStore(function (state = initialState, action) {
+  switch (action.type) {
+    case "keyup":
+    case "keypress":
+    case "keydown":
+      return state.userEvents.concat({
+        time: action.time,
+        noteIndex: action.index,
+        freq: action.freq,
+      });
+    case "notePlayed":
+      return state.tracks[action.bar].concat(action.note);
+    case "change_setting":
+      return (state.settings = { ...state.settings, ...action.change });
+    case "delete":
+      delete state.tracks[action.bar][action.note.noteIndex];
+      return;
+  }
+});
 ReactDOM.render(
-  <React.StrictMode>
-    <IndexPage />
-  </React.StrictMode>,
+  <Provider store={store}>
+    <React.StrictMode>
+      <IndexPage />
+    </React.StrictMode>
+  </Provider>,
   document.getElementById("root")
 );
 
