@@ -49,11 +49,11 @@ export function Envelope(adsr, audioParam) {
 }
 export let _settings = {
   osc3: ["sine", "square", "sine"],
-  chords: [1, 2, 4],
+  chords: [0.5, 1, 2],
   gains: [1, 0.2, 0.1],
   adsr: [0.01, 0.2, 0.8, 0.3],
   detune: [0, 2, 2],
-  delay: [0, 0, 1],
+  delay: [0, 0.5, 1],
   lpf: 1600,
   hpf: 70,
 };
@@ -82,13 +82,12 @@ let noteCache = {};
 export function getNote(notefreq, octave = 3) {
   if (noteCache[notefreq]) return noteCache[notefreq];
   ctx = ctx || new AudioContext();
-  const freqmultiplierindex = [0, 0.25, 0.5, 1, 2, 4];
   if (notefreq <= 0 || isNaN(notefreq)) {
     alert(notefreq);
   }
 
   const outputGain = new GainNode(ctx, { gain: 0 });
-  var chords = noteToMajorTriad(notefreq, octave);
+  var chords = _settings.chords.map((multi) => notefreq * multi); //(notefreq, octave);
 
   chords
     .map((freq, idx) => {

@@ -31,10 +31,11 @@ const Timer = ({ gOnTick, playPosition }) => {
   const loop = function () {
     var start = ctx.currentTime;
     gOnTick(_seek, ctx.currentTime);
-    Object.keys(track[_seek]).forEach((noteIdx) => {
-      var note = track[_seek][noteIdx];
-      getNote(note.frequency, 3).triggerEnvelope(note.envelop);
-    });
+    track[_seek] &&
+      Object.keys(track[_seek]).forEach((noteIdx) => {
+        var note = track[_seek][noteIdx];
+        getNote(note.frequency, 3).triggerEnvelope(note.envelop);
+      });
     if (_seek + 1 > total) {
       setPlaying(false);
       setSeek(0);
