@@ -1,0 +1,17 @@
+{
+  "name": "grepaudio-api3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node lib/db.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@xarc/fastify-server": "^2.0.0",
+    "jest": "^26.1.0",
+    "mongodb": "^3.5.9",
+    "mysql": "github:mysqljs/mysql"
+  }
+}
