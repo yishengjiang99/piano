@@ -7,16 +7,22 @@ import Piano from "./piano";
 import Timer from "./timer";
 import { connect } from "react-redux";
 import { TagView } from "./audioCtx";
-const addNote = () => {};
-const deleteNote = () => {};
-const getTracks = () => {};
-const mapStateToProps = (state /*, ownProps*/) => {
-  return {
-    tracks: state.tracks,
-  };
-};
+// const addNote = (dispatch, note) => {
+//   dispatch({ type: "addnote", layload: note });
+// };
+// const deleteNote = (barIndex, noteIndex) => {
+//   dispatch({ type: "deletenote", bar: barIndex, note: noteIndex });
+// };
+// const getTracks = () => {
+//   dispatch({ type: "gettracks" });
+// };
+// const mapStateToProps = (state /*, ownProps*/) => {
+//   return {
+//     tracks: state.tracks,
+//   };
+// };
 
-const mapDispatchToProps = { addNote, deleteNote, getTracks };
+// const mapDispatchToProps = { addNote, deleteNote, getTracks }(dispatch);
 
 export const IndexPage = (props) => {
   const [settings, setSettings] = useState({
@@ -32,12 +38,7 @@ export const IndexPage = (props) => {
     },
   });
   const [userEvent, setUserEvent] = useState(null);
-  const [playPosition, setPlayPosition] = useState({
-    tick: 0,
-    systemTime: null,
-  });
-  const [track, setTrack] = useState({});
-  const [total, setTotal] = useState(0);
+
   function updateAttribute(attribute, value) {
     setSettings({
       ...settings,
@@ -55,28 +56,9 @@ export const IndexPage = (props) => {
           onInput={updateAttribute}
         ></EnvelopConfig>
       </details>
-      <Timer
-        playPosition={playPosition}
-        total={total}
-        tracks={track}
-        gOnTick={({ tick, time }) => {
-          setPlayPosition({
-            tick: tick,
-            systemTime: time,
-          });
-        }}
-      ></Timer>
-      <Sequence
-        track={track}
-        newEvent={userEvent}
-        onNewNote={function (newNote) {
-          window.redux().addNoteToTrack(newNote);
-        }}
-        rows={12}
-        cols={20}
-      />
+      <Timer></Timer>
+      <Sequence newEvent={userEvent} rows={12} cols={20} />
       <Piano
-        track={track}
         onUserEvent={(type, freq, time, index) => {
           setUserEvent({
             time: time,
@@ -97,4 +79,4 @@ export const IndexPage = (props) => {
   );
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(IndexPage);
+// export default connect(mapStateToProps, mapDispatchToProps)(IndexPage);

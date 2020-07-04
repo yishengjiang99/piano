@@ -62,6 +62,32 @@ const genuserNames = () => {
     .map((n) => n.trim())
     .map((name) => dbInsert("available_usernames", { username: name, taken: 0 }));
 };
+
+
+async function getOrCreateUser(req) {
+  const username = req.headers["g-username"];
+  var user;
+  if (username) {
+    user = await dbRow("SELECT * from user where username=? limit 1", [username]);
+  }
+
+  if (!user) {
+    const randUsername = await dbRow(
+      "select username from available_usernames where taken=0 order by rand() limit 1"
+    );
+    dbQuery("update available_usernames set taken=1 where username=?", [randUsername.username]);
+    const userId = await dbInsert("user", {
+      username: randUsername.username,
+      loggedin_cnt: 1,
+    }).catch((e) => {});
+    user = await dbRow("select username from user where id=?", [userId]).catch((e) =>
+      console.log(e)
+    );
+  }
+  if (!user) {
+    throw new exception("unable to select or insert new user");
+  }
+}
 module.exports = {
   dbQuery,
   dbInsert,

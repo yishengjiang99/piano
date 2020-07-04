@@ -3,22 +3,30 @@ import React from "react";
 
 import { useState, useEffect, useRef } from "react";
 import { getContext, getNote } from "./audioCtx";
-const PlaybackStateEnum = {
-  initial: 0,
-  recording: 1,
-  paused: 2,
-  playing: 3,
-  ended: 4,
-};
-var eventz = [];
+import { keyboardToFreq, idxToFreq } from "./sound-keys";
+import { connect, actions } from "./redux/store.js";
+
 const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
-const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
-  const [currentBar, setCurrentBar] = useState(-1);
+function mapStateToProps(state) {
+  return {
+    tracks: state.tracks,
+    seek: state.seek,
+    octave: state.octave,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
+    onDeleteNote: (note) => dispatch({ type: actions.DELETE_NOTE, payload: note }),
+  };
+}
+const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, tracks }) => {
+  debugger;
+  const [currentBar, setCurrentBar] = useState(0);
   const [barCursor, setBarCursor] = useState(0);
   const [lastNoteTime, setLastNoteTime] = useState(0);
   const [paintBar, setPaintBar] = useState(null);
-  const [playbackState, setPlaybackState] = useState(PlaybackStateEnum.initial);
   const [msg, setMsg] = useState("");
   const [log, setLog] = useState("");
   const [ctx, setCtx] = useState(null);
@@ -28,17 +36,9 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
   const canvasRef = useRef();
   const canvasHudRef = useRef();
   const pushNote = async (note, _ctx) => {
-    if (playbackState === PlaybackStateEnum.playing) {
-      setMsg("cannot push note during playback");
-      return;
-    }
-
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
-      var _log =
-        log + "\n" + "bar++ on note.type" + note.type + " " + note.time + " vs " + lastNoteTime;
       setMsg("bar++ on note.type " + note.type + " " + note.time + " vs " + lastNoteTime);
-
       bar = currentBar + 1;
       setCurrentBar(bar);
       setLastNoteTime(note.time);
@@ -55,11 +55,11 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
         setCurrentBar(bar);
         setLastNoteTime(lastNoteTime + secondsPerBar);
       }
+      if (pendingNote.envelope) pendingNote.envelope.hold();
     } else if (note.type == "keydown") {
       pendingNotes[note.index] = note;
       pendingNotes[note.index].start = note.time;
-      var _log = log + "\n" + note.freq;
-      setLog(_log); // += "\nplaying " + note.freq);
+
       pendingNotes[note.index].envelope = getNote(note.freq);
       pendingNotes[note.index].envelope.trigger();
       setPendingNotes(pendingNotes);
@@ -70,28 +70,17 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
       }
 
       note.length = note.time - pendingNote.time;
-      if (note.type === "keyup") {
-        pendingNote.envelope.triggerRelease();
-        onNewNote({
-          bar: bar,
-          index: note.index,
-          frequency: note.freq,
-          envelop: pendingNote.envelope.cloneShape(),
-        });
+      note.envelope = pendingNote.envelope;
+      pendingNote.envelope.triggerRelease();
 
-        delete pendingNotes[note.index];
-      } else {
-        pendingNote.extension = pendingNote.extension || [];
-        pendingNote.extention.push(note.time);
-        if (pendingNote.envelope) pendingNote.envelope.hold();
-      }
+      onNewNote(note);
     }
 
     if (bar - barCursor > cols) {
       //paginate
       setBarCursor(barCursor + cols);
     }
-    if (note.length > 0.04) {
+    if (note.length > 0.0001) {
       note.bar = bar;
       setPaintBar(note);
     }
@@ -123,15 +112,15 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
     const [x, y] = [e.clientX, e.clientY];
     const noteIndex = Math.floor(y / cellHeight);
     const barIndex = Math.floor(x / cellWidth);
-
-    if (track[barIndex + barCursor][noteIndex] !== null) {
-      delete track[barIndex + barCursor][noteIndex];
-      setPaintBar({ bar: barIndex, index: noteIndex, color: "gray" });
+    const note = { bar: barIndex, note: noteIndex, freq: keyboardToFreq(noteIndex, octave) };
+    if (tracks[barIndex + barCursor][noteIndex] !== null) {
+      onDeleteNote(note);
+      setPaintBar({ ...note, color: "gray" });
     } else {
-      track[barIndex + barCursor][noteIndex] = 1;
-      setPaintBar({ bar: barIndex, index: noteIndex });
+      setPaintBar(note);
+      onNewNote(note);
     }
-    onNewNote({ bar: barIndex, index: noteIndex, envelop: [] });
+    //({ bar: barIndex, index: noteIndex, envelop: [] });
   };
 
   useEffect(() => {
@@ -217,7 +206,7 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
           width={cols * 20}
         ></canvas>
       </div>
-      <div style={{ maxHeight: 240, overflowY: "scroll" }}>
+      <div style={{ position: "fixed", left: 0, maxHeight: 240, overflowY: "scroll" }}>
         {msg}
         {log.split("\n").map((l, idx) => (
           <p key={idx}> {l}</p>
@@ -226,7 +215,8 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
     </>
   );
 };
+
 function sleep(sec) {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 }
-export default Sequence;
+export default connect(mapStateToProps, mapDispatchToProps)(Sequence);

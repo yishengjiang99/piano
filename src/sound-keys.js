@@ -51,6 +51,9 @@ export const keyboardToFreq = (key, octave) => {
   const baseFreq = notesOfIndex[idx][octave];
   return baseFreq;
 };
+export const idxToFreq = (idx, octave) => {
+  return notesOfIndex[idx][octave];
+};
 export const noteToMajorTriad = (baseFreq, octave) => {
   const idx = notes.indexOf(baseFreq);
   const keynote = keynotes[idx];

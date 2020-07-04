@@ -3,7 +3,6 @@ import { noteToMajorTriad, noteToMinorTriad, melody } from "./sound-keys.js";
 // // import { DrawEQ } from "https://dsp.grepawk.com/lib/draw.js";
 import { useState, useEffect, createRef } from "react";
 import React from "react";
-import styles from "./lib/fft.module.css";
 export function Envelope(adsr, audioParam) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
@@ -76,14 +75,15 @@ export function getContext() {
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
   if (ctx.state === "paused") ctx.resume();
   scriptProcessor = ctx.createScriptProcessor(1024, 2, 2);
+
   dynamicsCompression = new DynamicsCompressorNode(ctx, { threshold: -4, ratio: 5 });
   postGain = new GainNode(ctx, { gain: 1 });
   analyserNode = new AnalyserNode(ctx);
 
   masterGain
     .connect(dynamicsCompression)
-    .connect(analyserNode)
-    .connect(scriptProcessor)
+    // .connect(analyserNode)
+    // .connect(scriptProcessor)
     .connect(ctx.destination);
   return {
     ctx,
@@ -142,7 +142,6 @@ export const TagView = (props) => {
   }, [rawSample]);
   return (
     <div
-      className={styles.canvasWrap}
       style={{
         height: 720,
         width: 1500,

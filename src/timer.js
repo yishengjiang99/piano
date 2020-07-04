@@ -7,10 +7,11 @@ import {
   PauseCircleFilledSharp,
 } from "@material-ui/icons";
 import React from "react";
-import { getContext, getNote, ensureAudioCtx } from "./audioCtx.js";
+import { getNote, ensureAudioCtx } from "./audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
+import { connect, actions } from "./redux/store.js";
 
-const Timer = ({ gOnTick, playPosition }) => {
+const Timer = ({ octave, tracks, setSeek, seek }) => {
   const defaults = {
     bpm: 120, //120 quarter notes per minute.. and we tick twice per beat
     noteLength: 1 / 4,
@@ -21,43 +22,57 @@ const Timer = ({ gOnTick, playPosition }) => {
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
   const [debug, setDebug] = useState([]);
   const [total, setTotal] = useState(5);
-  const [seek, setSeek] = useState(0);
   const [ctx, setCtx] = useState(null);
   const [playing, setPlaying] = useState(false);
   const toolbarRef = useRef();
   var timer;
-  let track;
-  let _seek = 0;
-  const loop = function () {
-    var start = ctx.currentTime;
-    gOnTick(_seek, ctx.currentTime);
-    track[_seek] &&
-      Object.keys(track[_seek]).forEach((noteIdx) => {
-        var note = track[_seek][noteIdx];
-        getNote(note.frequency, 3).triggerEnvelope(note.envelop);
-      });
-    if (_seek + 1 > total) {
+
+  function userClicked(play) {
+    if (play === true) {
+      setPlaying(true);
+      setSeek(0);
+
+      function playTrack(_tracks, trackLength) {
+        loop(0);
+        function loop(_seek) {
+          setDebug(_seek);
+          var startLoop = ctx.currentTime;
+          if (!_tracks[_seek]) {
+            //chill
+          } else {
+            Object.keys(_tracks[_seek]).forEach((noteIndex, idx) => {
+              const note = _tracks[_seek][noteIndex];
+              getNote(note.frequency, octave).triggerEnvelope(note.envelop);
+            });
+          }
+          if (_seek >= trackLength) {
+            setPlaying(false);
+            return;
+          }
+          setSeek(_seek + 1);
+          const nextNote = tickLength - (ctx.currentTime - startLoop);
+          setTimeout(() => loop(_seek + 1), nextNote);
+        }
+      }
+      playTrack(tracks, tracks.length);
+    }
+
+    if (play === false) {
       setPlaying(false);
       setSeek(0);
-    } else {
-      _seek++;
-      var nextTick = tickLength - (ctx.currentTime - start) * 1000;
-      console.log(nextTick + "next t");
-      timer = setTimeout(loop, nextTick);
-      setSeek(_seek + 1);
     }
-  };
-  useEffect(() => {
-    if (playing) {
-      var _total;
-      [track, _total] = window.redux().getTrack(); // = window.redux().getStoragedValue("track");
-      console.log(_total + "total");
-      setTotal(_total);
-      setImmediate(loop);
-    } else {
-      timer && cancelAnimationFrame(timer);
-    }
-  }, [playing]);
+  }
+
+  // () => {
+  //   if (playing) {
+  //     [track, trackLength] = window.redux().getTrack(); // = window.redux().getStoragedValue("track");
+  //     console.log(trackLength + "total");
+  //     setTotal(trackLength);
+  //     setImmediate(loop);
+  //   } else {
+  //     timer && cancelAnimationFrame(timer);
+  //   }
+  // }, [playing]);
 
   useEffect(() => {
     ensureAudioCtx().then((audioCtx) => {
@@ -71,11 +86,11 @@ const Timer = ({ gOnTick, playPosition }) => {
           <FastRewind />
         </IconButton>
         {playing === true ? (
-          <IconButton onClick={(e) => setPlaying(false)}>
+          <IconButton onClick={(e) => userClicked(false)}>
             <PauseCircleFilledSharp />
           </IconButton>
         ) : (
-          <IconButton onClick={(e) => setPlaying(true)}>
+          <IconButton onClick={(e) => userClicked(true)}>
             <PlayCircleFilledSharp />
           </IconButton>
         )}
@@ -83,9 +98,22 @@ const Timer = ({ gOnTick, playPosition }) => {
           <FastForward />
         </IconButton>
       </Toolbar>
-      <LinearProgress variant="determinate" value={(playPosition / total) * 100}></LinearProgress>
-      <div>{JSON.stringify(track)}</div>
+      <LinearProgress variant="determinate" value={(seek / total) * 100}></LinearProgress>
+      <div>{seek * 0.25}</div>
+      <div>{debug}</div>
     </div>
   );
 };
-export default Timer;
+function mapStateToProps(state) {
+  return {
+    seek: state.seek,
+    tracks: state.tracks,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    setSeek: (num) => dispatch({ type: actions.UPDATE_SEEK, payload: num }),
+    onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
+  };
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Timer);

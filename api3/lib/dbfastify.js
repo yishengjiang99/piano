@@ -10,38 +10,7 @@ const { resolve } = require("path");
 const { execute } = require("child_process");
 const { exception } = require("console");
 
-async function getUser(req) {
-  const username = req.headers["g-username"];
-  var user;
-  if (username) {
-    user = await dbRow("SELECT * from user where username=? limit 1", [username]);
-  }
 
-  if (!user) {
-    const randUsername = await dbRow(
-      "select username from available_usernames where taken=0 order by rand() limit 1"
-    );
-    dbQuery("update available_usernames set taken=1 where username=?", [randUsername.username]);
-    const userId = await dbInsert("user", {
-      username: randUsername.username,
-      loggedin_cnt: 1,
-    }).catch((e) => {});
-    user = await dbRow("select username from user where id=?", [userId]).catch((e) =>
-      console.log(e)
-    );
-  }
-  if (!user) {
-    throw new exception("unable to select or insert new user");
-  }
-}
-const hashCheckAuthLogin = async (username) => {
-  const hashExpected = await execute(
-    `md5 -s '${username}${process.env.secret_md5_salt || "welcome"}'`
-  )
-    .toString()
-    .catch((e) => console.error(e));
-  return hashExpected;
-};
 fastify.get("/checkin.jpeg", async (req, res) => {
   const user = getUser(req);
   const files = await dbQuery(
@@ -86,6 +55,39 @@ fastify.post("/file", async (req, res) => {
 
   //req.cookie("g-username")
 });
+
+async function getUser(req) {
+  const username = req.headers["g-username"];
+  var user;
+  if (username) {
+    user = await dbRow("SELECT * from user where username=? limit 1", [username]);
+  }
+
+  if (!user) {
+    const randUsername = await dbRow(
+      "select username from available_usernames where taken=0 order by rand() limit 1"
+    );
+    dbQuery("update available_usernames set taken=1 where username=?", [randUsername.username]);
+    const userId = await dbInsert("user", {
+      username: randUsername.username,
+      loggedin_cnt: 1,
+    }).catch((e) => {});
+    user = await dbRow("select username from user where id=?", [userId]).catch((e) =>
+      console.log(e)
+    );
+  }
+  if (!user) {
+    throw new exception("unable to select or insert new user");
+  }
+}
+const hashCheckAuthLogin = async (username) => {
+  const hashExpected = await execute(
+    `md5 -s '${username}${process.env.secret_md5_salt || "welcome"}'`
+  )
+    .toString()
+    .catch((e) => console.error(e));
+  return hashExpected;
+};
 fastify.listen(3333, (err, address) => {
   if (err) throw err;
   fastify.log.info(`server listening on ${address}`);
