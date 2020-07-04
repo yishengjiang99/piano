@@ -27,18 +27,16 @@ test("list files", async function () {
   });
   console.log(files);
 });
-//   .then((files) => console.log(files))
-//   .catch(console.error);
 
-// test("az has a filesystem", function () {
-//     const t = new Date();
-//     const text = t.toISOString();
-//     var res = await fs.file_put_contents(`time${t.getSeconds()}.txt`, text);
-//     expect(res).toBeDefined();
+test("az has a filesystem", function () {
+    const t = new Date();
+    const text = t.toISOString();
+    var res = await fs.file_put_contents(`time${t.getSeconds()}.txt`, text);
+    expect(res).toBeDefined();
 
-//     var filecontent = fs.file_get_contents(`sounds/time${t.getSeconds()}.txt`);
-//     expect(filecontent).toBeDefined();
-// });
+    var filecontent = fs.file_get_contents(`sounds/time${t.getSeconds()}.txt`);
+    expect(filecontent).toBeDefined();
+});
 
 //   it("lets you list files", async function () {
 //     try {

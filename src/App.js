@@ -6,7 +6,7 @@ import EnvelopConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
 import { connect } from "react-redux";
-
+import { TagView } from "./audioCtx";
 const addNote = () => {};
 const deleteNote = () => {};
 const getTracks = () => {};
@@ -92,6 +92,7 @@ export const IndexPage = (props) => {
         <summary>Console</summary>
         <div id="console"></div>
       </details>
+      <TagView></TagView>
     </>
   );
 };

@@ -29,20 +29,16 @@ const EnvelopConfig = ({ defaults, onInput }) => {
             <Typography key={`${attribute}-slider-label`} id={`${attribute}-slider-label`}>
               {attribute}: {adsr[attribute]}
             </Typography>
-            <input
-              type="range"
+            <Slider
               key={`${attribute}-slider`}
-              getAriaValueText={`${attribute}-slider-label`}
-              defaultValue={defaults[attribute]}
-              value={adsr[attribute]}
+              defaultValue={adsr[attribute]}
               onChange={(e, v) => {
                 setValue(attribute, v);
               }}
               min={0}
               max={3}
               step={0.01}
-              getAriaValueText={valuetext}
-            ></input>
+            ></Slider>
           </Fragment>
         );
       })}

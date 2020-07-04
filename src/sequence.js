@@ -58,6 +58,8 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
     } else if (note.type == "keydown") {
       pendingNotes[note.index] = note;
       pendingNotes[note.index].start = note.time;
+      var _log = log + "\n" + note.freq;
+      setLog(_log); // += "\nplaying " + note.freq);
       pendingNotes[note.index].envelope = getNote(note.freq);
       pendingNotes[note.index].envelope.trigger();
       setPendingNotes(pendingNotes);
@@ -178,8 +180,6 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
       if (newEvent.type == "keydown" && newEvent.repeat == true) {
         newEvent.type = "keypress";
       }
-
-      setLog(log + "\n" + newEvent.type);
       ensureAudioCtx().then((audioCtx) => {
         pushNote(newEvent, audioCtx);
       });
@@ -201,6 +201,7 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
         }}
       >
         <canvas
+          key={11}
           style={{ position: "absolute" }}
           ref={canvasRef}
           onClick={_canvasClick}
@@ -208,6 +209,7 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
           width={cols * 20}
         ></canvas>
         <canvas
+          key={33}
           style={{ position: "absolute" }}
           ref={canvasHudRef}
           onClick={_canvasClick}
@@ -217,8 +219,8 @@ const Sequence = ({ track, onNewNote, onDeleteNote, newEvent, rows, cols }) => {
       </div>
       <div style={{ maxHeight: 240, overflowY: "scroll" }}>
         {msg}
-        {log.split("\n").map((l) => (
-          <p>{l}</p>
+        {log.split("\n").map((l, idx) => (
+          <p key={idx}> {l}</p>
         ))}
       </div>
     </>
