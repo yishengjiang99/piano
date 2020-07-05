@@ -7,7 +7,7 @@
   created_at timestamp,
   updated_at timestamp,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_i;
+);
 
 CREATE TABLE `files` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -24,7 +24,7 @@ CREATE TABLE `files` (
 
 CREATE TABLE `file_meta` (
   `file_id` int NOT NULL,
-  `meta` json DEFAULT NULL,
+  `meta` text DEFAULT NULL,
   key(file_id)
 )
 
@@ -43,15 +43,10 @@ CREATE TABLE `file_blobs` (
   PRIMARY KEY (`id`)
 );
 
+drop table if exists available_usernames;
 create table available_usernames (
-    username varchar(255) not null unique,
+    username varchar(64) not null unique,
    taken  BOOL not null default false
-)
+);
 
-create table adj (
-    string varchar(16) not null unique
-)
-
-create table noun (
-    string varchar(16) not null unique
-)
+load

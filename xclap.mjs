@@ -1,3 +1,3 @@
-'use strict';
-const {loadTasks }= require ("@xarc/module-dev");
+"use strict";
+const { loadTasks } = require("@xarc/module-dev");
 loadTasks();

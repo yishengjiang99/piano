@@ -3,7 +3,7 @@ import React from "react";
 
 import { useState, useEffect, useRef } from "react";
 import { getContext, getNote } from "./audioCtx";
-import { keyboardToFreq, idxToFreq } from "./sound-keys";
+import { idxToFreq } from "./sound-keys";
 import { connect, actions } from "./redux/store.js";
 
 const secondsPerBar = 0.25;
@@ -80,6 +80,7 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
     if (note.length > 0.0001) {
       setPaintBar(note);
     }
+    setMsg(seek + "GG");
   };
 
   const _resizeCanvas = () => {
@@ -177,7 +178,6 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
       });
     }
   }, [newEvent]);
-
   return (
     <>
       <div className="hud">{currentBar}</div>
@@ -209,8 +209,10 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
           width={cols * 35}
         ></canvas>
       </div>
+
       <div style={{ position: "fixed", left: 0, maxHeight: 240, overflowY: "scroll" }}>
         {msg}
+        <p>{currentBar}</p>
         {log.split("\n").map((l, idx) => (
           <p key={idx}> {l}</p>
         ))}

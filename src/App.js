@@ -5,24 +5,7 @@ import React from "react";
 import EnvelopConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import { connect } from "react-redux";
 import { TagView } from "./audioCtx";
-// const addNote = (dispatch, note) => {
-//   dispatch({ type: "addnote", layload: note });
-// };
-// const deleteNote = (barIndex, noteIndex) => {
-//   dispatch({ type: "deletenote", bar: barIndex, note: noteIndex });
-// };
-// const getTracks = () => {
-//   dispatch({ type: "gettracks" });
-// };
-// const mapStateToProps = (state /*, ownProps*/) => {
-//   return {
-//     tracks: state.tracks,
-//   };
-// };
-
-// const mapDispatchToProps = { addNote, deleteNote, getTracks }(dispatch);
 
 export const IndexPage = (props) => {
   const [settings, setSettings] = useState({

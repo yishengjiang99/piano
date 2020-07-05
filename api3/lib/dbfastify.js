@@ -10,9 +10,8 @@ const { resolve } = require("path");
 const { execute } = require("child_process");
 const { exception } = require("console");
 
-
 fastify.get("/checkin.jpeg", async (req, res) => {
-  const user = getUser(req);
+  const user = await getUser(req);
   const files = await dbQuery(
     `select f.*, m.meta as meta 
     from user u 
@@ -79,6 +78,7 @@ async function getUser(req) {
   if (!user) {
     throw new exception("unable to select or insert new user");
   }
+  return user;
 }
 const hashCheckAuthLogin = async (username) => {
   const hashExpected = await execute(

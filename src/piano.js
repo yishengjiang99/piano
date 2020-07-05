@@ -1,6 +1,17 @@
 import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef, Component, useRef } from "react";
-import { keys, blackKeys, notes, keynotes } from "./sound-keys.js";
+import { keys, blackKeys, notes, keynotes, keyboardToFreq } from "./sound-keys.js";
+import { store, connect, actions, createActor } from "./redux/store.js";
+const mapStateToProps = (state) => {
+  return { octave: state.octave };
+};
+const mapDispatchToProps = (dispatch) => {
+  return {
+    setOctave: function (v) {
+      createActor(actions.UPDATE_OCTAVE, v);
+    },
+  };
+};
 const Piano = ({ onUserEvent, octave }) => {
   const octaves = [octave, octave + 1];
   const keyRefMap = keys.map((key, index) => createRef());
@@ -45,13 +56,13 @@ const Piano = ({ onUserEvent, octave }) => {
           }
           key={index}
           ref={keyRefMap[index]}
-          onMouseDown={(e) => onUserEvent("keydown", index, octave)}
-          onMouseUp={(e) => onUserEvent("onkeyup", index, octave)}
-          onTouchStart={(e) => onUserEvent("keydown", index, octave)}
-          onTouchEnd={(e) => onUserEvent("keyup", index, octave)}
+          onMouseDown={(e) => onUserEvent("keydown", keyboardToFreq(key, octave), index, octave)}
+          onMouseUp={(e) => onUserEvent("onkeyup", keyboardToFreq(key, octave), index, octave)}
+          onTouchStart={(e) => onUserEvent("keydown", keyboardToFreq(key, octave), index, octave)}
+          onTouchEnd={(e) => onUserEvent("keyup", keyboardToFreq(key, octave), index, octave)}
         ></li>
       ))}
     </ul>
   );
 };
-export default Piano;
+export default connect(mapStateToProps, mapDispatchToProps)(Piano);

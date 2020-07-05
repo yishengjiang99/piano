@@ -37,7 +37,7 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
         function loop(_seek) {
           setDebug(_seek);
           var startLoop = ctx.currentTime;
-          if (!_tracks[_seek]) {
+          if (typeof _tracks[_seek] === "undefined" || !_tracks[_seek]) {
             //chill
             setDebug(trackLength + "vs" + _seek);
           } else {
@@ -66,20 +66,9 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
 
     if (play === false) {
       setPlaying(false);
-      setSeek(0);
+      // setSeek(0);
     }
   }
-
-  // () => {
-  //   if (playing) {
-  //     [track, trackLength] = window.redux().getTrack(); // = window.redux().getStoragedValue("track");
-  //     console.log(trackLength + "total");
-  //     setTotal(trackLength);
-  //     setImmediate(loop);
-  //   } else {
-  //     timer && cancelAnimationFrame(timer);
-  //   }
-  // }, [playing]);
 
   useEffect(() => {
     ensureAudioCtx().then((audioCtx) => {
