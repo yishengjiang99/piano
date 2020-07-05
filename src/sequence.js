@@ -21,9 +21,8 @@ function mapDispatchToProps(dispatch) {
     onDeleteNote: (note) => dispatch({ type: actions.DELETE_NOTE, payload: note }),
   };
 }
-const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, tracks }) => {
-  debugger;
-  const [currentBar, setCurrentBar] = useState(0);
+const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, tracks, seek }) => {
+  const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
   const [lastNoteTime, setLastNoteTime] = useState(0);
   const [paintBar, setPaintBar] = useState(null);
@@ -38,7 +37,6 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
   const pushNote = async (note, _ctx) => {
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
-      setMsg("bar++ on note.type " + note.type + " " + note.time + " vs " + lastNoteTime);
       bar = currentBar + 1;
       setCurrentBar(bar);
       setLastNoteTime(note.time);
@@ -68,20 +66,18 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
       if (!pendingNote) {
         throw new Error("pending note for " + note.index + "not found");
       }
+      note.bar = bar;
 
       note.length = note.time - pendingNote.time;
       note.envelope = pendingNote.envelope;
       pendingNote.envelope.triggerRelease();
-
       onNewNote(note);
     }
 
     if (bar - barCursor > cols) {
-      //paginate
       setBarCursor(barCursor + cols);
     }
     if (note.length > 0.0001) {
-      note.bar = bar;
       setPaintBar(note);
     }
   };
@@ -109,11 +105,12 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
     }
   };
   const _canvasClick = (e) => {
-    const [x, y] = [e.clientX, e.clientY];
+    const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
     const noteIndex = Math.floor(y / cellHeight);
     const barIndex = Math.floor(x / cellWidth);
-    const note = { bar: barIndex, note: noteIndex, freq: keyboardToFreq(noteIndex, octave) };
-    if (tracks[barIndex + barCursor][noteIndex] !== null) {
+    const note = { bar: barIndex, index: noteIndex, length: 200 };
+
+    if (tracks[barIndex + barCursor] && tracks[barIndex + barCursor][noteIndex]) {
       onDeleteNote(note);
       setPaintBar({ ...note, color: "gray" });
     } else {
@@ -152,6 +149,12 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
     canvasHudCtx.fillRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
   }, [currentBar]);
   useEffect(() => {
+    canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
+    canvasHudCtx.clearRect(0, 0, seek * cellWidth, canvasHeight);
+
+    canvasHudCtx.fillRect(seek * cellWidth, 0, cellWidth, canvasHeight);
+  }, [seek]);
+  useEffect(() => {
     barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     _drawAxis();
   }, [barCursor]);
@@ -186,7 +189,7 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
           backgroundColor: "gray",
           position: "relative",
           height: rows * 20,
-          width: cols * 20,
+          width: cols * 35,
         }}
       >
         <canvas
@@ -195,7 +198,7 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
           ref={canvasRef}
           onClick={_canvasClick}
           height={rows * 20}
-          width={cols * 20}
+          width={cols * 35}
         ></canvas>
         <canvas
           key={33}
@@ -203,7 +206,7 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
           ref={canvasHudRef}
           onClick={_canvasClick}
           height={rows * 20}
-          width={cols * 20}
+          width={cols * 35}
         ></canvas>
       </div>
       <div style={{ position: "fixed", left: 0, maxHeight: 240, overflowY: "scroll" }}>

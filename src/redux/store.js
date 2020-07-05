@@ -7,6 +7,7 @@ export const actions = {
 };
 export const initialState = {
   tracks: {},
+  trackLength: 1,
   events: [],
   seek: 0,
   octave: 3,
@@ -45,7 +46,7 @@ export function reducer(state, action) {
         _tracks[note.bar] = [];
       }
       _tracks[note.bar][note.index] = note;
-      return { tracks: _tracks };
+      return { tracks: _tracks, trackLength: Math.max(state.trackLength, note.bar) };
       break;
     case actions.DELETE_NOTE:
       if (!_tracks[note.bar] || _tracks[note.bar][note.index])

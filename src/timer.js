@@ -11,7 +11,7 @@ import { getNote, ensureAudioCtx } from "./audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
 import { connect, actions } from "./redux/store.js";
 
-const Timer = ({ octave, tracks, setSeek, seek }) => {
+const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
   const defaults = {
     bpm: 120, //120 quarter notes per minute.. and we tick twice per beat
     noteLength: 1 / 4,
@@ -32,17 +32,23 @@ const Timer = ({ octave, tracks, setSeek, seek }) => {
       setPlaying(true);
       setSeek(0);
 
-      function playTrack(_tracks, trackLength) {
+      function playTrack(_tracks) {
         loop(0);
         function loop(_seek) {
           setDebug(_seek);
           var startLoop = ctx.currentTime;
           if (!_tracks[_seek]) {
             //chill
+            setDebug(trackLength + "vs" + _seek);
           } else {
             Object.keys(_tracks[_seek]).forEach((noteIndex, idx) => {
               const note = _tracks[_seek][noteIndex];
-              getNote(note.frequency, octave).triggerEnvelope(note.envelop);
+              setDebug(JSON.stringify(note));
+              if (note.envelop) {
+                getNote(note.freq, octave).triggerEnvelope(note.envelop);
+              } else {
+                getNote(note.freq, octave).trigger();
+              }
             });
           }
           if (_seek >= trackLength) {
@@ -54,7 +60,8 @@ const Timer = ({ octave, tracks, setSeek, seek }) => {
           setTimeout(() => loop(_seek + 1), nextNote);
         }
       }
-      playTrack(tracks, tracks.length);
+
+      playTrack(tracks);
     }
 
     if (play === false) {
@@ -98,9 +105,10 @@ const Timer = ({ octave, tracks, setSeek, seek }) => {
           <FastForward />
         </IconButton>
       </Toolbar>
-      <LinearProgress variant="determinate" value={(seek / total) * 100}></LinearProgress>
-      <div>{seek * 0.25}</div>
-      <div>{debug}</div>
+      <LinearProgress variant="determinate" value={(seek / trackLength) * 100}></LinearProgress>
+      <div>
+        {seek * tickLength} of {trackLength * tickLength}
+      </div>
     </div>
   );
 };
@@ -108,6 +116,7 @@ function mapStateToProps(state) {
   return {
     seek: state.seek,
     tracks: state.tracks,
+    trackLength: state.trackLength,
   };
 }
 function mapDispatchToProps(dispatch) {
