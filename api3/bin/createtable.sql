@@ -26,7 +26,7 @@ CREATE TABLE `file_meta` (
   `file_id` int NOT NULL,
   `meta` text DEFAULT NULL,
   key(file_id)
-)
+);
 
 CREATE TABLE `file_blobs` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -36,7 +36,6 @@ CREATE TABLE `file_blobs` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
--- drop table if exists blobs;
  CREATE TABLE `blobs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `content` blob,

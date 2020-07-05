@@ -1,59 +1,58 @@
 "use strict";
-
-const path = require("path");
-const AutoLoad = require("fastify-autoload");
+const fastify = require("fastify")({
+  logger: true,
+});
 
 const azfs = require("../azfs.js");
 const { dbRow, dbQuery, dbInsert } = require("../db.js");
 const { resolve } = require("path");
 const { execute, exec } = require("child_process");
-const { blobClient } = require("./azfs.js");
-const { db } = require("./db.js");
-
+const { blobClient } = require("../azfs.js");
 const errHandler = (err, res) => res.send(err.message);
-
 module.exports = function (fastify, opts, next) {
-  fastify.register(require("fastify-websocket"));
-
   fastify.get("/", (req, res) => {
     res.send(["/ls", "/ws", "/checkin.jpeg", "checkin.json", "POST /file"].join("\n<br>"));
   });
 
-  fastify.get("/ws/upload", { websocket: true }, async (connection, reply, params) => {
-    const fh = new require("stream").PassThrough();
-    fh.on("done", function () {
-      console.log("ff");
-    });
-    fh.on("error", (err) => console.error(err));
-
-    const reqContainer = azfs.getContainer("streamuploads");
-    connection.socket.send(JSON.stringify(connection.request));
-    blobClient.createAppendBlobFromStream(
-      "streamuploads",
-      encodeURIComponent(new Date().toUTCString) + ".txt",
-      fh,
-      1024 * 1024,
-      (err, res, req) => {
-        errHandler(err, connection.socket);
-      }
-    );
-
-    connection.socket.on("message", (message) => {
-      connection.socket.send(message);
-      if (message.toString() === "EOF") {
-        reply.socket.write("writing file ..done");
-        fh.end();
-        connection.close();
-      }
-      fh.write(message, function (a, b, c) {
-        console.log(a, b, c);
-        connection.socket.send(fh.bytesWritten());
+  fastify.get(
+    "/ws/upload/:container/:filename",
+    { websocket: true },
+    async (connection, reply, params) => {
+      const fh = new require("stream").PassThrough();
+      fh.on("done", function () {
+        console.log("ff");
       });
-    });
-    connection.socket.on("end", () => {
-      fhh.end();
-    });
-  });
+      fh.on("error", (err) => console.error(err));
+
+      const reqContainer = azfs.getContainer("streamuploads");
+      connection.socket.send(JSON.stringify(connection.request));
+      blobClient.createAppendBlobFromStream(
+        "streamuploads",
+        encodeURIComponent(new Date().toUTCString) + ".txt",
+        fh,
+        1024 * 1024,
+        (err, res, req) => {
+          errHandler(err, connection.socket);
+        }
+      );
+
+      connection.socket.on("message", (message) => {
+        connection.socket.send(message);
+        if (message.toString() === "EOF") {
+          reply.socket.write("writing file ..done");
+          fh.end();
+          connection.close();
+        }
+        fh.write(message, function (a, b, c) {
+          console.log(a, b, c);
+          connection.socket.send(fh.bytesWritten());
+        });
+      });
+      connection.socket.on("end", () => {
+        fhh.end();
+      });
+    }
+  );
 
   fastify.get("/ls", async (req, res) => {
     azfs
@@ -112,8 +111,7 @@ module.exports = function (fastify, opts, next) {
         reply.send(err.message);
       });
   });
-
-  fastify.get("/checkin", async (req, res) => {
+  fastify.get("/checkin.jpeg", async (req, res) => {
     const user = await getUser(req);
     const files = await dbQuery(
       `select f.*, m.meta as meta 
@@ -125,10 +123,37 @@ module.exports = function (fastify, opts, next) {
     ).catch((e) => {
       console.error(e);
     });
-    res.header("content-type", "application/json");
+    //console.log(res.headers);
+
+    res.header("content-type", "image/jpeg");
+
     res.header("set-cookie", `g-username=${user.username}`);
     res.header("set-cookie", `g-hash=${hashCheckAuthLogin(user.username)}`);
     res.send(JSON.stringify({ user, files }));
+  });
+
+  fastify.post("/file", async (req, res) => {
+    const filename = req.query.filename;
+    const content = req.body;
+    const filetype = require("path").extname(filename);
+    const user = getUser(req);
+
+    const fileid = await dbInsert("files", {
+      user_id: user.id,
+      filename: new Date().getDate() + "_log.txt",
+      filetype: filetype,
+      blob: filecontent.toString(2),
+    });
+
+    if (fileid) {
+      res.status = 200;
+      return;
+    } else {
+      res.status = 500;
+      return;
+    }
+
+    //req.cookie("g-username")
   });
 
   async function getUser(req) {
@@ -166,3 +191,11 @@ module.exports = function (fastify, opts, next) {
     );
   };
 };
+
+// If you prefer async/await, use the following
+//
+// module.exports = async function (fastify, opts) {
+//   fastify.get('/', async function (request, reply) {
+//     return { root: true }
+//   })
+// }

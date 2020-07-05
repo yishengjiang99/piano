@@ -7,11 +7,8 @@ const azfs = require("../azfs.js");
 const { dbRow, dbQuery, dbInsert } = require("../db.js");
 const { resolve } = require("path");
 const { execute, exec } = require("child_process");
-const { blobClient } = require("./azfs.js");
-const { db } = require("./db.js");
-
+const { blobClient } = require("../azfs.js");
 const errHandler = (err, res) => res.send(err.message);
-
 module.exports = function (fastify, opts, next) {
   fastify.register(require("fastify-websocket"));
 
@@ -131,6 +128,10 @@ module.exports = function (fastify, opts, next) {
     res.send(JSON.stringify({ user, files }));
   });
 
+
+    //req.cookie("g-username")
+  });
+
   async function getUser(req) {
     const username = req.headers["g-username"];
     var user;
@@ -166,3 +167,11 @@ module.exports = function (fastify, opts, next) {
     );
   };
 };
+
+// If you prefer async/await, use the following
+//
+// module.exports = async function (fastify, opts) {
+//   fastify.get('/', async function (request, reply) {
+//     return { root: true }
+//   })
+// }
