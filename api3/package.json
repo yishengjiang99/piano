@@ -13,8 +13,10 @@
   "author": "Yisheng Jiang",
   "license": "ISC",
   "dependencies": {
+    "@types/mysql": "^2.15.14",
     "azure-storage": "^2.10.3",
     "jest": "^26.1.0",
+    "mysql": "^2.18.1",
     "ws.js": "^1.0.0"
   },
   "devDependencies": {
