@@ -1,21 +1,33 @@
 import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef, Component, useRef } from "react";
 import { keys, blackKeys, notes, keynotes, keyboardToFreq } from "./sound-keys.js";
-import { store, connect, actions, createActor } from "./redux/store.js";
+import { store, connect, actions, createActor, state } from "./redux/store.js";
 const mapStateToProps = (state) => {
   return { octave: state.octave };
 };
 const mapDispatchToProps = (dispatch) => {
   return {
+    syncEvents: function (e) {
+      createActor(actions.SYNC_KEYBOARD, e);
+    },
     setOctave: function (v) {
       createActor(actions.UPDATE_OCTAVE, v);
     },
   };
 };
-const Piano = ({ onUserEvent, octave }) => {
+const Piano = ({ syncEvents, onUserEvent, octave }) => {
   const octaves = [octave, octave + 1];
   const keyRefMap = keys.map((key, index) => createRef());
-  let _onUserEvent = onUserEvent;
+  let _onUserEvent = (type, freq, time, keyindex) => {
+    onUserEvent(type, freq, time, keyindex);
+
+    syncEvents({
+      type,
+      freq,
+      time,
+      keyindex,
+    });
+  };
   useEffect(() => {
     window.onkeydown = (e) => {
       const index = keys.indexOf(e.key);

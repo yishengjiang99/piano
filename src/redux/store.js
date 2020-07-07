@@ -1,4 +1,5 @@
 import React, { useContext, useReducer } from "react";
+import constants from "../constants.js";
 
 export const actions = {
   NEW_NOTE: 1,
@@ -6,17 +7,21 @@ export const actions = {
   UPDATE_SEEK: 3,
   UPDATE_SETTINGS: 4,
   UPDATE_OCTAVE: 5,
+  SYNC_BACKEND: 6,
 };
 let _dispatch;
+
 export const createActor = (type, payload) => {
   return _dispatch({ type, payload });
 };
 export const initialState = {
+  upstreamSync: null,
   tracks: {},
   trackLength: 1,
   events: [],
   seek: 0,
   octave: 3,
+  tmpBuffer: [],
   settings: {
     osc3: {
       waveForms: ["triangle", "sine", "sine"],
@@ -87,7 +92,10 @@ export function reducer(state, action) {
         _tracks[note.bar] = [];
       }
       _tracks[note.bar][note.index] = note;
-      return { tracks: _tracks, trackLength: Math.max(state.trackLength, note.bar) };
+      return {
+        tracks: _tracks,
+        trackLength: Math.max(state.trackLength, note.bar),
+      };
       break;
     case actions.DELETE_NOTE:
       if (!_tracks[note.bar] || _tracks[note.bar][note.index])
@@ -107,9 +115,22 @@ export function reducer(state, action) {
       return {
         octave: action.value,
       };
-    default:
-      if (action.type.startsWith("update_")) {
+    case action.SYNC_BACKEND:
+      let _upstreamSync = state.upstreamSync;
+
+      try {
+        const newEvent = action.payload;
+        _upstreamSync.send(newEvent);
+        _upstreamSync.send("commit");
+      } catch (e) {
+        alert(e.message);
       }
+      return {
+        upstreamSync: _upstreamSync,
+        tmpBuffer: [],
+      };
+      break;
+    default:
       return state;
   }
 }
