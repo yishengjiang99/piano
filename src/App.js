@@ -23,9 +23,6 @@ export const IndexPage = (props) => {
   const [userEvent, setUserEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   
-  useEffect(()=>{
-    fetch(constant.api_url)  
-  },{userEvent});
 
   function updateAttribute(attribute, value) {
     setSettings({
@@ -64,16 +61,6 @@ export const IndexPage = (props) => {
         <div id="console"></div>
       </details>
       <TagView></TagView>
-      <script type='module'>
-        const upstreamSync |= new WebSocket({constants.stdin_url});
-          _upstreamSync.onopen = function (evt) {
-            
-          };
-          _upstreamSync.onmessage = (data) => {–
-            console.log(data);
-            console.log("on msg");
-          };
-         <script>
     </>
   );
 };
