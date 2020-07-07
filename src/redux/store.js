@@ -23,48 +23,14 @@ export const initialState = {
   octave: 3,
   tmpBuffer: [],
   settings: {
-    osc3: {
-      waveForms: ["triangle", "sine", "sine"],
-      chords: [1, 2, 4],
-      gains: [1, 0.4, 0.5],
-      detune: [0, 2, 2],
-      delay: [0, 0, 1],
-    },
-    LFOs: [
-      {
-        amp: { depth: 0, frequency: 0 },
-      },
-      {
-        lpf: { depth: 0, frequency: 40 },
-      },
-    ],
+    osc3: ["triangle", "sine", "sine"],
+    chords: [1, 2, 4],
+    gains: [1, 0.4, 0.5],
     adsr: [0.02, 0.2, 0.8, 0.3],
-    filters: {
-      LPF: 50,
-      HPF: 1500,
-      bandPass: [
-        { frequency: 100, Q: 1, gain: 1 },
-        { frequency: 200, Q: 1, gain: 1 },
-        { frequency: 300, Q: 1, gain: 1 },
-        { frequency: 400, Q: 1, gain: 1 },
-        { frequency: 600, Q: 1, gain: 1 },
-        { frequency: 800, Q: 1, gain: 1 },
-      ],
-    },
-    gainStages: {
-      mixMaster: 1,
-      preAmp: 1,
-      postCompression: 1,
-    },
-    compression: {
-      threshold: -10,
-      ratio: 6,
-      velocity: 3,
-    },
-    noiseGate: {
-      threshold: -80,
-      tau: 2,
-    },
+    detune: [0, 2, 2],
+    delay: [0, 0, 1],
+    lpf: 1600,
+    hpf: 70,
   },
 };
 export const TheContext = React.createContext();
@@ -74,7 +40,6 @@ export function connect(mapStateToProps, mapDispatchToProps) {
   return function (Component) {
     return function (p) {
       const { state, dispatch } = useContext(TheContext);
-      _dispatch = dispatch;
       const stateToProps = mapStateToProps(state);
       const dispatchToProps = mapDispatchToProps(dispatch);
       const props = { ...p, ...stateToProps, ...dispatchToProps };
@@ -102,18 +67,9 @@ export function reducer(state, action) {
         throw new Error("attempt to delete key not exist");
       _tracks[note.bar][note.index] = null;
       return state;
-      break;
     case actions.UPDATE_SEEK:
       return {
-        seek: action.payload || 0,
-      };
-      break;
-    case "update_octave":
-      if (action.value > 6 || action.value < 1) {
-        return state;
-      }
-      return {
-        octave: action.value,
+        seek: action.payload,
       };
     case action.SYNC_BACKEND:
       let _upstreamSync = state.upstreamSync;
@@ -134,4 +90,3 @@ export function reducer(state, action) {
       return state;
   }
 }
-export const state = ContextProvider.value;
