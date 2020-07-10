@@ -1,6 +1,7 @@
 const constants = {
-  api_url: "/",
-  files_api: "/mockfiles.json",
-  stdin_url: "wss://dsp.grepawk.com/stdin/sounds/keyboard_(day)",
+  api_ws: "wss://www.grepawk.com/signal",
+  api_https: "https://api.grepawk.com",
+  dsp_https: "https://dsp.grepawk.com/api",
+  dsp_lib: "https://dsp.grepawk.com/lib",
 };
 export default constants;

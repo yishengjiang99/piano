@@ -19,7 +19,8 @@ export const initialState = {
   tracks: {},
   trackLength: 1,
   events: [],
-  seek: 0,
+  seek: -1,
+  files: [],
   octave: 3,
   tmpBuffer: [],
   settings: {
@@ -87,7 +88,7 @@ export function reducer(state, action) {
     case action.SYNC_BACKEND:
       let _upstreamSync = state.upstreamSync;
       if (!_upstreamSync) {
-        return;
+        return state;
       }
       try {
         const newEvent = action.payload;

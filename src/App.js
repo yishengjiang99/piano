@@ -5,58 +5,36 @@ import React from "react";
 import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import { TagView } from "./audioCtx";
 import { Terminal } from "./grepawk-v2-ui/index.js";
+import { VsCodeLayout } from "./pureui/layout";
+import FileList from "./filelist";
+const ButtonGroup = () => <div>bt</div>;
 
 export const IndexPage = (props) => {
-  const [settings, setSettings] = useState({
-    envelope: {
-      attack: 0.1,
-      decay: 0.1,
-      sustain: 0.1,
-      release: 0.1, //0.01
-    },
-    volume: {
-      min: 0,
-      max: 6,
-    },
-  });
   const [userEvent, setUserEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
-
-  function updateAttribute(attribute, value) {
-    setSettings({
-      ...settings,
-      attribute: value,
-    });
-  }
-
   return (
-    <>
+    <VsCodeLayout>
+      <ButtonGroup></ButtonGroup>
       <Timer></Timer>
+      <FileList></FileList>
       <Sequence newEvent={userEvent} rows={12} cols={20} />
-      <Piano
-        onUserEvent={(type, freq, time, index) => {
-          setUserEvent({
-            time: time,
-            type: type,
-            freq: freq,
-            index: index,
-          });
-        }}
-      ></Piano>
 
-      <details>
-        <summary>Console</summary>
-        <Terminal></Terminal>
-      </details>
-      <TagView></TagView>
-      <UpdateConfig
-        style={{ maxWidth: "200px" }}
-        defaults={settings.envelope}
-        onInput={updateAttribute}
-      ></UpdateConfig>
-    </>
+      <div>
+        <Piano
+          onUserEvent={(type, freq, time, index) => {
+            setUserEvent({
+              time: time,
+              type: type,
+              freq: freq,
+              index: index,
+            });
+          }}
+        ></Piano>
+        <UpdateConfig></UpdateConfig>
+      </div>
+      <Terminal></Terminal>
+    </VsCodeLayout>
   );
 };
 

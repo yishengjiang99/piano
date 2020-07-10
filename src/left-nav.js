@@ -30,7 +30,7 @@ const LeftNav = ({ children }) => {
         <IconButton onClick={handleDrawerClose}>
           <ChevronLeftSharp />
         </IconButton>
-        {children}
+        {children[0]}
       </Drawer>
     </>
   );
