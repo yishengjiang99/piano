@@ -9,9 +9,7 @@ function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   return (
     <ContextProvider value={{ state, dispatch }}>
-      <React.StrictMode>
-        <IndexPage />
-      </React.StrictMode>
+      <IndexPage />
     </ContextProvider>
   );
 }

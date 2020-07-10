@@ -1,17 +1,17 @@
 import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef, Component, useRef } from "react";
 import { keys, blackKeys, notes, keynotes, keyboardToFreq } from "./sound-keys.js";
-import { store, connect, actions, createActor, state } from "./redux/store.js";
-const mapStateToProps = (state) => {
-  return { octave: state.octave };
-};
+import { store, connect, actions, state } from "./redux/store.js";
+
+const mapStateToProps = (state) => state;
+
 const mapDispatchToProps = (dispatch) => {
   return {
     syncEvents: function (e) {
-      createActor(actions.SYNC_KEYBOARD, e);
+      dispatch({ type: actions.SYNC_KEYBOARD, payload: e });
     },
     setOctave: function (v) {
-      createActor(actions.UPDATE_OCTAVE, v);
+      dispatch({ type: actions.UPDATE_OCTAVE, payload: v });
     },
   };
 };

@@ -2,10 +2,11 @@ import Sequence from "./sequence";
 import { useState, useRef, useEffec, useEffect } from "react";
 import React from "react";
 
-import EnvelopConfig from "./envelop-config";
+import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
 import { TagView } from "./audioCtx";
+import { Terminal } from "./grepawk-v2-ui/index.js";
 
 export const IndexPage = (props) => {
   const [settings, setSettings] = useState({
@@ -22,7 +23,6 @@ export const IndexPage = (props) => {
   });
   const [userEvent, setUserEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
-  
 
   function updateAttribute(attribute, value) {
     setSettings({
@@ -31,17 +31,8 @@ export const IndexPage = (props) => {
     });
   }
 
-
   return (
     <>
-      <details>
-        <summary>AM ADSR</summary>
-        <EnvelopConfig
-          style={{ maxWidth: "200px" }}
-          defaults={settings.envelope}
-          onInput={updateAttribute}
-        ></EnvelopConfig>
-      </details>
       <Timer></Timer>
       <Sequence newEvent={userEvent} rows={12} cols={20} />
       <Piano
@@ -53,14 +44,18 @@ export const IndexPage = (props) => {
             index: index,
           });
         }}
-        octave={3}
       ></Piano>
 
       <details>
         <summary>Console</summary>
-        <div id="console"></div>
+        <Terminal></Terminal>
       </details>
       <TagView></TagView>
+      <UpdateConfig
+        style={{ maxWidth: "200px" }}
+        defaults={settings.envelope}
+        onInput={updateAttribute}
+      ></UpdateConfig>
     </>
   );
 };

@@ -101,17 +101,17 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
     </div>
   );
 };
-function mapStateToProps(state) {
+const mapStateToProps = (state) => {
   return {
     seek: state.seek,
     tracks: state.tracks,
     trackLength: state.trackLength,
   };
-}
-function mapDispatchToProps(dispatch) {
+};
+const mapDispatchToProps = (dispatch) => {
   return {
     setSeek: (num) => dispatch({ type: actions.UPDATE_SEEK, payload: num }),
     onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
   };
-}
+};
 export default connect(mapStateToProps, mapDispatchToProps)(Timer);

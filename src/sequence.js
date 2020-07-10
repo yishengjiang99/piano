@@ -8,19 +8,21 @@ import { connect, actions } from "./redux/store.js";
 
 const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
-function mapStateToProps(state) {
-  return {
-    tracks: state.tracks,
-    seek: state.seek,
-    octave: state.octave,
-  };
-}
-function mapDispatchToProps(dispatch) {
-  return {
-    onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
-    onDeleteNote: (note) => dispatch({ type: actions.DELETE_NOTE, payload: note }),
-  };
-}
+
+// const mapStateToProps = (state) => {
+//   return {
+//     tracks: state.tracks,
+//     seek: state.seek,
+//     octave: state.octave,
+//   };
+// };
+// const mapDispatchToProps = (dispatch) => {
+//   return {
+//     onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
+//     onDeleteNote: (note) => dispatch({ type: actions.DELETE_NOTE, payload: note }),
+//   };
+// };
+
 const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, tracks, seek }) => {
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
@@ -224,4 +226,4 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
 function sleep(sec) {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 }
-export default connect(mapStateToProps, mapDispatchToProps)(Sequence);
+export default Sequence;

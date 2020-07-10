@@ -8,12 +8,12 @@ export const actions = {
   UPDATE_SETTINGS: 4,
   UPDATE_OCTAVE: 5,
   SYNC_BACKEND: 6,
+  NOW_PLAYING: 7,
 };
-let _dispatch;
 
-export const createActor = (type, payload) => {
-  return _dispatch({ type, payload });
-};
+// export const createActor = (type, payload) => {
+//   return _dispatch({ type, payload });
+// };
 export const initialState = {
   upstreamSync: null,
   tracks: {},
@@ -23,14 +23,27 @@ export const initialState = {
   octave: 3,
   tmpBuffer: [],
   settings: {
-    osc3: ["triangle", "sine", "sine"],
-    chords: [1, 2, 4],
-    gains: [1, 0.4, 0.5],
-    adsr: [0.02, 0.2, 0.8, 0.3],
-    detune: [0, 2, 2],
-    delay: [0, 0, 1],
-    lpf: 1600,
-    hpf: 70,
+    osc3: {
+      types: ["sine", "sine", "sine"],
+      chords: [1, 1, 1],
+      gains: [0.6, 0.4, 0.2],
+      detune: [0, 2, 2],
+      delay: [0, 0, 1],
+    },
+    compression: {
+      threshold: -80,
+      ratio: 12,
+    },
+    gainStages: {
+      mixer: 1,
+      preamp: 1,
+      post_compression: 1,
+    },
+    filters: {
+      lpf: { frequency: 1600, Q: 2, gain: 1 },
+      hpf: { frequency: 54, Q: 2, gain: 1 },
+      bandpass: [[50, 1, 1][(100, 1, 1)], [200, 1, 1], [300, 1, 1], [400, 1, 1]],
+    },
   },
 };
 export const TheContext = React.createContext();
@@ -73,7 +86,9 @@ export function reducer(state, action) {
       };
     case action.SYNC_BACKEND:
       let _upstreamSync = state.upstreamSync;
-
+      if (!_upstreamSync) {
+        return;
+      }
       try {
         const newEvent = action.payload;
         _upstreamSync.send(newEvent);

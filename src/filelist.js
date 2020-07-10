@@ -8,7 +8,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     setNowPlaying: function (v) {
-      createActor(actions.setNotePlaying, v);
+      dispatch({ type: actions.NOW_PLAYING, payload: v });
     },
   };
 };
