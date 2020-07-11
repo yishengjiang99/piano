@@ -9,14 +9,15 @@ export const actions = {
   UPDATE_OCTAVE: 5,
   SYNC_BACKEND: 6,
   NOW_PLAYING: 7,
+  SYNC_KEYBOARD: 8,
 };
 
 // export const createActor = (type, payload) => {
 //   return _dispatch({ type, payload });
 // };
 export const initialState = {
-  upstreamSync: null,
-  tracks: {},
+  ws: null,
+  tracks: Array(200).fill({}),
   trackLength: 1,
   events: [],
   seek: -1,
@@ -64,11 +65,17 @@ export function connect(mapStateToProps, mapDispatchToProps) {
 }
 export function reducer(state, action) {
   let _tracks = state.tracks;
+  console.log("using reducer " + action.type);
+  if (typeof action.type === "unknown") {
+    alert("sss");
+  }
+
   switch (action.type) {
     case actions.NEW_NOTE:
       let note = action.payload;
-      if (!_tracks[note.bar]) {
-        _tracks[note.bar] = [];
+
+      if (typeof _tracks[note.bar] == "undefined") {
+        _tracks[note.bar] = {};
       }
       _tracks[note.bar][note.index] = note;
       return {
@@ -77,30 +84,18 @@ export function reducer(state, action) {
       };
       break;
     case actions.DELETE_NOTE:
-      if (!_tracks[note.bar] || _tracks[note.bar][note.index])
-        throw new Error("attempt to delete key not exist");
-      _tracks[note.bar][note.index] = null;
+      _tracks[action.barIndex][action.noteIndex] = null;
       return state;
+      break;
     case actions.UPDATE_SEEK:
       return {
         seek: action.payload,
       };
+      break;
     case action.SYNC_BACKEND:
-      let _upstreamSync = state.upstreamSync;
-      if (!_upstreamSync) {
-        return state;
-      }
-      try {
-        const newEvent = action.payload;
-        _upstreamSync.send(newEvent);
-        _upstreamSync.send("commit");
-      } catch (e) {
-        alert(e.message);
-      }
-      return {
-        upstreamSync: _upstreamSync,
-        tmpBuffer: [],
-      };
+      return state;
+      break;
+    case action.SYNC_KEYBOARD:
       break;
     default:
       return state;

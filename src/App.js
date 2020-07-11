@@ -1,26 +1,36 @@
 import Sequence from "./sequence";
 import { useState, useRef, useEffec, useEffect } from "react";
 import React from "react";
-
-import UpdateConfig from "./envelop-config";
+import LeftNav from "./left-nav";
+// import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import { Terminal } from "./grepawk-v2-ui/index.js";
-import { VsCodeLayout } from "./pureui/layout";
-import FileList from "./filelist";
+
+// import FileList from "./filelist";
 const ButtonGroup = () => <div>bt</div>;
 
 export const IndexPage = (props) => {
   const [userEvent, setUserEvent] = useState(null);
+  // const [newNote, setNewNote] = useState(null);
+
   const [websocket, setWebsocket] = useState(null);
   return (
-    <VsCodeLayout>
-      <ButtonGroup></ButtonGroup>
-      <Timer></Timer>
-      <FileList></FileList>
-      <Sequence newEvent={userEvent} rows={12} cols={20} />
+    <>
+      <ButtonGroup>
+        <button>button1</button>
+        <button>button1</button>
+      </ButtonGroup>
+      <LeftNav>
+        <Timer></Timer>
+        <Sequence
+          // onNewNote={(note) => {
+          //   setNewNote(note);
+          // }}
+          newEvent={userEvent}
+          rows={15}
+          cols={20}
+        />
 
-      <div>
         <Piano
           onUserEvent={(type, freq, time, index) => {
             setUserEvent({
@@ -31,10 +41,9 @@ export const IndexPage = (props) => {
             });
           }}
         ></Piano>
-        <UpdateConfig></UpdateConfig>
-      </div>
-      <Terminal></Terminal>
-    </VsCodeLayout>
+      </LeftNav>
+      import Terminal from "xterm";
+    </>
   );
 };
 

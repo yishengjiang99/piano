@@ -1,8 +1,9 @@
 import { actions, connect } from "./redux/store.js";
 import React, { useEffect, useState, useContext } from "react";
-import { Table } from "@material-ui/core";
+
+import { Table, TableRow, TableCell } from "@material-ui/core";
 import constants from "./constants";
-import { Accordion, Card } from "react-bootstrap";
+import { Accordion, Card, Button } from "react-bootstrap";
 const mapStateToProps = (state) => {
   return { files: state.files };
 };
@@ -17,12 +18,18 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
+let ws;
+
+const shell_msg = (cmd) => {
+  ws.send(cmd);
+};
+
 const _fileList = ({ files, gotFileList, setNowPlaying }) => {
   const [channels, setChannels] = useState("");
-  let ws;
+
   function handleMsgGot(msgObj) {
-    if (msg.type === "channelList") {
-      setChannels(msg.data.join(""));
+    if (msgObj.type === "channelList") {
+      setChannels(msgObj.data.join(""));
     }
   }
   useEffect(() => {
@@ -30,7 +37,7 @@ const _fileList = ({ files, gotFileList, setNowPlaying }) => {
       ws = new WebSocket(constants.api_ws, "json");
       ws.onopen = function (evt) {
         ws.onmessage = (msg) => {
-          msg = JSON.parse(msg); //js privilege
+          if (ws.binaryType !== "blob") msg = JSON.parse(msg); //js privilege
           handleMsgGot(msg);
         };
         ws.send("list");
@@ -51,7 +58,9 @@ const _fileList = ({ files, gotFileList, setNowPlaying }) => {
             <Card.Body>
               <Table>
                 {channels.split(",").map((c) => (
-                  <TableRow onClick={shell_msg(`join ${c}`)}>{c}</TableRow>
+                  <TableRow onClick={() => shell_msg(`join ${c}`)}>
+                    <TableCell>{c}</TableCell>
+                  </TableRow>
                 ))}
               </Table>
             </Card.Body>

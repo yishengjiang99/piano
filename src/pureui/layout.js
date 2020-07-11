@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./layout.css";
+import styles from "./layout.module.css";
 
 export const VsCodeLayout = ({ children }) => {
   return (
@@ -8,7 +8,9 @@ export const VsCodeLayout = ({ children }) => {
       <div className={styles.fileList}>{children[1]}</div>
       <div className={styles.cmdPalletTabs}>{children[2]}</div>
       <div className={styles.editor}>{children[3]}</div>
-      <div className={styles.xterm}>{children[4]}</div>
+      <div className={styles.editor2}>{children[4]}</div>
+
+      <div className={styles.xterm}>{children[5]}</div>
     </div>
   );
 };

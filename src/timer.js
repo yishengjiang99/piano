@@ -30,7 +30,6 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
   function userClicked(play) {
     if (play === true) {
       setPlaying(true);
-      setSeek(0);
 
       function playTrack(_tracks) {
         loop(0);
@@ -57,7 +56,8 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
           }
           setSeek(_seek + 1);
           const nextNote = tickLength - (ctx.currentTime - startLoop);
-          setTimeout(() => loop(_seek + 1), nextNote);
+
+          setTimeout(() => requestAnimationFrame(() => loop(_seek + 1)), nextNote - 12);
         }
       }
 
@@ -74,7 +74,7 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
     ensureAudioCtx().then((audioCtx) => {
       setCtx(audioCtx);
     });
-  }, []);
+  });
   return (
     <div>
       <Toolbar ref={toolbarRef}>
@@ -111,7 +111,6 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     setSeek: (num) => dispatch({ type: actions.UPDATE_SEEK, payload: num }),
-    onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
   };
 };
 export default connect(mapStateToProps, mapDispatchToProps)(Timer);

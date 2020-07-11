@@ -91,7 +91,7 @@ export async function ensureAudioCtx() {
 }
 let noteCache = {};
 export function getNote(notefreq, octave = 3) {
-  if (noteCache[notefreq]) return noteCache[notefreq];
+  // if (noteCache[notefreq]) return noteCache[notefreq];
   ctx = ctx || new AudioContext();
   const freqmultiplierindex = [0, 0.25, 0.5, 1, 2, 4];
   if (notefreq <= 0 || isNaN(notefreq)) {
