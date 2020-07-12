@@ -1,40 +1,36 @@
 import Sequence from "./sequence";
-import { useState, useRef, useEffec, useEffect } from "react";
+import { useContext, useState, useRef, useEffec, useEffect } from "react";
 import React from "react";
-
-import UpdateConfig from "./envelop-config";
+import LeftNav from "./left-nav";
+// import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import { TagView } from "./audioCtx";
-import { Terminal } from "./grepawk-v2-ui/index.js";
+import { TheContext } from "./redux/store";
+// import FileList from "./filelist";
+const ButtonGroup = () => <div>bt</div>;
 
 export const IndexPage = (props) => {
-  const [settings, setSettings] = useState({
-    envelope: {
-      attack: 0.1,
-      decay: 0.1,
-      sustain: 0.1,
-      release: 0.1, //0.01
-    },
-    volume: {
-      min: 0,
-      max: 6,
-    },
-  });
   const [userEvent, setUserEvent] = useState(null);
+  // const [newNote, setNewNote] = useState(null);
+  const { state, dispatch } = useContext(TheContext);
+
   const [websocket, setWebsocket] = useState(null);
-
-  function updateAttribute(attribute, value) {
-    setSettings({
-      ...settings,
-      attribute: value,
-    });
-  }
-
   return (
     <>
+      <ButtonGroup>
+        <button>button1</button>
+        <button>button1</button>
+      </ButtonGroup>
       <Timer></Timer>
-      <Sequence newEvent={userEvent} rows={12} cols={20} />
+      <Sequence
+        // onNewNote={(note) => {
+        //   setNewNote(note);
+        // }}
+        newEvent={userEvent}
+        rows={15}
+        cols={20}
+      />
+
       <Piano
         onUserEvent={(type, freq, time, index) => {
           setUserEvent({
@@ -45,17 +41,7 @@ export const IndexPage = (props) => {
           });
         }}
       ></Piano>
-
-      <details>
-        <summary>Console</summary>
-        <Terminal></Terminal>
-      </details>
-      <TagView></TagView>
-      <UpdateConfig
-        style={{ maxWidth: "200px" }}
-        defaults={settings.envelope}
-        onInput={updateAttribute}
-      ></UpdateConfig>
+      <div>aaa{JSON.stringify(state.tracks)}</div>
     </>
   );
 };

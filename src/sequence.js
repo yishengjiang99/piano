@@ -5,25 +5,22 @@ import { useState, useEffect, useRef } from "react";
 import { getContext, getNote } from "./audioCtx";
 import { idxToFreq } from "./sound-keys";
 import { connect, actions } from "./redux/store.js";
-
 const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
-
-// const mapStateToProps = (state) => {
-//   return {
-//     tracks: state.tracks,
-//     seek: state.seek,
-//     octave: state.octave,
-//   };
-// };
-// const mapDispatchToProps = (dispatch) => {
-//   return {
-//     onNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
-//     onDeleteNote: (note) => dispatch({ type: actions.DELETE_NOTE, payload: note }),
-//   };
-// };
-
-const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, tracks, seek }) => {
+function mapStateToProps(state) {
+  return {
+    tracks: state.tracks,
+    seek: state.seek,
+    octave: state.octave,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    storeNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
+    onDeleteNote: (x, y) => dispatch({ type: actions.DELETE_NOTE, barIndex: x, noteIndex: y }),
+  };
+}
+const Sequence = ({ octave, storeNewNote, onDeleteNote, newEvent, rows, cols, tracks, seek }) => {
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
   const [lastNoteTime, setLastNoteTime] = useState(0);
@@ -73,7 +70,8 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
       note.length = note.time - pendingNote.time;
       note.envelope = pendingNote.envelope;
       pendingNote.envelope.triggerRelease();
-      onNewNote(note);
+      note.adsr = pendingNote.envelope.cloneShape();
+      storeNewNote(note);
     }
 
     if (bar - barCursor > cols) {
@@ -113,14 +111,13 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
     const barIndex = Math.floor(x / cellWidth);
     const note = { bar: barIndex, index: noteIndex, length: 200 };
 
-    if (tracks[barIndex + barCursor] && tracks[barIndex + barCursor][noteIndex]) {
-      onDeleteNote(note);
+    if (tracks[barIndex + barCursor] && tracks[barIndex + barCursor][noteIndex] !== null) {
+      onDeleteNote(barIndex + barCursor, noteIndex);
       setPaintBar({ ...note, color: "gray" });
     } else {
       setPaintBar(note);
-      onNewNote(note);
+      storeNewNote(note);
     }
-    //({ bar: barIndex, index: noteIndex, envelop: [] });
   };
 
   useEffect(() => {
@@ -135,8 +132,9 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
   useEffect(() => {
     //on new note played
     // canvasCtx = canvasRef.current.getContext("2d");
-    canvasCtx.fillStyle = "blue";
     if (paintBar !== null) {
+      canvasCtx.fillStyle = paintBar.color || "blue";
+
       canvasCtx.fillRect(
         (paintBar.bar - barCursor) * cellWidth,
         paintBar.index * cellHeight,
@@ -182,7 +180,10 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
   }, [newEvent]);
   return (
     <>
-      <div className="hud">{currentBar}</div>
+      <div className="hud">
+        {msg} {currentBar}
+        {JSON.stringify(paintBar)}
+      </div>
       <div
         className={styles.gridContainer}
         style={{
@@ -198,27 +199,20 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
           key={11}
           style={{ position: "absolute" }}
           ref={canvasRef}
-          onClick={_canvasClick}
+          onClick={(e) => _canvasClick(e)}
           height={rows * 20}
           width={cols * 35}
         ></canvas>
         <canvas
           key={33}
-          style={{ position: "absolute" }}
+          style={{ position: "relative" }}
           ref={canvasHudRef}
           onClick={_canvasClick}
           height={rows * 20}
           width={cols * 35}
         ></canvas>
       </div>
-
-      <div style={{ position: "fixed", left: 0, maxHeight: 240, overflowY: "scroll" }}>
-        {msg}
-        <p>{currentBar}</p>
-        {log.split("\n").map((l, idx) => (
-          <p key={idx}> {l}</p>
-        ))}
-      </div>
+      <div></div>
     </>
   );
 };
@@ -226,4 +220,4 @@ const Sequence = ({ octave, onNewNote, onDeleteNote, newEvent, rows, cols, track
 function sleep(sec) {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 }
-export default Sequence;
+export default connect(mapStateToProps, mapDispatchToProps)(Sequence);

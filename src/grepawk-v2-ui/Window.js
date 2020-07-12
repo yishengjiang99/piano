@@ -9,15 +9,15 @@ class Window extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      minimized: false,
-      maximized: false,
+      minimized: true,
+      maximized: true,
       closed: false,
       isResizing: false,
       isDragging: false,
-      top: props.top || 20,
-      left: props.left || 400,
+      top: props.top || 0,
+      left: props.left || 0,
       width: props.width || 800,
-      height: props.height || 400,
+      height: props.height || 300,
       lastMouseX: 0,
       lastMouseY: 0,
     };
@@ -130,7 +130,14 @@ class Window extends React.Component {
       </div>
     );
   };
-
+  componentDidMount() {
+    window.removeEventListener("resize", function () {
+      this.setState({
+        top: window.height - this.state.height,
+        left: window.innerWidth - this.state.width,
+      });
+    });
+  }
   render() {
     if (this.state.closed) return null;
     var boxClass = "box";

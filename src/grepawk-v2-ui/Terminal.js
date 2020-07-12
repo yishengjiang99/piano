@@ -253,27 +253,20 @@ class Terminal extends React.Component {
       backgroundColor: "black",
     };
     return (
-      <Window
-        className="terminal"
-        title={this.props.title}
-        pid={this.props.pid}
-        ipc={this.props.ipc}
-      >
-        <div style={fontStyle} className="terminal-body" onClick={this.clickOnTerminal}>
-          {this.state.output_rows.map((row, i) => {
-            return this.renderOutputRow(row, i);
-          })}
-          {this.renderInputBar()}
-          <div
-            className="terminal-anchor"
-            ref={(el) => {
-              this.messagesEnd = el;
-            }}
-          >
-            {" "}
-          </div>
+      <div style={fontStyle} className="terminal-body" onClick={this.clickOnTerminal}>
+        {this.state.output_rows.map((row, i) => {
+          return this.renderOutputRow(row, i);
+        })}
+        {this.renderInputBar()}
+        <div
+          className="terminal-anchor"
+          ref={(el) => {
+            this.messagesEnd = el;
+          }}
+        >
+          {" "}
         </div>
-      </Window>
+      </div>
     );
   }
   componentDidUpdate() {

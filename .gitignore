@@ -1,3 +1,15 @@
 node_modules/
 api3/node_modules/
+.nyc_output
+api3
+build
+coverage
+dist
+docs
 
+public/des/piano.js
+public/des/Piano.module.css
+public/des/playlist.js
+public/des/sequence.js
+public/des/sequence.module.css
+public/des/timer.js
