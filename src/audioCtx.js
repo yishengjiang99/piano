@@ -5,13 +5,17 @@ export function Envelope(adsr, audioParam) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
   var extended = [];
+  var state = "init",
+    shape;
   const trigger = () => {
     attackStart = ctx.currentTime;
+    state = "attacking";
     audioParam.setValueCurveAtTime([0, 1.0], ctx.currentTime, attack);
     audioParam.setValueCurveAtTime([1.0, sustain * 1.0], ctx.currentTime + attack, decay);
     audioParam.setTargetAtTime(0.0000001, ctx.currentTime + attack + decay, release);
   };
   const triggerRelease = () => {
+    state = "releasing";
     audioParam.cancelScheduledValues(0);
     releaseStart = ctx.currentTime;
     audioParam.setTargetAtTime(0.0000001, ctx.currentTime, release);
@@ -91,7 +95,7 @@ export async function ensureAudioCtx() {
 }
 let noteCache = {};
 export function getNote(notefreq, octave = 3) {
-  // if (noteCache[notefreq]) return noteCache[notefreq];
+  if (noteCache[notefreq] && noteCache[notefreq].state !== "attacking") return noteCache[notefreq];
   ctx = ctx || new AudioContext();
   const freqmultiplierindex = [0, 0.25, 0.5, 1, 2, 4];
   if (notefreq <= 0 || isNaN(notefreq)) {

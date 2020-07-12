@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from "react";
 import { getContext, getNote } from "./audioCtx";
 import { idxToFreq } from "./sound-keys";
 import { connect, actions } from "./redux/store.js";
-import "xterm/lib/xterm.css";
 const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
 function mapStateToProps(state) {
@@ -71,6 +70,7 @@ const Sequence = ({ octave, storeNewNote, onDeleteNote, newEvent, rows, cols, tr
       note.length = note.time - pendingNote.time;
       note.envelope = pendingNote.envelope;
       pendingNote.envelope.triggerRelease();
+      note.adsr = pendingNote.envelope.cloneShape();
       storeNewNote(note);
     }
 

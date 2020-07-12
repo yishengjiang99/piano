@@ -10,6 +10,7 @@ import React from "react";
 import { getNote, ensureAudioCtx } from "./audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
 import { connect, actions } from "./redux/store.js";
+import SelectInput from "@material-ui/core/Select/SelectInput";
 
 const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
   const defaults = {
@@ -27,43 +28,27 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
   const toolbarRef = useRef();
   var timer;
 
-  function userClicked(play) {
-    if (play === true) {
+  async function userClicked(play) {
+    if (play) {
       setPlaying(true);
+      const bitmap = new Array(222).fill(new Array(20).fill(null));
 
-      function playTrack(_tracks) {
-        loop(0);
-        function loop(_seek) {
-          setDebug(_seek);
-          var startLoop = ctx.currentTime;
-          if (typeof _tracks[_seek] === "undefined" || !_tracks[_seek]) {
-            //chill
-            setDebug(trackLength + "vs" + _seek);
-          } else {
-            Object.keys(_tracks[_seek]).forEach((noteIndex, idx) => {
-              const note = _tracks[_seek][noteIndex];
-              setDebug(JSON.stringify(note));
-              if (note.envelop) {
-                getNote(note.freq, octave).triggerEnvelope(note.envelop);
-              } else {
-                getNote(note.freq, octave).trigger();
-              }
-            });
-          }
-          if (_seek >= trackLength) {
-            setPlaying(false);
-            return;
-          }
-          setSeek(_seek + 1);
-          const nextNote = tickLength - (ctx.currentTime - startLoop);
+      tracks.forEach((note) => {
+        bitmap[note.bar][note.index] = note;
+      });
+      var position = 0;
+      while (position < trackLength) {
+        var startLoop = ctx.currentTime;
+        bitmap[position]
+          .filter((v) => v !== null)
+          .map((n) => getNote(n.freq).triggerEnvelope(n.adsr));
 
-          setTimeout(() => requestAnimationFrame(() => loop(_seek + 1)), nextNote - 12);
-        }
+        setSeek(seek + 1);
+        const nextNote = tickLength - (ctx.currentTime - startLoop);
+
+        await sleep(nextNote - 1);
       }
-
-      playTrack(tracks);
     }
-
     if (play === false) {
       setPlaying(false);
       // setSeek(0);
@@ -114,3 +99,6 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 export default connect(mapStateToProps, mapDispatchToProps)(Timer);
+function sleep(sec) {
+  return new Promise((resolve) => setTimeout(resolve, sec * 1000));
+}

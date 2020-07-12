@@ -17,7 +17,7 @@ export const actions = {
 // };
 export const initialState = {
   ws: null,
-  tracks: Array(200).fill({}),
+  tracks: [],
   trackLength: 1,
   events: [],
   seek: -1,
@@ -65,7 +65,6 @@ export function connect(mapStateToProps, mapDispatchToProps) {
 }
 export function reducer(state, action) {
   let _tracks = state.tracks;
-  console.log("using reducer " + action.type);
   if (typeof action.type === "unknown") {
     alert("sss");
   }
@@ -73,13 +72,8 @@ export function reducer(state, action) {
   switch (action.type) {
     case actions.NEW_NOTE:
       let note = action.payload;
-
-      if (typeof _tracks[note.bar] == "undefined") {
-        _tracks[note.bar] = {};
-      }
-      _tracks[note.bar][note.index] = note;
       return {
-        tracks: _tracks,
+        tracks: [...state.tracks, note],
         trackLength: Math.max(state.trackLength, note.bar),
       };
       break;
