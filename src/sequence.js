@@ -20,7 +20,17 @@ function mapDispatchToProps(dispatch) {
     onDeleteNote: (x, y) => dispatch({ type: actions.DELETE_NOTE, barIndex: x, noteIndex: y }),
   };
 }
-const Sequence = ({ octave, storeNewNote, onDeleteNote, newEvent, rows, cols, tracks, seek }) => {
+const Sequence = ({
+  octave,
+  storeNewNote,
+  onDeleteNote,
+  newEvent,
+  rows,
+  cols,
+  tracks,
+  seek,
+  onNewNote,
+}) => {
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
   const [lastNoteTime, setLastNoteTime] = useState(0);
@@ -72,6 +82,7 @@ const Sequence = ({ octave, storeNewNote, onDeleteNote, newEvent, rows, cols, tr
       pendingNote.envelope.triggerRelease();
       note.adsr = pendingNote.envelope.cloneShape();
       storeNewNote(note);
+      onNewNote(note);
     }
 
     if (bar - barCursor > cols) {

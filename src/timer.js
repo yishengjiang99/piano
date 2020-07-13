@@ -7,7 +7,7 @@ import {
   PauseCircleFilledSharp,
 } from "@material-ui/icons";
 import React from "react";
-import { getNote, ensureAudioCtx } from "./audioCtx.js";
+import { getNote } from "./audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
 import { connect, actions } from "./redux/store.js";
 import { useChannel } from "./useChannel";
@@ -30,9 +30,6 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
 
   const [messageState, postMessage] = useChannel("clock");
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
-  const [debug, setDebug] = useState([]);
-  const [total, setTotal] = useState(5);
-  const [ctx, setCtx] = useState(null);
   const [playing, setPlaying] = useState(false);
   const toolbarRef = useRef();
 

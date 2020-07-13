@@ -18,46 +18,55 @@ export const IndexPage = (props) => {
   const [channels, setChannels] = useState([]);
   const [userEvent, setUserEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
+  const [scheduler, setScheduler] = useState(null);
+
   useEffect(() => {
     if (!websocket) {
       setWebsocket(new Worker("./wsworker.js"));
     }
+    if (!scheduler) {
+      setScheduler(new Worker("./offlinetimer.js"));
+    }
   }, []);
   useEffect(() => {
     const msg = wsMessage.lastMessage;
-    if (!msg || !msg.lastMessage) return;
+    if (!msg) return;
     if (msg.type === "filelist") {
       setFiles(msg.data);
     } else if (msg.type === "channellist") {
       setChannels(msg.data);
     }
   }, [wsMessage]);
-  useEffect(() => {
-    postWsMessage(userEvent);
-  }, [userEvent]);
+  // useEffect(() => {
+  //   postWsMessage(userEvent);
+  // }, [userEvent]);
   return (
     <>
       <FileList files={files} channels={channels}></FileList>
       <ButtonGroup></ButtonGroup>
       <Timer></Timer>
-      <Sequence newEvent={userEvent} rows={15} cols={20} />
+      <Sequence
+        onNewNote={(note) => {
+          note.cmd = "compose";
+          postWsMessage(note);
+        }}
+        newEvent={userEvent}
+        rows={15}
+        cols={20}
+      />
 
       <Piano
         onUserEvent={(type, freq, time, index) => {
           setUserEvent({
+            cmd: "compose",
             time: time,
             type: type,
             freq: freq,
             index: index,
-          });
-          postWsMessage({
-            cmd: "compose",
-            csv: `${time}, ${type}, ${freq}`,
           });
         }}
       ></Piano>
     </>
   );
 };
-
 // export default connect(mapStateToProps, mapDispatchToProps)(IndexPage);

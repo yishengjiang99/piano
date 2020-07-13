@@ -8,13 +8,11 @@
   "dependencies": {
     "@material-ui/core": "^4.10.2",
     "@material-ui/icons": "^4.9.1",
-    "jest": "^26.1.0",
     "react": "^16.13.1",
-    "react-bootstrap": "^1.1.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
-    "react-window-communication-hook": "^1.5.0",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.5",
+    "jest": "^26.1.0"
   },
   "scripts": {
     "build": "react-scripts build",
@@ -27,9 +25,9 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "files":
-    ["src"]
-  ,
+  "files": [
+    "src"
+  ],
   "browserslist": {
     "production": [
       ">0.2%",

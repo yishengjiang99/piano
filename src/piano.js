@@ -1,7 +1,7 @@
 import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef, Component, useRef } from "react";
 import { keys, blackKeys, notes, keynotes, keyboardToFreq } from "./sound-keys.js";
-import { store, connect, actions } from "./redux/store.js";
+import { actions, connect } from "./redux/store";
 
 const Piano = ({ syncEvents, onUserEvent, octave }) => {
   const octaves = [octave, octave + 1];

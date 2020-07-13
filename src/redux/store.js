@@ -9,19 +9,17 @@ export const actions = {
   UPDATE_OCTAVE: 5,
   SYNC_BACKEND: 6,
   NOW_PLAYING: 7,
-  SYNC_KEYBOARD: 8,
 };
 
 // export const createActor = (type, payload) => {
 //   return _dispatch({ type, payload });
 // };
 export const initialState = {
-  ws: null,
-  tracks: [],
+  upstreamSync: null,
+  tracks: {},
   trackLength: 1,
   events: [],
-  seek: -1,
-  files: [],
+  seek: 0,
   octave: 3,
   tmpBuffer: [],
   settings: {
@@ -65,32 +63,28 @@ export function connect(mapStateToProps, mapDispatchToProps) {
 }
 export function reducer(state, action) {
   let _tracks = state.tracks;
-  if (typeof action.type === "unknown") {
-    alert("sss");
-  }
-
   switch (action.type) {
     case actions.NEW_NOTE:
       let note = action.payload;
+      if (!_tracks[note.bar]) {
+        _tracks[note.bar] = [];
+      }
+      _tracks[note.bar][note.index] = note;
       return {
-        tracks: [...state.tracks, note],
+        tracks: _tracks,
         trackLength: Math.max(state.trackLength, note.bar),
       };
       break;
     case actions.DELETE_NOTE:
-      _tracks[action.barIndex][action.noteIndex] = null;
+      if (!_tracks[note.bar] || _tracks[note.bar][note.index])
+        throw new Error("attempt to delete key not exist");
+      _tracks[note.bar][note.index] = null;
       return state;
-      break;
     case actions.UPDATE_SEEK:
-      console.trace();
       return {
-        seek: action.payload,
+        seek: state.seek + 1, //.payload,
       };
-      break;
-    case action.SYNC_BACKEND:
-      return state;
-      break;
-    case action.SYNC_KEYBOARD:
+
       break;
     default:
       return state;
