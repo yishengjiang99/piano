@@ -180,10 +180,7 @@ const Sequence = ({ octave, storeNewNote, onDeleteNote, newEvent, rows, cols, tr
   }, [newEvent]);
   return (
     <>
-      <div className="hud">
-        {msg} {currentBar}
-        {JSON.stringify(paintBar)}
-      </div>
+      <div className="hud"></div>
       <div
         className={styles.gridContainer}
         style={{

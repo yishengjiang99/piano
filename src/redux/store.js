@@ -82,6 +82,7 @@ export function reducer(state, action) {
       return state;
       break;
     case actions.UPDATE_SEEK:
+      console.trace();
       return {
         seek: action.payload,
       };

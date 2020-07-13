@@ -1,84 +1,87 @@
-import { actions, connect } from "./redux/store.js";
-import React, { useEffect, useState, useContext } from "react";
+import React from "react";
+import Toolbar from "@material-ui/core/Toolbar";
+import IconButton from "@material-ui/core/IconButton";
+import Typography from "@material-ui/core/Typography";
+import InputBase from "@material-ui/core/InputBase";
+import { fade } from "@material-ui/core/styles";
+import MenuIcon from "@material-ui/icons/Menu";
+import SearchIcon from "@material-ui/icons/Search";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import Divider from "@material-ui/core/Divider";
+import InboxIcon from "@material-ui/icons/Inbox";
+import DraftsIcon from "@material-ui/icons/Drafts";
 
-import { Table, TableRow, TableCell } from "@material-ui/core";
-import constants from "./constants";
-import { Accordion, Card, Button } from "react-bootstrap";
-const mapStateToProps = (state) => {
-  return { files: state.files };
-};
-const mapDispatchToProps = (dispatch) => {
-  return {
-    setNowPlaying: function (v) {
-      dispatch({ type: actions.NOW_PLAYING, payload: v });
-    },
-    gotFileList: function (files) {
-      dispatch({ type: actions.API_FILES_GOT, payload: files });
-    },
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import InboxIcon from "@material-ui/icons/MoveToInbox";
+import MailIcon from "@material-ui/icons/Mail";
+import Drawer from "@material-ui/core/Drawer";
+
+const FileList = ({ channels, files, postMessage }) => {
+  const [open, setOpen] = React.useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const handleDrawerOpen = () => {
+    setOpen(true);
   };
-};
 
-let ws;
-
-const shell_msg = (cmd) => {
-  ws.send(cmd);
-};
-
-const _fileList = ({ files, gotFileList, setNowPlaying }) => {
-  const [channels, setChannels] = useState("");
-
-  function handleMsgGot(msgObj) {
-    if (msgObj.type === "channelList") {
-      setChannels(msgObj.data.join(""));
-    }
-  }
-  useEffect(() => {
-    if (!ws) {
-      ws = new WebSocket(constants.api_ws, "json");
-      ws.onopen = function (evt) {
-        ws.onmessage = (msg) => {
-          if (ws.binaryType !== "blob") msg = JSON.parse(msg); //js privilege
-          handleMsgGot(msg);
-        };
-        ws.send("list");
-      };
-    }
-  });
-
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+  const handleSelectFile = (c) => {
+    postMessage(`read ${c}`);
+  };
+  const handleJoinChannel = (c) => {
+    postMessage(`join ${c}`);
+  };
   return (
-    <div>
-      <Accordion>
-        <Card>
-          <Card.Header>
-            <Accordion.Toggle as={Button} variant="link" eventKey="0">
-              Channels
-            </Accordion.Toggle>
-          </Card.Header>
-          <Accordion.Collapse eventKey="0">
-            <Card.Body>
-              <Table>
-                {channels.split(",").map((c) => (
-                  <TableRow onClick={() => shell_msg(`join ${c}`)}>
-                    <TableCell>{c}</TableCell>
-                  </TableRow>
-                ))}
-              </Table>
-            </Card.Body>
-          </Accordion.Collapse>
-        </Card>
-        <Card>
-          <Card.Header>
-            <Accordion.Toggle as={Button} variant="link" eventKey="1">
-              Click me!
-            </Accordion.Toggle>
-          </Card.Header>
-          <Accordion.Collapse eventKey="1">
-            <Card.Body>Hello! I'm another body</Card.Body>
-          </Accordion.Collapse>
-        </Card>
-      </Accordion>
-    </div>
+    <>
+      <IconButton color="inherit" aria-label="open drawer" onClick={handleDrawerOpen} edge="start">
+        <MenuIcon />
+      </IconButton>
+      <Drawer style={{ width: 280 }} variant="persistent" anchor="left" open={open}>
+        <IconButton onClick={handleDrawerClose}>
+          <ChevronLeftIcon />
+        </IconButton>
+        <List component="nav" aria-label="tracks">
+          {files.map((f) => (
+            <ListItem
+              button
+              selected={selectedIndex === 0}
+              onClick={(event) => handleSelectFile(event, f)}
+            >
+              <ListItemIcon>
+                <InboxIcon />
+              </ListItemIcon>
+              <ListItemText primary={f} />
+            </ListItem>
+          ))}
+        </List>
+
+        <Divider />
+        <List component="nav" aria-label="channels">
+          {channels.map((c) => (
+            <ListItem
+              button
+              selected={selectedIndex === 0}
+              onClick={(event) => handleJoinChannel(event, c)}
+            >
+              <ListItemIcon>
+                <InboxIcon />
+              </ListItemIcon>
+              <ListItemText primary={c} />
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+    </>
   );
 };
-const FileList = connect(mapStateToProps, mapDispatchToProps)(_fileList);
+
 export default FileList;

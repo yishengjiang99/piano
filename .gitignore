@@ -13,3 +13,15 @@ public/des/playlist.js
 public/des/sequence.js
 public/des/sequence.module.css
 public/des/timer.js
+{
+  "type": "service_account",
+  "project_id": "groupaudio",
+  "private_key_id": "4ce8c0e2aee52b042ae30f9db28bf88e8d0550a3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQCn9rzA6uAho0XA\nhZrvLw+vw5jbAdZ/uzGD2AW7bOXGLURBqiXme5e4oFJD7imPp4lJ1TwyoEKK7oPu\nxabB+iT3KC9Vftke0Np47iwJuxdyWq3iM44xikE5vHlcIYJbK6qT2mOW8YZ1zaP5\n5DYjX17u5t4qO3qIpVOqzf9/gjFq7Lk1Vde7oScUc75sFNQonVikhXA+Mgyw74gE\nGRozAtb7m1ee3qOHHI8+7qCMAqb0rcvoU1xTmkuWru9lhLC2w/+827izdyToFERX\nw9s7nnOH85195P+3Z6ias9f7flavSs9GqCVLN4ZAak+GElBMlAkonXvnNGTs04sq\nF/NZL4DlAgMBAAECgf9ScyGKPGx0FrHRem7o+oZja/XyNp9qFCSPk9CR2zhFD/Nx\nnb79D65qnZ3EZXoBX+cErKfgMiB4Ep1bmFVDjdyXds0a1X8UoXFH66JdJHoIqHqy\n5JvoYEr5tzXbrpdO1HXnc6IaISA1Xmd1Q5FPy9Z4xNufNOicKzaRoeLJtMnisjBx\n0cD0TZfkIxhVCimbWFdq3Hpj4LfTA96IF+5uvZLaY8J3W7elmUP8cS0hg2F7JO7x\n4WyMWC63aClsH007dMQB+D4uuujUJq3SviHVk5IVygSfxLodljVRebyqttCxM0Ln\ni+GSshs6bDM5NPbXMXzSFrd1HZGs+kf8gqfDXeUCgYEA2J2Q0ONpkkdO137wY7pZ\n8iBAlaOucvPpJ9FibIgeQZXsI4p2c/Ei4tcN8PEgNO5WDUxy2eMvSpakorTAvuYl\nMzBISnGoMn2cSM6LOcgMhYNyK+TfNvzF3BvN2GmkzuE8wX5qCtnJ80VrZ3Xm7cAq\nMn9UcpitSY1DLjVV7fdntM8CgYEAxoCqI9NZGNHEgXjASnH7hupkTYd0cOxsLYOY\niUkZiVK+7m560zmpC6OM1SSvJ1dwBmf4NCeNgTczSlJ6faexIzN7J1OEvllegK5j\ngFxlpV7Dx6x4gapf82UPTrpaPv+X/qE/5enNSygX1nMo9ymhh90Tp8UGCMkPbq89\nqHmAhAsCgYEAkYr8/H1wN6rV3JEb78YMHVVyT5jU48PiyrAzE3055xNWwGKOSESj\nDgs1AMjivO3Ov8y39pJg+hrRr8kHILz+DbDJQcuwGYywb3LntQEm+KZjFf8Hw6h/\nQO8lld0VsTNBYTkRAw1mVaA1FCTx7pkJQTiwgvb2p87Ubr3DaMqs0Z0CgYA9NdXB\nQF3cEmtHBWY+TpGiU8rkQV29qJnfGxJBW0I9nz9zJKxJUCF5jlBSNYKxXfwUbaES\n7BNtggkV5QMSllBAK5LRWKa5T7OdeKkEHvnVGbjDbMKoMVJvKn2i6EIF5SkIgs7C\nZetBPrbDETXTqYm+7IQwGsg2k1Fn7y/TMMxZawKBgC7o8CGZHTCDVExnlWGs8LYp\nCnvbtIf0WQeNduX3Dtzpu4UfJfn+6cbDZsk2hmnpbZCpvPoOa0o6V+YcQBxNUdUx\nd1it1xVGBuXO2haGpWSOC0kpd2KKvAA4loMCLMVSvIOyW4TkLdcwnD+D9P6yXjrN\n3dkeNPKELJVC9iADdDNM\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-nwewt@groupaudio.iam.gserviceaccount.com",
+  "client_id": "113336213204071415847",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-nwewt%40groupaudio.iam.gserviceaccount.com"
+}

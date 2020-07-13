@@ -43,7 +43,7 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
           .filter((v) => v !== null)
           .map((n) => getNote(n.freq).triggerEnvelope(n.adsr));
 
-        setSeek(seek + 1);
+        //    setSeek(seek + 1);
         const nextNote = tickLength - (ctx.currentTime - startLoop);
 
         await sleep(nextNote - 1);
@@ -51,7 +51,7 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
     }
     if (play === false) {
       setPlaying(false);
-      // setSeek(0);
+      setSeek(0);
     }
   }
 
@@ -81,7 +81,7 @@ const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
       </Toolbar>
       <LinearProgress variant="determinate" value={(seek / trackLength) * 100}></LinearProgress>
       <div>
-        {seek * tickLength} of {trackLength * tickLength}
+        {seek} of {trackLength * tickLength}
       </div>
     </div>
   );
@@ -95,7 +95,7 @@ const mapStateToProps = (state) => {
 };
 const mapDispatchToProps = (dispatch) => {
   return {
-    setSeek: (num) => dispatch({ type: actions.UPDATE_SEEK, payload: num }),
+    setSeek: (num) => console.trace(num) && dispatch({ type: actions.UPDATE_SEEK, payload: num }),
   };
 };
 export default connect(mapStateToProps, mapDispatchToProps)(Timer);

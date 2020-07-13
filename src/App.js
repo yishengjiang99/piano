@@ -6,30 +6,42 @@ import LeftNav from "./left-nav";
 import Piano from "./piano";
 import Timer from "./timer";
 import { TheContext } from "./redux/store";
-// import FileList from "./filelist";
-const ButtonGroup = () => <div>bt</div>;
+import useChannel from "./useChannel.js"; //react-window-communication-hook";
+
+import FileList from "./filelist";
+const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = (props) => {
+  const [wsMessage, postWsMessage] = useChannel("wschannel");
+  const [files, setFiles] = useState([]);
+  const [channels, setChannels] = useState([]);
   const [userEvent, setUserEvent] = useState(null);
-  // const [newNote, setNewNote] = useState(null);
-  const { state, dispatch } = useContext(TheContext);
-
   const [websocket, setWebsocket] = useState(null);
+  useEffect(() => {
+    if (!websocket) {
+      setWebsocket(new Worker("./wsworker.js"));
+    }
+  }, []);
+  useEffect(() => {
+    console.log(wsMessage.lastMessage);
+    try {
+      const msg = JSON.parse(wsMessages.lastMessage);
+      if (msg.type === "filelist") {
+        setFiles(msg.data);
+      } else if (msg.type === "channellist") {
+        setChannels(msg.data);
+      }
+    }
+  }, [wsMessage]);
+  useEffect(() => {
+    postWsMessage(userEvent);
+  }, [userEvent]);
   return (
     <>
-      <ButtonGroup>
-        <button>button1</button>
-        <button>button1</button>
-      </ButtonGroup>
+      <FileList files={files} channels={channels}></FileList>
+      <ButtonGroup></ButtonGroup>
       <Timer></Timer>
-      <Sequence
-        // onNewNote={(note) => {
-        //   setNewNote(note);
-        // }}
-        newEvent={userEvent}
-        rows={15}
-        cols={20}
-      />
+      <Sequence newEvent={userEvent} rows={15} cols={20} />
 
       <Piano
         onUserEvent={(type, freq, time, index) => {
@@ -39,9 +51,12 @@ export const IndexPage = (props) => {
             freq: freq,
             index: index,
           });
+          postWsMessage({
+            cmd: "compose",
+            csv: `${time}, ${type}, ${freq}`,
+          });
         }}
       ></Piano>
-      <div>aaa{JSON.stringify(state.tracks)}</div>
     </>
   );
 };
