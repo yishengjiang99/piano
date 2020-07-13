@@ -1,26 +1,31 @@
 var n = -2;
 var interval = interval;
 var t;
-
-onmessage = ({ data }) => {
+var clockchan = new BroadcastChannel("clock");
+clockchan.onmessage = ({ data }) => {
   if (data.interval) {
     interval = data.interval;
   }
   if (data == "start") {
-    var n = 0;
+    n = 0;
     t = setInterval(function () {
-      postMessage(n++);
+      clockchan.postMessage({ n: n, time: n * interval });
+      n++;
     }, interval);
   }
 
   if (data == "stop") {
     clearInterval(t);
   }
+  if (data == "reset") {
+    n = 0;
+    postMessage({ n: 0 });
+  }
   if (data === "resume") {
     t = setInterval(function () {
-      postMessage(n++);
+      clockchan.postMessage(n++);
     }, interval);
   }
 };
 
-postMessage("load");
+clockchan.postMessage("load");

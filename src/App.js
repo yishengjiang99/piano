@@ -6,9 +6,10 @@ import LeftNav from "./left-nav";
 import Piano from "./piano";
 import Timer from "./timer";
 import { TheContext } from "./redux/store";
-import useChannel from "./useChannel.js"; //react-window-communication-hook";
 
+import { useChannel } from "./useChannel";
 import FileList from "./filelist";
+
 const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = (props) => {
@@ -23,14 +24,12 @@ export const IndexPage = (props) => {
     }
   }, []);
   useEffect(() => {
-    console.log(wsMessage.lastMessage);
-    try {
-      const msg = JSON.parse(wsMessages.lastMessage);
-      if (msg.type === "filelist") {
-        setFiles(msg.data);
-      } else if (msg.type === "channellist") {
-        setChannels(msg.data);
-      }
+    const msg = wsMessage.lastMessage;
+    if (!msg || !msg.lastMessage) return;
+    if (msg.type === "filelist") {
+      setFiles(msg.data);
+    } else if (msg.type === "channellist") {
+      setChannels(msg.data);
     }
   }, [wsMessage]);
   useEffect(() => {

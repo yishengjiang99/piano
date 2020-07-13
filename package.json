@@ -8,6 +8,7 @@
   "dependencies": {
     "@material-ui/core": "^4.10.2",
     "@material-ui/icons": "^4.9.1",
+    "jest": "^26.1.0",
     "react": "^16.13.1",
     "react-bootstrap": "^1.1.1",
     "react-dom": "^16.13.1",
@@ -26,6 +27,9 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "files":
+    ["src"]
+  ,
   "browserslist": {
     "production": [
       ">0.2%",

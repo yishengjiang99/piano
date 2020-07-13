@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Component } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LinearProgress } from "@material-ui/core";
 import {
   FastRewind,
@@ -10,61 +10,91 @@ import React from "react";
 import { getNote, ensureAudioCtx } from "./audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
 import { connect, actions } from "./redux/store.js";
-import SelectInput from "@material-ui/core/Select/SelectInput";
+import { useChannel } from "./useChannel";
 
+function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+var timer;
 const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
   const defaults = {
     bpm: 120, //120 quarter notes per minute.. and we tick twice per beat
     noteLength: 1 / 4,
     resolution: 1 / 4,
   };
-
   const { bpm, noteLength, resolution } = defaults;
+
+  const [messageState, postMessage] = useChannel("clock");
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
   const [debug, setDebug] = useState([]);
   const [total, setTotal] = useState(5);
   const [ctx, setCtx] = useState(null);
   const [playing, setPlaying] = useState(false);
   const toolbarRef = useRef();
-  var timer;
 
-  async function userClicked(play) {
+  const bitmap = new Array(50).fill(new Array(20).fill(null));
+  const prevSeek = usePrevious(seek);
+
+  useEffect(
+    (messageState) => {
+      if (!messageState) {
+        postMessage({ interval: tickLength });
+      } else if (messageState.lastMessage.n) {
+        setSeek(messageState.lastMessage.n);
+      } else {
+        postMessage({ interval: tickLength });
+      }
+    },
+    [messageState]
+  );
+
+  useEffect(() => {
+    if (seek !== prevSeek && playing) {
+      Object.values(bitmap[seek]).forEach((note) => {
+        if (note == null) return;
+        if (note.adsr) {
+          getNote(note.freq).triggerEnvelop(note.adsr);
+        } else {
+          getNote(note.freq).trigger();
+        }
+      });
+    }
+    if (seek >= trackLength) postMessage("pause");
+  }, [seek, prevSeek, playing, trackLength, postMessage, bitmap]);
+
+  useEffect(() => {
+    if (!timer) {
+      timer = new Worker("./offlinetimer.js");
+    }
+  }, []);
+
+  function userClicked(play) {
     if (play) {
       setPlaying(true);
-      const bitmap = new Array(222).fill(new Array(20).fill(null));
-
+      setSeek(0);
+      postMessage("start");
       tracks.forEach((note) => {
         bitmap[note.bar][note.index] = note;
       });
-      var position = 0;
-      while (position < trackLength) {
-        var startLoop = ctx.currentTime;
-        bitmap[position]
-          .filter((v) => v !== null)
-          .map((n) => getNote(n.freq).triggerEnvelope(n.adsr));
-
-        //    setSeek(seek + 1);
-        const nextNote = tickLength - (ctx.currentTime - startLoop);
-
-        await sleep(nextNote - 1);
-      }
-    }
-    if (play === false) {
+    } else {
       setPlaying(false);
-      setSeek(0);
+      postMessage("stop");
     }
   }
 
-  useEffect(() => {
-    ensureAudioCtx().then((audioCtx) => {
-      setCtx(audioCtx);
-    });
-  });
   return (
     <div>
       <Toolbar ref={toolbarRef}>
         <IconButton>
-          <FastRewind />
+          <FastRewind
+            onClick={(e) => {
+              postMessage("reset");
+            }}
+          />
         </IconButton>
         {playing === true ? (
           <IconButton onClick={(e) => userClicked(false)}>

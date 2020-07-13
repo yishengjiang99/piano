@@ -2,21 +2,10 @@ import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef, Component, useRef } from "react";
 import { keys, blackKeys, notes, keynotes, keyboardToFreq } from "./sound-keys.js";
 import { store, connect, actions } from "./redux/store.js";
-import useBrowserContextCommunication from "react-window-communication-hook";
 
-const mapStateToProps = (state) => state;
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    setOctave: function (v) {
-      dispatch({ type: actions.UPDATE_OCTAVE, payload: v });
-    },
-  };
-};
 const Piano = ({ syncEvents, onUserEvent, octave }) => {
   const octaves = [octave, octave + 1];
   const keyRefMap = keys.map((key, index) => createRef());
-  const [communicationState, postMessage] = useBrowserContextCommunication("channel");
 
   let _onUserEvent = (type, freq, time, keyindex) => {
     onUserEvent(type, freq, time, keyindex);
@@ -70,4 +59,4 @@ const Piano = ({ syncEvents, onUserEvent, octave }) => {
     </ul>
   );
 };
-export default connect(mapStateToProps, mapDispatchToProps)(Piano);
+export default Piano;
