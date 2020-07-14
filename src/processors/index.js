@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useReducer } from "react";
-import { useEventListener } from "./useEventListener";
-// import { DattorroReverb, useReverb } from "./reverb";
 import { useBiquads } from "./useBiquads";
 import { useEnvelope } from "./envelope";
 import { useAudioContext } from "./AudioContextExt";
-export { useAudioContext, useBiquads, useEnvelope };
+import { useEq } from "./use-eq";
+import { useOsc3 } from "./osc3";
+import { useReverb } from "./useReverb";
+export { useAudioContext, useBiquads, useEnvelope, useEq, useOsc3, useReverb };

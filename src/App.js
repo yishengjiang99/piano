@@ -10,7 +10,7 @@ import { TheContext } from "./redux/store";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
 import { getNote, getNotes } from "./audioCtx";
-
+import { useContext } from "react-audio-hooks";
 const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = (props) => {

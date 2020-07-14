@@ -1,5 +1,6 @@
 import { useEffect, useRef, useReducer } from "react";
 import { useAudioContext } from "./AudioContextExt";
+import { useOsc3 } from "./useOsc3";
 
 let noteCache = {};
 
