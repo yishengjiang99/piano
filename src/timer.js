@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { LinearProgress } from "@material-ui/core";
-import {
-  FastRewind,
-  FastForward,
-  PlayCircleFilledSharp,
-  PauseCircleFilledSharp,
-} from "@material-ui/icons";
+
 import React from "react";
 import { getNote } from "./audioCtx.js";
 import { IconButton, Toolbar } from "@material-ui/core";
@@ -19,113 +14,75 @@ function usePrevious(value) {
   });
   return ref.current;
 }
-var timer;
-const Timer = ({ octave, tracks, setSeek, seek, trackLength }) => {
+const Timer = ({ seek }) => {
   const defaults = {
     bpm: 120, //120 quarter notes per minute.. and we tick twice per beat
     noteLength: 1 / 4,
     resolution: 1 / 4,
   };
   const { bpm, noteLength, resolution } = defaults;
-
-  const [messageState, postMessage] = useChannel("clock");
+  const { trackLength, setTrackLength } = useState(40);
+  const [msg, postMessage] = useChannel("clock");
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
   const [playing, setPlaying] = useState(false);
   const toolbarRef = useRef();
-
-  const bitmap = new Array(50).fill(new Array(20).fill(null));
-  const prevSeek = usePrevious(seek);
-
-  useEffect(
-    (messageState) => {
-      if (!messageState) {
-        postMessage({ interval: tickLength });
-      } else if (messageState.lastMessage.n) {
-        setSeek(messageState.lastMessage.n);
-      } else {
-        postMessage({ interval: tickLength });
-      }
-    },
-    [messageState]
-  );
-
+  const prevMsg = usePrevious(msg);
   useEffect(() => {
-    if (seek !== prevSeek && playing) {
-      Object.values(bitmap[seek]).forEach((note) => {
-        if (note == null) return;
-        if (note.adsr) {
-          getNote(note.freq).triggerEnvelop(note.adsr);
-        } else {
-          getNote(note.freq).trigger();
-        }
-      });
-    }
-    if (seek >= trackLength) postMessage("pause");
-  }, [seek, prevSeek, playing, trackLength, postMessage, bitmap]);
-
-  useEffect(() => {
-    if (!timer) {
-      timer = new Worker("./offlinetimer.js");
-    }
-  }, []);
-
-  function userClicked(play) {
-    if (play) {
-      setPlaying(true);
-      setSeek(0);
-      postMessage("start");
-      tracks.forEach((note) => {
-        bitmap[note.bar][note.index] = note;
-      });
+    if (!playing) {
+      postMessage("pause");
     } else {
-      setPlaying(false);
-      postMessage("stop");
+      postMessage("resume");
     }
-  }
+  }, [playing]);
+
+  useEffect(() => {
+    if (msg == prevMsg) return;
+    if (!msg.lastMessage) {
+      return;
+    }
+    if (msg.lastMessage == "load") {
+      postMessage(`interval ${tickLength}`);
+      return;
+    }
+    if (msg.lastMessage.n) {
+    }
+    if (msg.lastMessage.note) {
+      getNote(msg.lastMessage.notefreq).triggerEnvelope(msg.lastMessage.note.adsr);
+    }
+  }, [msg]);
 
   return (
     <div>
       <Toolbar ref={toolbarRef}>
-        <IconButton>
-          <FastRewind
-            onClick={(e) => {
-              postMessage("reset");
-            }}
-          />
-        </IconButton>
+        <button
+          onClick={(e) => {
+            postMessage("-10");
+          }}
+          onDoubleClick={(e) => {
+            postMessage("reset");
+          }}
+        >
+          back
+        </button>
         {playing === true ? (
-          <IconButton onClick={(e) => userClicked(false)}>
-            <PauseCircleFilledSharp />
-          </IconButton>
+          <button onClick={(e) => setPlaying(false)}>Pause</button>
         ) : (
-          <IconButton onClick={(e) => userClicked(true)}>
-            <PlayCircleFilledSharp />
-          </IconButton>
+          <button onClick={(e) => setPlaying(true)}>Play</button>
         )}
-        <IconButton>
-          <FastForward />
-        </IconButton>
+        <button
+          onClick={(e) => {
+            postMessage("-10");
+          }}
+          onDoubleClick={(e) => {
+            postMessage("reset");
+          }}
+        >
+          FWD
+        </button>
       </Toolbar>
-      <LinearProgress variant="determinate" value={(seek / trackLength) * 100}></LinearProgress>
-      <div>
-        {seek} of {trackLength * tickLength}
-      </div>
+      <progress value={seek} max="100"></progress>
+      <div>{((seek * tickLength) / 1000).toFixed(2)}</div>
     </div>
   );
 };
-const mapStateToProps = (state) => {
-  return {
-    seek: state.seek,
-    tracks: state.tracks,
-    trackLength: state.trackLength,
-  };
-};
-const mapDispatchToProps = (dispatch) => {
-  return {
-    setSeek: (num) => console.trace(num) && dispatch({ type: actions.UPDATE_SEEK, payload: num }),
-  };
-};
-export default connect(mapStateToProps, mapDispatchToProps)(Timer);
-function sleep(sec) {
-  return new Promise((resolve) => setTimeout(resolve, sec * 1000));
-}
+export default Timer;

@@ -13,6 +13,7 @@ export function Envelope(adsr, audioParam) {
     audioParam.setValueCurveAtTime([0, 1.0], ctx.currentTime, attack);
     audioParam.setValueCurveAtTime([1.0, sustain * 1.0], ctx.currentTime + attack, decay);
     audioParam.setTargetAtTime(0.0000001, ctx.currentTime + attack + decay, release);
+    audioParam.setValueAtTime(0, ctx.currentTime + attack + decay + 3);
   };
   const triggerRelease = () => {
     state = "releasing";
@@ -95,19 +96,28 @@ export async function ensureAudioCtx() {
 }
 let noteCache = {};
 export function getNote(notefreq, octave = 3) {
-  if (noteCache[notefreq] && noteCache[notefreq].state !== "attacking") return noteCache[notefreq];
+  return getNotes([notefreq]);
+}
+
+export function getNotes(freqs, octave = 3) {
+  freqs.sort();
+  const hashkey = (freqs[0] * 4 + freqs[1] && freqs[1] * 2) || (0 + freqs[3] && freqs[3] * 1);
+  if (noteCache[hashkey] && noteCache[hashkey].state !== "attacking") return noteCache[hashkey];
   ctx = ctx || new AudioContext();
-  const freqmultiplierindex = [0, 0.25, 0.5, 1, 2, 4];
-  if (notefreq <= 0 || isNaN(notefreq)) {
-    alert(notefreq);
-  }
 
   const outputGain = new GainNode(ctx, { gain: 0 });
-  var chords = noteToMajorTriad(notefreq, octave);
+
+  var chords =
+    freqs.length == 1
+      ? noteToMajorTriad(freqs[0], octave)
+      : freqs.length == 2
+      ? noteToMajorTriad(freqs[0], octave).concat(noteToMinorTriad(freqs[1], octave))
+      : freqs.length == 3
+      ? freqs
+      : freqs.slice(0, 3);
 
   chords
     .map((freq, idx) => {
-      console.log(freq);
       return new OscillatorNode(ctx, {
         type: _settings.osc3[idx],
         frequency: freq,
@@ -115,6 +125,7 @@ export function getNote(notefreq, octave = 3) {
       });
     })
     .map((osc, idx) => {
+      idx = idx % 3;
       var _gain = new GainNode(ctx, { gain: _settings.gains[idx] });
       var delay = new DelayNode(ctx, { delay: _settings.delay[idx] });
       osc.connect(delay).connect(_gain); //new GainNode(ctx, { gain: _settings.gains[idx] }))

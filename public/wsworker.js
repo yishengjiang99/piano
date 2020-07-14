@@ -1,4 +1,4 @@
-var host = "ws://localhost:4000";
+var host = "wss://www.grepawk.com/signal"; //:4000";
 var msgChannel = new BroadcastChannel("wschannel");
 msgChannel.onmessage = ({ data }) => {
   if (data.cmd && socket) socket.send(JSON.stringify(data));

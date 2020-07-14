@@ -3,7 +3,11 @@
   const eventsChannel = new BroadcastChannel("wschannel");
   const track = [];
   const barMap = {};
-  const t0 = data.time;
+  var t0;
+  let n = -2;
+  let interval = 250;
+  let t = null;
+  let trackPointer = 0;
   eventsChannel.onmessage = ({ data }) => {
     if (data.cmd && data.cmd === "compose") {
       if (track.length === 0) {
@@ -12,36 +16,72 @@
       track.push(data);
     }
   };
-  let n = -2;
-  const interval = 250;
-  let t = null;
-  let start;
+
   const ontick = () => {
     const time = n * interval;
-    channel.postMessage(JSON.stringify({ t: time, cmd: "tick" }));
+    var toPlay = [];
+    while (track.length > trackPointer && track[trackPointer].bar <= n) {
+      toPlay.push(track[trackPointer++]);
+    }
+    if (toPlay.length > 0)
+      channel.postMessage({
+        time: time,
+        n: n,
+        cmd: "tick",
+        notes: toPlay,
+        trackLength: track[track.length - 1].bar,
+      });
+    if (trackPointer >= track.length) {
+      clearInterval(t);
+      n = 0;
+    }
     n++;
   };
   channel.onmessage = ({ data, lastEventId, source, ports }) => {
+    channel.postMessage({ type: "debug", data, source, ports });
     if (data == "reset") {
       n = 0;
       clearInterval(t);
     }
     if ((m = data.match(/interval (\d+)/))) {
-      interval = m;
-    }
-    if (t == null) {
-      t = setInterval(ontick, interval);
-    } else {
-      clearInterval(t);
-    }
-
-    if (data == "reset") {
-      n = 0;
-    }
-    if (data === "resume") {
-      t = setInterval(ontick, interval);
-    }
+      interval = parseInt(m[1]);
+      return;
+    } else if ((m = data.match(/-(\d+)/))) {
+      n = n - parseInt(m[1]);
+    } else if ((m = data.match(/>>(\d+)/))) {
+      n = n + parseInt(m[1]);
+    } else if ((m = data.match(/set (\d+)/))) {
+      n = parseInt(m[1]);
+    } else
+      switch (data) {
+        case "start":
+          if (t !== null) {
+            console.log("timmer already running");
+            return;
+          }
+          t = setInterval(ontick, interval);
+          break;
+        case "pause":
+          clearInterval(t);
+          t = null;
+          break;
+        case "reset":
+          n = 0;
+          clearInterval(t);
+          t = null;
+          break;
+        case "resume":
+          if (t !== null) {
+            console.log("timmer already running");
+            return;
+          }
+          t = setInterval(ontick, interval);
+          break;
+        default:
+          channel.postMessage(data);
+          break;
+      }
   };
 
-  clockchan.postMessage("load");
+  // channel.postMessage("load");
 })();

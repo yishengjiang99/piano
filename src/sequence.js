@@ -9,15 +9,13 @@ const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
 function mapStateToProps(state) {
   return {
-    tracks: state.tracks,
-    seek: state.seek,
     octave: state.octave,
   };
 }
 function mapDispatchToProps(dispatch) {
   return {
     storeNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
-    onDeleteNote: (x, y) => dispatch({ type: actions.DELETE_NOTE, barIndex: x, noteIndex: y }),
+    // onDeleteNote: (x, y) => dispatch({ type: actions.DELETE_NOTE, barIndex: x, noteIndex: y }),
   };
 }
 const Sequence = ({
@@ -35,8 +33,6 @@ const Sequence = ({
   const [barCursor, setBarCursor] = useState(0);
   const [lastNoteTime, setLastNoteTime] = useState(0);
   const [paintBar, setPaintBar] = useState(null);
-  const [msg, setMsg] = useState("");
-  const [log, setLog] = useState("");
   const [ctx, setCtx] = useState(null);
   const [pendingNotes, setPendingNotes] = useState({});
 
@@ -76,12 +72,12 @@ const Sequence = ({
         throw new Error("pending note for " + note.index + "not found");
       }
       note.bar = bar;
-
-      note.length = note.time - pendingNote.time;
-      note.envelope = pendingNote.envelope;
       pendingNote.envelope.triggerRelease();
+      note.length = note.time - pendingNote.time;
       note.adsr = pendingNote.envelope.cloneShape();
-      storeNewNote(note);
+      pendingNote.envelope.status = "recycle";
+
+      delete note.envelop;
       onNewNote(note);
     }
 
@@ -91,7 +87,6 @@ const Sequence = ({
     if (note.length > 0.0001) {
       setPaintBar(note);
     }
-    setMsg(seek + "GG");
   };
 
   const _resizeCanvas = () => {
@@ -118,16 +113,19 @@ const Sequence = ({
   };
   const _canvasClick = (e) => {
     const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
+
+    var blue = canvasCtx.getImageData(x, y, 1, 1).data[2] > 200;
+    console.log(blue);
     const noteIndex = Math.floor(y / cellHeight);
     const barIndex = Math.floor(x / cellWidth);
     const note = { bar: barIndex, index: noteIndex, length: 200 };
 
-    if (tracks[barIndex + barCursor] && tracks[barIndex + barCursor][noteIndex] !== null) {
+    if (blue) {
       onDeleteNote(barIndex + barCursor, noteIndex);
-      setPaintBar({ ...note, color: "gray" });
+      setPaintBar({ ...note, color: "clear" });
     } else {
       setPaintBar(note);
-      storeNewNote(note);
+      onNewNote(note);
     }
   };
 
@@ -144,14 +142,23 @@ const Sequence = ({
     //on new note played
     // canvasCtx = canvasRef.current.getContext("2d");
     if (paintBar !== null) {
-      canvasCtx.fillStyle = paintBar.color || "blue";
+      if (paintBar.color == "clear") {
+        canvasCtx.clearRect(
+          (paintBar.bar - barCursor) * cellWidth,
+          paintBar.index * cellHeight,
+          cellWidth * (paintBar.length / 250) - 1,
+          cellHeight - 1
+        );
+      } else {
+        canvasCtx.fillStyle = paintBar.color || "blue";
 
-      canvasCtx.fillRect(
-        (paintBar.bar - barCursor) * cellWidth,
-        paintBar.index * cellHeight,
-        cellWidth * (paintBar.length / 250) - 1,
-        cellHeight - 1
-      );
+        canvasCtx.fillRect(
+          (paintBar.bar - barCursor) * cellWidth,
+          paintBar.index * cellHeight,
+          cellWidth * (paintBar.length / 250) - 1,
+          cellHeight - 1
+        );
+      }
     }
   }, [paintBar]);
   useEffect(() => {
@@ -159,12 +166,14 @@ const Sequence = ({
     canvasHudCtx.clearRect(0, 0, currentBar * cellWidth, canvasHeight);
 
     canvasHudCtx.fillRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
+    postMessage({ n: currentBar, cmd: "tick" });
   }, [currentBar]);
   useEffect(() => {
+    if (barCursor !== ~~(seek - 1) / cols) setBarCursor(~~((seek - 1) / cols));
     canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-    canvasHudCtx.clearRect(0, 0, seek * cellWidth, canvasHeight);
+    canvasHudCtx.clearRect(0, 0, ((seek - 1) % cols) * cellWidth, canvasHeight);
 
-    canvasHudCtx.fillRect(seek * cellWidth, 0, cellWidth, canvasHeight);
+    canvasHudCtx.fillRect(((seek - 1) % cols) * cellWidth, 0, cellWidth, canvasHeight);
   }, [seek]);
   useEffect(() => {
     barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);

@@ -1,9 +1,7 @@
 import React from "react";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import InputBase from "@material-ui/core/InputBase";
-import { fade } from "@material-ui/core/styles";
+
 import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
 import List from "@material-ui/core/List";
@@ -19,7 +17,7 @@ import InboxIcon from "@material-ui/icons/MoveToInbox";
 import MailIcon from "@material-ui/icons/Mail";
 import Drawer from "@material-ui/core/Drawer";
 import { useState } from "react";
-const FileList = ({ channels, files, postMessage }) => {
+const FileList = ({ debug, channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -48,6 +46,7 @@ const FileList = ({ channels, files, postMessage }) => {
         <List component="nav" aria-label="tracks">
           {files.map((f) => (
             <ListItem
+              key={f}
               button
               selected={selectedIndex === 0}
               onClick={(event) => handleSelectFile(event, f)}
@@ -64,6 +63,7 @@ const FileList = ({ channels, files, postMessage }) => {
         <List component="nav" aria-label="channels">
           {channels.map((c) => (
             <ListItem
+              key={c}
               button
               selected={selectedIndex === 0}
               onClick={(event) => handleJoinChannel(event, c)}

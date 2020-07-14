@@ -80,12 +80,6 @@ export function reducer(state, action) {
         throw new Error("attempt to delete key not exist");
       _tracks[note.bar][note.index] = null;
       return state;
-    case actions.UPDATE_SEEK:
-      return {
-        seek: state.seek + 1, //.payload,
-      };
-
-      break;
     default:
       return state;
   }

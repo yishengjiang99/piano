@@ -47,7 +47,6 @@ export const chords = {
 export const melody = ["major", "major", "minor", "major"];
 export const keyboardToFreq = (key, octave) => {
   const idx = keys.indexOf(key);
-  const note = notes[idx];
   const baseFreq = notesOfIndex[idx][octave];
   return baseFreq;
 };
@@ -58,7 +57,7 @@ export const noteToMajorTriad = (baseFreq, octave) => {
   const idx = notes.indexOf(baseFreq);
   const keynote = keynotes[idx];
   const _chords = chords[keynote];
-  if (!_chords) return [keynote, keynote, keynote];
+  if (!_chords) return [keynote, keynote * 2, keynote * 4];
   return _chords.map((n) => notes_ext[n][octave]);
 };
 export const noteToMinorTriad = (baseFreq, octave) => {

@@ -40,5 +40,7 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "puppeteer": "^5.1.0"
+  }
 }
