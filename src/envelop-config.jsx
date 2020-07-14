@@ -4,23 +4,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import { useState, Fragment } from "react";
 import { connect, actions, state } from "./redux/store.js";
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    updateSetting: function (xpath, newValue) {
-      dispatch({ type: actions.UPDATE_SETTINGS, payload: [xpath, newValue] });
-    },
-  };
-};
 const UpdateConfig = ({ settings, updateSettings }) => {
   return (
     <table>
-      <thead>
-        <tr>
-          <th>Osc 1</th>
-          <th>Osc 2</th>
-          <th>Osc 3</th>
-        </tr>
-      </thead>
       <tbody>
         {Object.keys(settings.osc3).map((attribute, idx) => (
           <tr key={idx}>{renderAttributeRow(attribute, settings, updateSettings)}</tr>

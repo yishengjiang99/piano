@@ -12,7 +12,7 @@ CONNECTION WITH THE SOFTWARE OR THE DISTRIBUTION OF THE SOFTWARE.
 */
 
 const sampleRate = 44100;
-class DattorroReverb extends AudioWorklet {
+class DattorroReverb extends AudioWorkletProcessor {
   static get parameterDescriptors() {
     return [
       {
@@ -159,9 +159,7 @@ class DattorroReverb extends AudioWorklet {
   }
 
   readDelayAt(index, i) {
-    return this._Delays[index][1][
-      (this._Delays[index][3] + i) % this._Delays[index][0]
-    ];
+    return this._Delays[index][1][(this._Delays[index][3] + i) % this._Delays[index][0]];
   }
 
   // readDelayAt Linear Interpolated
@@ -206,26 +204,14 @@ class DattorroReverb extends AudioWorklet {
         ro = 0.0;
 
       this._lp1 =
-        this._preDelay[
-          (this._pDLength + this._pDWrite - pd + i) % this._pDLength
-        ] *
-          bw +
+        this._preDelay[(this._pDLength + this._pDWrite - pd + i) % this._pDLength] * bw +
         (1 - bw) * this._lp1;
 
       // pre
       this.writeDelay(0, this._lp1 - fi * this.readDelay(0));
-      this.writeDelay(
-        1,
-        fi * (this.readPreDelay(0) - this.readDelay(1)) + this.readDelay(0)
-      );
-      this.writeDelay(
-        2,
-        fi * this.readPreDelay(1) + this.readDelay(1) - si * this.readDelay(2)
-      );
-      this.writeDelay(
-        3,
-        si * (this.readPreDelay(2) - this.readDelay(3)) + this.readDelay(2)
-      );
+      this.writeDelay(1, fi * (this.readPreDelay(0) - this.readDelay(1)) + this.readDelay(0));
+      this.writeDelay(2, fi * this.readPreDelay(1) + this.readDelay(1) - si * this.readDelay(2));
+      this.writeDelay(3, si * (this.readPreDelay(2) - this.readDelay(3)) + this.readDelay(2));
 
       let split = si * this.readPreDelay(3) + this.readDelay(3);
 
@@ -234,27 +220,15 @@ class DattorroReverb extends AudioWorklet {
       let excursion = ex * (1 + Math.cos(this.context.currentTime * 6.28));
 
       // left loop
-      this.writeDelay(
-        4,
-        split + dc * this.readDelay(11) + ft * this.readDelayLAt(4, excursion)
-      ); // tank diffuse 1
-      this.writeDelay(
-        5,
-        this.readDelayLAt(4, excursion) - ft * this.readPreDelay(4)
-      ); // long delay 1
+      this.writeDelay(4, split + dc * this.readDelay(11) + ft * this.readDelayLAt(4, excursion)); // tank diffuse 1
+      this.writeDelay(5, this.readDelayLAt(4, excursion) - ft * this.readPreDelay(4)); // long delay 1
       this._lp2 = (1 - dp) * this.readDelay(5) + dp * this._lp2; // damp 1
       this.writeDelay(6, dc * this._lp2 - st * this.readDelay(6)); // tank diffuse 2
       this.writeDelay(7, this.readDelay(6) + st * this.readPreDelay(6)); // long delay 2
 
       // right loop
-      this.writeDelay(
-        8,
-        split + dc * this.readDelay(7) + ft * this.readDelayLAt(8, excursion)
-      ); // tank diffuse 3
-      this.writeDelay(
-        9,
-        this.readDelayLAt(8, excursion) - ft * this.readPreDelay(8)
-      ); // long delay 3
+      this.writeDelay(8, split + dc * this.readDelay(7) + ft * this.readDelayLAt(8, excursion)); // tank diffuse 3
+      this.writeDelay(9, this.readDelayLAt(8, excursion) - ft * this.readPreDelay(8)); // long delay 3
       this._lp3 = (1 - dp) * this.readDelay(9) + dp * this._lp3; // damper 2
       this.writeDelay(10, dc * this._lp3 - st * this.readDelay(10)); // tank diffuse 4
       this.writeDelay(11, this.readDelay(10) + st * this.readPreDelay(10)); // long delay 4

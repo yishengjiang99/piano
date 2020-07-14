@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef, useReducer } from "react";
-import { useAudioContext } from "./AudioContextExt";
-export const useBiquads = (preset = null) => {
+export const useBiquadFilter = (preset = null) => {
   const [ctx, addToChain, inputCursor] = useAudioContext();
-  const referenceArray = [];
-  const ref = useRef();
+
   const initialState = {
     refs: [],
     checksum: 0,
@@ -16,12 +14,8 @@ export const useBiquads = (preset = null) => {
       referenceArray.push(filter);
     }
     if (action.type == "edit") {
-      if (!action.index || !action.attribute || !action.value)
-        throw "index is required";
-      referenceArray[action.index][action.attribute].setValueAtTime(
-        action.value,
-        ctx.currentTime
-      );
+      if (!action.index || !action.attribute || !action.value) throw "index is required";
+      referenceArray[action.index][action.attribute].setValueAtTime(action.value, ctx.currentTime);
     }
     return {
       refs: referenceArray,

@@ -1,12 +1,13 @@
 import { noteToMajorTriad, noteToMinorTriad, melody } from "./sound-keys.js";
-import { TheContext } from "./redux/store";
-
+import { ContextProvider, TheContext } from "./redux/store";
+import { useAudioContextExtended } from "./processors/AudioContextExt.js";
+import { useEQ } from "./processors/use-eq";
+import React from "react";
 export function Envelope(adsr, audioParam) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
   var extended = [];
-  var state = "init",
-    shape;
+  var state = "ninit";
   const trigger = () => {
     attackStart = ctx.currentTime;
     state = "attacking";
@@ -68,29 +69,13 @@ export let _settings = {
 let ctx;
 let masterGain, compressor, analyser;
 
-export function updateSettings(newsetts) {
-  _settings = newsetts;
-}
-
-export function getContext() {
-  ctx = ctx || new AudioContext();
-  if (ctx.state === "paused") ctx.resume();
-  masterGain = masterGain || new GainNode(ctx, { gain: 1 });
-  compressor = new DynamicsCompressorNode(ctx, {
-    threshold: -60,
-    radio: 4,
-  });
-  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 0.2 });
-  masterGain.connect(compressor);
-  compressor.connect(analyser);
-  analyser.connect(ctx.destination);
-  return ctx;
-}
+export const getContext = () => {
+  const [ctx, addFilter, connectInput] = useAudioContextExtended();
+};
 
 export async function ensureAudioCtx() {
   if (ctx == null || ctx.state === "paused") {
     const audioCtx = await getContext();
-    ctx = audioCtx;
   }
   return ctx;
 }
@@ -135,4 +120,24 @@ export function getNotes(freqs, octave = 3) {
   outputGain.connect(masterGain);
   var gainEnvelope = new Envelope(_settings.adsr, outputGain.gain);
   return gainEnvelope;
+}
+
+export function updateConfig() {
+  const [ctx, addFilter, connectInput] = useAudioContextExtended();
+
+  const [processor, updateEq, usePreset] = useEQ();
+  ctx.addFilter(processor);
+  ctx = ctx || new AudioContext();
+  if (ctx.state === "paused") ctx.resume();
+  masterGain = masterGain || new GainNode(ctx, { gain: 1 });
+  compressor = new DynamicsCompressorNode(ctx, {
+    threshold: -60,
+    radio: 4,
+  });
+  compressor.connect();
+  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 0.2 });
+  masterGain.connect(compressor);
+  compressor.connect(analyser);
+  analyser.connect(ctx.destination);
+  return <div></div>;
 }

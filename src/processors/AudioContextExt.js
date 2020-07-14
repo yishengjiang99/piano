@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useReducer } from "react";
 import { useEventListener } from "./useEventListener";
-export function useAudioContext() {
+export function useAudioCtx() {
+  const [ctx, setCtx] = useState(null);
+}
+export function useAudioContextExtended() {
   const [ctx, setCtx] = useState(new OfflineAudioContext(2, 44100 * 40, 44100));
   const devnull = () => {};
 

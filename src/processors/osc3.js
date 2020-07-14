@@ -5,12 +5,7 @@ let noteCache = {};
 
 export function useOsc3() {
   const [ctx, addToChain, addInput] = useAudioContext();
-  const [
-    applyEnvelope,
-    setAdsr,
-    triggerAttackRelease,
-    scheduleAttackRelease,
-  ] = useEnvelope();
+  const [applyEnvelope, setAdsr, triggerAttackRelease, scheduleAttackRelease] = useEnvelope();
   const [_settings, setSettings] = useState({
     types: ["sine", "sine", "sine"],
     chords: [1, 1, 1],
@@ -49,8 +44,5 @@ export function useOsc3() {
   function playNoteAt(freq, secondsLater) {
     getNote(freq).scheduleAttackRelease(ctx.currentTime + secondsLater);
   }
-  return [
-    { getNote, playNote, triggerAttackRelease, scheduleAttackRelease },
-    setSettings,
-  ]; //, playNote, triggerAttackRelease, );
+  return [getNote, playNote, setSettings]; //, playNote, triggerAttackRelease, );
 }
