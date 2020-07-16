@@ -1,25 +1,20 @@
 import React from "react";
-import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
 
 import MenuIcon from "@material-ui/icons/Menu";
-import SearchIcon from "@material-ui/icons/Search";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import Divider from "@material-ui/core/Divider";
-import DraftsIcon from "@material-ui/icons/Drafts";
 
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
-import MailIcon from "@material-ui/icons/Mail";
 import Drawer from "@material-ui/core/Drawer";
 import { useState } from "react";
-const FileList = ({ debug, channels, files, postMessage }) => {
+const FileList = ({ channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex] = useState(0);
 
   const handleDrawerOpen = () => {
     setOpen(true);

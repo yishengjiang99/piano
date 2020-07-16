@@ -1,13 +1,11 @@
-import { noteToMajorTriad, noteToMinorTriad, melody } from "./sound-keys.js";
-import { ContextProvider, TheContext } from "./redux/store";
-import { useAudioContextExtended } from "./processors/AudioContextExt.js";
-import { useEQ } from "./processors/use-eq";
-import React from "react";
+/* eslint-disable no-unused-vars */
+import { noteToMajorTriad, noteToMinorTriad } from "./sound-keys.js";
+
 export function Envelope(adsr, audioParam) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
   var extended = [];
-  var state = "ninit";
+  var state = "init";
   const trigger = () => {
     attackStart = ctx.currentTime;
     state = "attacking";
@@ -69,18 +67,34 @@ export let _settings = {
 let ctx;
 let masterGain, compressor, analyser;
 
-export const getContext = () => {
-  const [ctx, addFilter, connectInput] = useAudioContextExtended();
-};
+export function updateSettings(newsetts) {
+  _settings = newsetts;
+}
+
+export function getContext() {
+  ctx = ctx || new AudioContext();
+  if (ctx.state === "paused") ctx.resume();
+  masterGain = masterGain || new GainNode(ctx, { gain: 1 });
+  compressor = new DynamicsCompressorNode(ctx, {
+    threshold: -60,
+    radio: 4,
+  });
+  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 0.2 });
+  masterGain.connect(compressor);
+  compressor.connect(analyser);
+  analyser.connect(ctx.destination);
+  return ctx;
+}
 
 export async function ensureAudioCtx() {
-  if (ctx == null || ctx.state === "paused") {
+  if (ctx === null || ctx.state === "paused") {
     const audioCtx = await getContext();
+    ctx = audioCtx;
   }
   return ctx;
 }
 let noteCache = {};
-export function getNote(notefreq, octave = 3) {
+export function getNote(notefreq) {
   return getNotes([notefreq]);
 }
 
@@ -93,11 +107,11 @@ export function getNotes(freqs, octave = 3) {
   const outputGain = new GainNode(ctx, { gain: 0 });
 
   var chords =
-    freqs.length == 1
+    freqs.length === 1
       ? noteToMajorTriad(freqs[0], octave)
-      : freqs.length == 2
+      : freqs.length === 2
       ? noteToMajorTriad(freqs[0], octave).concat(noteToMinorTriad(freqs[1], octave))
-      : freqs.length == 3
+      : freqs.length === 3
       ? freqs
       : freqs.slice(0, 3);
 
@@ -109,35 +123,16 @@ export function getNotes(freqs, octave = 3) {
         detune: _settings.detune[idx],
       });
     })
-    .map((osc, idx) => {
+    .reduce((osc, idx) => {
       idx = idx % 3;
       var _gain = new GainNode(ctx, { gain: _settings.gains[idx] });
       var delay = new DelayNode(ctx, { delay: _settings.delay[idx] });
       osc.connect(delay).connect(_gain); //new GainNode(ctx, { gain: _settings.gains[idx] }))
       _gain.connect(outputGain);
       osc.start(0);
+      return osc
     });
   outputGain.connect(masterGain);
   var gainEnvelope = new Envelope(_settings.adsr, outputGain.gain);
   return gainEnvelope;
-}
-
-export function updateConfig() {
-  const [ctx, addFilter, connectInput] = useAudioContextExtended();
-
-  const [processor, updateEq, usePreset] = useEQ();
-  ctx.addFilter(processor);
-  ctx = ctx || new AudioContext();
-  if (ctx.state === "paused") ctx.resume();
-  masterGain = masterGain || new GainNode(ctx, { gain: 1 });
-  compressor = new DynamicsCompressorNode(ctx, {
-    threshold: -60,
-    radio: 4,
-  });
-  compressor.connect();
-  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 0.2 });
-  masterGain.connect(compressor);
-  compressor.connect(analyser);
-  analyser.connect(ctx.destination);
-  return <div></div>;
 }

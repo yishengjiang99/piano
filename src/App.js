@@ -1,19 +1,16 @@
 import Sequence from "./sequence";
-import { useContext, useState, useRef, useEffec, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import React from "react";
-import LeftNav from "./left-nav";
 // import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import { TheContext } from "./redux/store";
 
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { getNote, getNotes } from "./audioCtx";
-import { useContext } from "react-audio-hooks";
+import { getNotes } from "./audioCtx";
 const ButtonGroup = (props) => <div>{props.children}</div>;
 
-export const IndexPage = (props) => {
+export const IndexPage = () => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
 
@@ -31,7 +28,7 @@ export const IndexPage = (props) => {
     if (!scheduler) {
       setScheduler(new Worker("./offlinetimer.js"));
     }
-  }, []);
+  }, [websocket, scheduler]);
   useEffect(() => {
     const msg = wsMessage.lastMessage;
     if (!msg) return;
@@ -54,7 +51,7 @@ export const IndexPage = (props) => {
         getNotes(msg.notes.map((n) => n.freq)).triggerEnvelope(msg.notes[0].adsr);
       }
     }
-  }, [timerMsg]);
+  }, [timerMsg, debug]);
   const consolee = useRef("console");
   return (
     <>

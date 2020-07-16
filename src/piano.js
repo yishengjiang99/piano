@@ -1,18 +1,15 @@
 import styles from "./Piano.module.css";
-import React, { useEffect, useState, createRef, Component, useRef } from "react";
-import { keys, blackKeys, notes, keynotes, keyboardToFreq } from "./sound-keys.js";
-import { actions, connect } from "./redux/store";
+import React, { useEffect } from "react";
+import { keys, blackKeys, notes, keynotes } from "./sound-keys.js";
 
-const Piano = ({ syncEvents, onUserEvent, octave }) => {
-  const octaves = [octave, octave + 1];
-  const keyRefMap = keys.map((key, index) => createRef());
+const Piano = ({ onUserEvent }) => {
 
   useEffect(() => {
     window.onkeydown = (e) => {
       const index = keys.indexOf(e.key);
       if (index < 0) return;
       const freq = notes[index];
-      if (e.repeat == true) {
+      if (e.repeat === true) {
         onUserEvent("keypress", freq, e.timeStamp, index);
       } else {
         onUserEvent("keydown", freq, e.timeStamp, index);
@@ -33,7 +30,7 @@ const Piano = ({ syncEvents, onUserEvent, octave }) => {
 
       e.target.classList.remove(styles.pressed);
     };
-  }, []);
+  });
   const className = (index, key) =>
     blackKeys.indexOf(key) > -1
       ? `${styles.keyblack} ${styles[keynotes[index]]}`
