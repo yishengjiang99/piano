@@ -1,7 +1,7 @@
 import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef, Component, useRef } from "react";
 import { keys, blackKeys, notes, keynotes, keyboardToFreq, freq_at_octave } from "./sound-keys.js";
-]
+
 const Piano = ({ onUserEvent, octave }) => {
   const noteFreqs = freq_at_octave(octave);
   useEffect(() => {

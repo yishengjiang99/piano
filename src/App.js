@@ -4,7 +4,7 @@ import React from "react";
 // import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-
+import styles from './App.module.css'
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
 import { getNotes } from "./audioCtx";

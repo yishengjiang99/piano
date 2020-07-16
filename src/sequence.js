@@ -1,12 +1,23 @@
 import styles from "./sequence.module.css";
 import React from "react";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useOsc3 } from "./processors"; //react-audio-hook";
-
+import { useState, useEffect, useRef } from "react";
+import { getContext, getNote } from "./audioCtx";
+import { idxToFreq } from "./sound-keys";
+import { connect, actions } from "./redux/store.js";
 const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
-
+function mapStateToProps(state) {
+  return {
+    octave: state.octave,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    storeNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
+    // onDeleteNote: (x, y) => dispatch({ type: actions.DELETE_NOTE, barIndex: x, noteIndex: y }),
+  };
+}
 const Sequence = ({
   octave,
   storeNewNote,
@@ -17,7 +28,6 @@ const Sequence = ({
   tracks,
   seek,
   onNewNote,
-  getNote,
 }) => {
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
@@ -26,9 +36,10 @@ const Sequence = ({
   const [ctx, setCtx] = useState(null);
   const [pendingNotes, setPendingNotes] = useState({});
 
+  var updateTimer, audioCtx;
   const canvasRef = useRef();
   const canvasHudRef = useRef();
-  const pushNote = async (note) => {
+  const pushNote = async (note, _ctx) => {
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
       bar = currentBar + 1;
@@ -51,11 +62,12 @@ const Sequence = ({
     } else if (note.type == "keydown") {
       pendingNotes[note.index] = note;
       pendingNotes[note.index].start = note.time;
-      pendingNotes[note.index].envelope = getNote([note.freq]);
+
+      pendingNotes[note.index].envelope = getNote(note.freq);
       pendingNotes[note.index].envelope.trigger();
       setPendingNotes(pendingNotes);
     } else if (note.type == "keyup") {
-      pendingNote = pendingNotes[note.index];
+      var pendingNote = pendingNotes[note.index];
       if (!pendingNote) {
         throw new Error("pending note for " + note.index + "not found");
       }
@@ -85,7 +97,7 @@ const Sequence = ({
     canvasRef.current.setAttribute("width", canvasWidth);
     canvasRef.current.setAttribute("height", canvasHeight);
   };
-  const _drawAxis = useCallback(() => {
+  const _drawAxis = () => {
     canvasCtx.strokeStyle = "rbga(1,1,1,1)";
     canvasCtx.strokeWidth = "1px";
     for (let i = 0; i < rows; i++) {
@@ -98,7 +110,7 @@ const Sequence = ({
       canvasCtx.lineTo(j * cellWidth, canvasHeight);
       canvasCtx.stroke();
     }
-  });
+  };
   const _canvasClick = (e) => {
     const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
 
@@ -130,7 +142,7 @@ const Sequence = ({
     //on new note played
     // canvasCtx = canvasRef.current.getContext("2d");
     if (paintBar !== null) {
-      if (paintBar.color === "clear") {
+      if (paintBar.color == "clear") {
         canvasCtx.clearRect(
           (paintBar.bar - barCursor) * cellWidth,
           paintBar.index * cellHeight,
@@ -148,8 +160,7 @@ const Sequence = ({
         );
       }
     }
-  }, [paintBar, barCursor]);
-
+  }, [paintBar]);
   useEffect(() => {
     canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
     canvasHudCtx.clearRect(0, 0, currentBar * cellWidth, canvasHeight);
@@ -157,26 +168,34 @@ const Sequence = ({
     canvasHudCtx.fillRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
     postMessage({ n: currentBar, cmd: "tick" });
   }, [currentBar]);
-
   useEffect(() => {
     if (barCursor !== ~~(seek - 1) / cols) setBarCursor(~~((seek - 1) / cols));
     canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
     canvasHudCtx.clearRect(0, 0, ((seek - 1) % cols) * cellWidth, canvasHeight);
-    canvasHudCtx.fillRect(((seek - 1) % cols) * cellWidth, 0, cellWidth, canvasHeight);
-  }, [seek, barCursor]);
 
+    canvasHudCtx.fillRect(((seek - 1) % cols) * cellWidth, 0, cellWidth, canvasHeight);
+  }, [seek]);
   useEffect(() => {
     barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     _drawAxis();
-  }, [barCursor, _drawAxis]);
-
+  }, [barCursor]);
   useEffect(() => {
+    async function ensureAudioCtx() {
+      if (ctx == null || ctx.state === "paused") {
+        const audioCtx = await getContext();
+        setCtx(audioCtx);
+        return audioCtx;
+      }
+      return ctx;
+    }
     //key start, release, hold
     if (newEvent !== null) {
-      if (newEvent.type === "keydown" && newEvent.repeat === true) {
+      if (newEvent.type == "keydown" && newEvent.repeat == true) {
         newEvent.type = "keypress";
       }
-      pushNote(newEvent);
+      ensureAudioCtx().then((audioCtx) => {
+        pushNote(newEvent, audioCtx);
+      });
     }
   }, [newEvent]);
   return (
@@ -215,4 +234,7 @@ const Sequence = ({
   );
 };
 
-export default Sequence;
+function sleep(sec) {
+  return new Promise((resolve) => setTimeout(resolve, sec * 1000));
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Sequence);

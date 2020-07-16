@@ -74,6 +74,7 @@ export function updateSettings(newsetts) {
 export function getContext() {
   ctx = ctx || new AudioContext();
   if (ctx.state === "paused") ctx.resume();
+  debugger;
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
   compressor = new DynamicsCompressorNode(ctx, {
     threshold: -60,
@@ -106,7 +107,7 @@ export function getNotes(freqs, octave = 3) {
 
   const outputGain = new GainNode(ctx, { gain: 0 });
 
-  var chords =
+  let chords =
     freqs.length === 1
       ? noteToMajorTriad(freqs[0], octave)
       : freqs.length === 2
@@ -123,16 +124,16 @@ export function getNotes(freqs, octave = 3) {
         detune: _settings.detune[idx],
       });
     })
-    .reduce((osc, idx) => {
+    .map((osc, idx) => {
       idx = idx % 3;
       var _gain = new GainNode(ctx, { gain: _settings.gains[idx] });
       var delay = new DelayNode(ctx, { delay: _settings.delay[idx] });
       osc.connect(delay).connect(_gain); //new GainNode(ctx, { gain: _settings.gains[idx] }))
       _gain.connect(outputGain);
       osc.start(0);
-      return osc
     });
-  outputGain.connect(masterGain);
+ debugger
+    outputGain.connect(masterGain);
   var gainEnvelope = new Envelope(_settings.adsr, outputGain.gain);
   return gainEnvelope;
 }
