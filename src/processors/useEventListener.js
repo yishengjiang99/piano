@@ -1,8 +1,5 @@
-// https://usehooks.com/useEventListener/
+import { useState, useEffect, useRef, useReducer } from "react";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-
-// Hook
 export function useEventListener(eventName, handler, element = window) {
   // Create a ref that stores handler
   const savedHandler = useRef();

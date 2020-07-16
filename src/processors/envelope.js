@@ -1,7 +1,5 @@
-import { useState, useEffect, useRef, useReducer } from "react";
-import { useAudioContext } from "./AudioContextExt";
+import { useState, useRef } from "react";
 export function useEnvelope() {
-  const [ctx, _, ___] = useAudioContext();
   const [adsr, setAdsr] = useState([0.01, 0.2, 0.8, 0.3]);
   let ref = useRef();
   function applyEnvelope(audiogram) {
@@ -10,10 +8,7 @@ export function useEnvelope() {
   }
   function triggerAttackRelease() {
     ref.current.triggerAttack();
-    setTimeout(
-      () => ref.current.triggerRelease(),
-      ref.currrnt.attack + ref.current.decay
-    );
+    setTimeout(() => ref.current.triggerRelease(), ref.currrnt.attack + ref.current.decay);
   }
   function scheduleAttackRelease(later) {
     setTimeout(triggerAttackRelease, later);
@@ -62,9 +57,7 @@ export function Envelope(adsr, audioParam, ctx = null) {
         peak = attacked / attack;
       }
 
-      var sustainedTime = extended.length
-        ? extended[extended.length - 1]
-        : decay;
+      var sustainedTime = extended.length ? extended[extended.length - 1] : decay;
 
       audioParam.setValueCurveAtTime([0, peak], ctx.currentTime, attacked);
       audioParam.setValueCurveAtTime(
@@ -72,11 +65,7 @@ export function Envelope(adsr, audioParam, ctx = null) {
         ctx.currentTime + attacked,
         sustainedTime
       );
-      audioParam.setTargetAtTime(
-        0.0000001,
-        ctx.currentTime + attacked + sustainedTime,
-        release
-      );
+      audioParam.setTargetAtTime(0.0000001, ctx.currentTime + attacked + sustainedTime, release);
     },
     cloneShape: () => {
       return { attackStart, releaseStart, extended };

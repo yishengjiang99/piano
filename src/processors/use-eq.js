@@ -1,12 +1,10 @@
-import { useEffect, setAudioContext, useRef, useReducer } from "react";
-import { initialState } from "../redux/store";
+import { useEffect, setAudioContext, useState, useRef, useReducer } from "react";
 import { useAudioContext } from "./AudioContextExt";
-import { EQ_PRESETS } from "./presets.js";
-
+import { EQ_PRESETS, initialState } from "./presets.js";
+const presets = EQ_PRESETS;
 export const useEQ = (ctx) => {
-  const [processor, setProcessor] = userState({
+  const [processor, setProcessor] = useState({
     script: null,
-    settings: initialState,
     state: { inputSPL: null, outputSPL: null },
   });
 
@@ -50,15 +48,15 @@ export const useEQ = (ctx) => {
       const values = EQ_PRESETS[payload].gains;
       processor.port.postMessage({ gainUpdates: EQ_PRESETS[payload].gains });
     }
-  }, DEFAULT_PRESET_GAINS);
+  }, EQ_PRESETS.default);
 
-  function updateEq(inddex, value) {
-    dispatch("update", { indeinddexx, value });
+  function updateEq(index, value) {
+    dispatch("update", { index, value });
   }
 
   function usePreset(presetName) {
     if (!presets[presetName]) return false;
-    dispatch("preset", value);
+    dispatch("preset", presetName);
   }
 
   return [processor, updateEq, usePreset];

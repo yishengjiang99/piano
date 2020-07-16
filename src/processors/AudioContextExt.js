@@ -1,34 +1,40 @@
-import { useState, useEffect, useRef, useReducer } from "react";
-import { useEventListener } from "./useEventListener";
-export function useAudioCtx() {
-  const [ctx, setCtx] = useState(null);
+import { useState, useEffect} from "react";
+
+
+const _getAudioCtx = () =>{
+  let ctx = null;
+  return ()=>{
+    if(ctx) return ctx;
+    ctx = new AudioContext();
+    return ctx;
+  }
 }
-export function useAudioContextExtended() {
-  const [ctx, setCtx] = useState(new OfflineAudioContext(2, 44100 * 40, 44100));
-  const devnull = () => {};
+export function useAudioContext() {
+  const [ctx, setCtx] = useState(null);
+  const [inputNode, setInputNode] = useState(null);
+  const [chainCursor, setChainCursor] = useState(null);
 
-  let chainCursor = useRef(ctx.destination);
+  useEffect(() => {
+    if (ctx !== null) {
+      setInputNode(new GainNode(ctx, { gain: 1.0 }));
+      setChainCursor(ctx.destination);
+    }
+  }, [ctx]);
+
+  useEffect(() => {
+    if (inputNode && chainCursor) {
+      if (inputNode.numberOfOutputs > 0) inputNode.disconnect();
+      inputNode.connect(chainCursor);
+    }
+  }, [inputNode, chainCursor]);
+
   function addFilter(audioNode) {
-    audioNode.connect(chainCursor.current);
-    if (inputRef.current) {
-      inputRef.diconnect(chainCursor.current);
-      inputRef.connect(audioNode);
-    }
-    chainCursor.current = audioNode;
+    audioNode.connect(chainCursor);
+    setChainCursor(audioNode);
   }
 
-  let inputRef = useRef();
-
-  useEffect(() => {
-    if (!inputRef.current && ctx) {
-      inputRef.current = new GainNode(ctx, { gain: 0.8 });
-    }
-  }, ctx);
-  useEffect(() => {
-    if (!ctx) ctx = new AudioContext();
-  });
   function connectInput(audioNode) {
-    audioNode.connect(inputRef.current);
+    audioNode.connect(inputNode);
   }
-  return [ctx, addFilter, connectInput];
+  return [ctx, setCtx, addFilter, connectInput];
 }

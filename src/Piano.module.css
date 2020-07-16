@@ -1,10 +1,14 @@
 .list {
-  height: 12em;
-  width: 32em;
+  height: 14em;
+  width: 60em;
+  overflow: auto;
+  list-style-type: none;
+  white-space: nowrap;
   position: relative;
   border: 1px solid #160801;
   border-radius: 1em;
   background: black;
+  margin: 40px auto 60px;
 }
 
 .keywhite {

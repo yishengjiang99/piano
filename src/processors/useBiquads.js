@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useReducer } from "react";
-export const useBiquadFilter = (preset = null) => {
+import { useAudioContext } from "./index";
+
+export const useBiquads = (preset = null) => {
   const [ctx, addToChain, inputCursor] = useAudioContext();
 
   const initialState = {
     refs: [],
     checksum: 0,
   };
-
+  const referenceArray = useRef();
   const [filterChain, dispatch] = useReducer((state, action) => {
     if (action.type == "add" && action.params) {
       const filter = new BiquadFilterNode(ctx, action.params);

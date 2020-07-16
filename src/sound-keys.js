@@ -15,6 +15,8 @@ export const notes_ext = {
   Bb: [29.14, 58.27, 116.54, 233.08, 466.16, 932.33, 1864.66, 3729.31],
   B: [30.87, 61.74, 123.47, 246.94, 493.88, 987.77, 1975.53, 3951.07],
 };
+export const freq_at_octave = (octave) => Object.values(notes_ext).map((arr) => arr[octave]);
+
 export const notesOfIndex = Object.values(notes_ext);
 export const notes = [
   261.63,
@@ -53,20 +55,18 @@ export const keyboardToFreq = (key, octave) => {
 export const idxToFreq = (idx, octave) => {
   return notesOfIndex[idx][octave];
 };
-export const noteToMajorTriad = (baseFreq, octave) => {
-  const idx = notes.indexOf(baseFreq);
-  const keynote = keynotes[idx];
-  const _chords = chords[keynote];
-  if (!_chords) return [keynote, keynote * 2, keynote * 4];
-  return _chords.map((n) => notes_ext[n][octave]);
-};
-export const noteToMinorTriad = (baseFreq, octave) => {
-  const idx = notes.indexOf(baseFreq);
-  const _chords = [keynotes[idx], keynotes[(idx + 2) % 12], keynotes[(idx + 4) % 12]];
+const midiToFreq = (midi) => (Math.pow(2, midi / 12) * 440).toFixed(2);
 
-  return _chords.map((n) => notes_ext[n][octave]);
+export const noteToMajorTriad = (baseFreq, octave) => {
+  const midi = 12 * Math.log2(baseFreq / 440);
+  return [baseFreq, midiToFreq(midi + 4), midiToFreq(midi + 3)];
+};
+
+export const noteToMinorTriad = (baseFreq, octave) => {
+  const midi = 12 * Math.log2(baseFreq / 440);
+  return [baseFreq, midiToFreq(midi + 3), midiToFreq(midi + 4)];
 };
 
 export const blackKeys = ["w", "e", "t", "y", "u"];
 export const keys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "k"];
-export const keynotes = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C"];
+export const keynotes = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];

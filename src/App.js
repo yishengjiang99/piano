@@ -53,6 +53,16 @@ export const IndexPage = () => {
     }
   }, [timerMsg, debug]);
   const consolee = useRef("console");
+  const onUserEvent = (type, freq, time, index) => {
+    setUserEvent({
+      cmd: "compose",
+      time: time,
+      type: type,
+      freq: freq,
+      index: index,
+    });
+  };
+
   return (
     <>
       <div ref={consolee}>
@@ -62,33 +72,27 @@ export const IndexPage = () => {
       </div>
       <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
       <ButtonGroup></ButtonGroup>
-      <Timer seek={seek}></Timer>
-      <Sequence
-        seek={seek}
-        onNewNote={(note) => {
-          note.cmd = "compose";
-          postWsMessage(note);
-        }}
-        onDeleteNote={(bar, noteIndex) => {
-          postWsMessage({ cmd: "date", bar, noteIndex });
-        }}
-        postMessage={postTimer}
-        newEvent={userEvent}
-        rows={15}
-        cols={20}
-      />
+      <div className={styles.main}>
 
-      <Piano
-        onUserEvent={(type, freq, time, index) => {
-          setUserEvent({
-            cmd: "compose",
-            time: time,
-            type: type,
-            freq: freq,
-            index: index,
-          });
-        }}
-      ></Piano>
+        <Timer seek={seek}></Timer>
+        <Sequence
+          getNote={getNotes}
+          seek={seek}
+          onNewNote={(note) => {
+            note.cmd = "compose";
+            postWsMessage(note);
+          }}
+          onDeleteNote={(bar, noteIndex) => {
+            postWsMessage({ cmd: "date", bar, noteIndex });
+          }}
+          postMessage={postTimer}
+          newEvent={userEvent}
+          rows={24}
+          cols={20}
+        />
+      </div>
+
+      <Piano octave={3} onUserEvent={onUserEvent}></Piano>
     </>
   );
 };

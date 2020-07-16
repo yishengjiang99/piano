@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/yishengjiang99/piano/issues"
   },
-  "homepage": "https://github.com/yishengjiang99/piano#readme"
+  "homepage": "https://github.com/yishengjiang99/piano#readme",
+  "dependencies": {
+    "react-singleton-hook": "^3.0.140"
+  }
 }

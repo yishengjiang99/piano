@@ -1,16 +1,17 @@
+import { useState, useEffect } from "react";
 export const useReverb = (ctx, options) => {
-  const [reverb, setReverb] = userState(null);
+  const [reverb, setReverb] = useState(null);
   useEffect(() => {
     if (!reverb) {
       ctx.audioContext
         .addModule("./reverb")
         .then((_) => {
-          setProcessor(new AudioWorkletNode(ctx, "DattorroReverb", options));
+          setReverb(new AudioWorkletNode(ctx, "DattorroReverb", options));
         })
         .catch((e) => console.error(e));
     }
     return function cleanup() {
-      processor = null;
+      //reverb = null;
     };
   }, []);
 

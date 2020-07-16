@@ -1,19 +1,15 @@
-import React, { createElement, Component } from "react";
-import { Typography, Select, Slider, MenuItem } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import { useState, Fragment } from "react";
-import { connect, actions, state } from "./redux/store.js";
+import React, { useEffect, useRef } from "react";
+import { useEQ, useAudioContext, useOsc3, useBiquads } from "react-audio-hooks";
+import { Slider, Select, MenuItem, Menu } from "@material-ui/core";
 
-const UpdateConfig = ({ settings, updateSettings }) => {
-  return (
-    <table>
-      <tbody>
-        {Object.keys(settings.osc3).map((attribute, idx) => (
-          <tr key={idx}>{renderAttributeRow(attribute, settings, updateSettings)}</tr>
-        ))}
-      </tbody>
-    </table>
-  );
+export const UpdateConfig = ({ ctx, updateSettings }) => {
+  // const [audioCtx, addFilter, connectInput] = useAudioContext();
+  // const [osc3, updateS]
+  // useEffect(() => {
+
+  // }, [ctx]);
+
+  return <div>audioctx: {ctx ? ctx.state : "none"}</div>;
 };
 
 function renderAttributeRow(attribute, settings, updateSettings) {
@@ -58,4 +54,3 @@ function renderAttributeRow(attribute, settings, updateSettings) {
     }
   });
 }
-export default connect((state) => state, mapDispatchToProps)(UpdateConfig);
