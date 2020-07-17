@@ -1,7 +1,6 @@
-import { useEffect, setAudioContext, useState, useRef, useReducer } from "react";
-import { useAudioContext } from "./AudioContextExt";
-import { EQ_PRESETS, initialState } from "./presets.js";
-const presets = EQ_PRESETS;
+import { useEffect, useState, useRef, useReducer } from "react";
+import { EQ_PRESETS } from "./presets.js";
+const initialState = EQ_PRESETS["conversation"];
 export const useEQ = (ctx) => {
   const [processor, setProcessor] = useState({
     script: null,
@@ -17,10 +16,6 @@ export const useEQ = (ctx) => {
         })
         .catch((e) => console.error(e));
     }
-
-    return function cleanup() {
-      processor = null;
-    };
   }, []);
 
   useEffect(() => {
@@ -48,15 +43,15 @@ export const useEQ = (ctx) => {
       const values = EQ_PRESETS[payload].gains;
       processor.port.postMessage({ gainUpdates: EQ_PRESETS[payload].gains });
     }
-  }, EQ_PRESETS.default);
+  }, EQ_PRESETS["conversation"]);
 
-  function updateEq(index, value) {
-    dispatch("update", { index, value });
+  function updateEq(inddex, value) {
+    dispatch("update", { inddex, value });
   }
 
   function usePreset(presetName) {
-    if (!presets[presetName]) return false;
-    dispatch("preset", presetName);
+    if (!EQ_PRESETS[presetName]) return false;
+    dispatch("preset", EQ_PRESETS[presetName]);
   }
 
   return [processor, updateEq, usePreset];

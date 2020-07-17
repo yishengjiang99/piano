@@ -1,16 +1,17 @@
 import Sequence from "./sequence";
 import { useState, useRef, useEffect } from "react";
+import { useOsc3, useAudioContext } from "./processors/";
 import React from "react";
-// import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import styles from './App.module.css'
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { getNotes } from "./audioCtx";
+
 const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = () => {
+  const ctx = useAudioContext();
+  const [getNotes, updateSettings] = useOsc3(ctx);
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
 
@@ -52,6 +53,7 @@ export const IndexPage = () => {
       }
     }
   }, [timerMsg, debug]);
+
   const consolee = useRef("console");
   const onUserEvent = (type, freq, time, index) => {
     setUserEvent({

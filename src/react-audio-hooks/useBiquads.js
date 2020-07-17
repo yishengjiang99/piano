@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef, useReducer } from "react";
+<<<<<<< HEAD:src/processors/useBiquads.js
 import { useAudioContext } from "./index";
 
+=======
+import { useAudioContext } from "./";
+>>>>>>> b6ba5d72658e9e6a90e0a675fbe4074de8f260d2:src/react-audio-hooks/useBiquads.js
 export const useBiquads = (preset = null) => {
   const [ctx, addToChain, inputCursor] = useAudioContext();
 
@@ -8,20 +12,29 @@ export const useBiquads = (preset = null) => {
     refs: [],
     checksum: 0,
   };
+<<<<<<< HEAD:src/processors/useBiquads.js
   const referenceArray = useRef();
+=======
+  const filters = [];
+
+>>>>>>> b6ba5d72658e9e6a90e0a675fbe4074de8f260d2:src/react-audio-hooks/useBiquads.js
   const [filterChain, dispatch] = useReducer((state, action) => {
     if (action.type == "add" && action.params) {
       const filter = new BiquadFilterNode(ctx, action.params);
       addToChain(filter);
-      referenceArray.push(filter);
+      filters.push(filter);
     }
     if (action.type == "edit") {
-      if (!action.index || !action.attribute || !action.value) throw "index is required";
-      referenceArray[action.index][action.attribute].setValueAtTime(action.value, ctx.currentTime);
+      if (!action.index || !action.attribute || !action.value)
+        throw "index is required";
+      filters[action.index][action.attribute].setValueAtTime(
+        action.value,
+        ctx.currentTime
+      );
     }
     return {
-      refs: referenceArray,
-      checksum: referenceArray
+      refs: filters,
+      checksum: filters
         .map((ref) => ref.current.parameters)
         .reduce((sum, parameter, idx) => {
           sum += parameter.value << idx;
