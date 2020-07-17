@@ -123,14 +123,13 @@ export function getNotes(freqs, octave = 3) {
         detune: _settings.detune[idx],
       });
     })
-    .reduce((osc, idx) => {
+    .map((osc, idx) => {
       idx = idx % 3;
       var _gain = new GainNode(ctx, { gain: _settings.gains[idx] });
       var delay = new DelayNode(ctx, { delay: _settings.delay[idx] });
       osc.connect(delay).connect(_gain); //new GainNode(ctx, { gain: _settings.gains[idx] }))
       _gain.connect(outputGain);
       osc.start(0);
-      return osc
     });
   outputGain.connect(masterGain);
   var gainEnvelope = new Envelope(_settings.adsr, outputGain.gain);

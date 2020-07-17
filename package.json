@@ -10,7 +10,6 @@
     "@material-ui/icons": "^4.9.1",
     "jest": "^26.1.0",
     "react": "^16.13.1",
-    "react-audio-hooks": "^1.0.0",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
     "typescript": "^3.9.5"

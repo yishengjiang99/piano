@@ -1,25 +1,31 @@
 import { useState, useEffect, useRef, useReducer } from "react";
-export const useBiquadFilter = (preset = null) => {
+import { useAudioContext } from "./";
+export const useBiquads = (preset = null) => {
   const [ctx, addToChain, inputCursor] = useAudioContext();
 
   const initialState = {
     refs: [],
     checksum: 0,
   };
+  const filters = [];
 
   const [filterChain, dispatch] = useReducer((state, action) => {
     if (action.type == "add" && action.params) {
       const filter = new BiquadFilterNode(ctx, action.params);
       addToChain(filter);
-      referenceArray.push(filter);
+      filters.push(filter);
     }
     if (action.type == "edit") {
-      if (!action.index || !action.attribute || !action.value) throw "index is required";
-      referenceArray[action.index][action.attribute].setValueAtTime(action.value, ctx.currentTime);
+      if (!action.index || !action.attribute || !action.value)
+        throw "index is required";
+      filters[action.index][action.attribute].setValueAtTime(
+        action.value,
+        ctx.currentTime
+      );
     }
     return {
-      refs: referenceArray,
-      checksum: referenceArray
+      refs: filters,
+      checksum: filters
         .map((ref) => ref.current.parameters)
         .reduce((sum, parameter, idx) => {
           sum += parameter.value << idx;

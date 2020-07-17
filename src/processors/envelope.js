@@ -1,37 +1,23 @@
-import { useState, useEffect, useRef, useReducer } from "react";
-import { useAudioContext } from "./AudioContextExt";
-export function useEnvelope() {
-  const [ctx, _, ___] = useAudioContext();
-  const [adsr, setAdsr] = useState([0.01, 0.2, 0.8, 0.3]);
-  let ref = useRef();
+import { useState } from "react";
+
+export function useEnvelope(ctx, defaults = [0.01, 0.5, 0.8, 0.3]) {
+  const [adsr, setAdsr] = useState(defaults);
+
   function applyEnvelope(audiogram) {
-    ref.current = new Envelope(adsr, audiogram);
-    return ref.current;
-  }
-  function triggerAttackRelease() {
-    ref.current.triggerAttack();
-    setTimeout(
-      () => ref.current.triggerRelease(),
-      ref.currrnt.attack + ref.current.decay
-    );
-  }
-  function scheduleAttackRelease(later) {
-    setTimeout(triggerAttackRelease, later);
+    return new Envelope(adsr, audiogram, ctx);
   }
 
-  return [applyEnvelope, setAdsr, triggerAttackRelease, scheduleAttackRelease];
+  return [applyEnvelope, setAdsr];
 }
 
-export function Envelope(adsr, audioParam, ctx = null) {
-  ctx = ctx || new AudioContext();
+export function Envelope(adsr, audioParam, ctx) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
   var extended = [];
-  var state = "init",
-    shape;
+  this.state = "init";
   const trigger = (time = null) => {
-    attackStart = time ? time : ctx.currentTime;
-    state = "attacking";
+    attackStart = time ? time : 0;
+    this.state = "attacking";
     audioParam.setValueCurveAtTime([0, 1.0], time, attack);
     audioParam.setValueCurveAtTime([1.0, sustain * 1.0], time + attack, decay);
     audioParam.setTargetAtTime(0.0000001, time + attack + decay, release);
@@ -39,7 +25,7 @@ export function Envelope(adsr, audioParam, ctx = null) {
   const triggerRelease = (time = null) => {
     releaseStart = time ? time : ctx.currentTime;
 
-    state = "releasing";
+    this.state = "releasing";
     audioParam.cancelScheduledValues(0);
     audioParam.setTargetAtTime(0.0000001, releaseStart, release);
   };

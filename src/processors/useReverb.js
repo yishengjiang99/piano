@@ -1,18 +1,18 @@
-export const useReverb = (ctx, options) => {
-  const [reverb, setReverb] = userState(null);
+import { useEffect, useRef, useReducer, useState } from "react";
+
+export const useReverb = (ctx) => {
+  const [reverb, setReverb] = useState(null);
+  const [options, setOptions] = useState({});
   useEffect(() => {
     if (!reverb) {
       ctx.audioContext
         .addModule("./reverb")
         .then((_) => {
-          setProcessor(new AudioWorkletNode(ctx, "DattorroReverb", options));
+          setReverb(new AudioWorkletNode(ctx, "DattorroReverb", options));
         })
         .catch((e) => console.error(e));
     }
-    return function cleanup() {
-      processor = null;
-    };
-  }, []);
+  }, [ctx, options, reverb]);
 
   function setParameter(param, value) {
     reverb.parameters.setValueAtTime(value, 0);
