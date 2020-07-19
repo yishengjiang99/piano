@@ -3,7 +3,7 @@ import React from "react";
 
 import { useState, useEffect, useRef } from "react";
 import { getContext, getNote } from "./audioCtx";
-import { idxToFreq } from "./sound-keys";
+import { idxToFreq, keyboardToFreq} from "./sound-keys";
 import { connect, actions } from "./redux/store.js";
 const secondsPerBar = 0.25;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
@@ -118,7 +118,7 @@ const Sequence = ({
     console.log(blue);
     const noteIndex = Math.floor(y / cellHeight);
     const barIndex = Math.floor(x / cellWidth);
-    const note = { bar: barIndex, index: noteIndex, length: 200 };
+    const note = { bar: barIndex, index: noteIndex, length: 200, frequency: idxToFreq(noteIndex,octave)};
 
     if (blue) {
       onDeleteNote(barIndex + barCursor, noteIndex);

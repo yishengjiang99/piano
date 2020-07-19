@@ -1,9 +1,24 @@
-var host = "wss://www.grepawk.com/signal"; //:4000";
+
+var host = "wss://api.grepawk.com/signal"; //:4000";
 var msgChannel = new BroadcastChannel("wschannel");
 msgChannel.onmessage = ({ data }) => {
-  if (data.cmd && socket) socket.send(JSON.stringify(data));
+  if (typeof data ==='string' && socket) socket.send(data);  
+  if (data.cmd && socket){
+    if(data.cmd ==='compose' && data.adsr){
+      const {type,time,freq,index,bar, adsr} = data;
+      const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
+      socket.send(JSON.stringify({cmd:"compose", csv:csvstr}));
+      console.log("sending "+JSON.stringify({cmd:"compose", csv:csvstr}));
+
+    }else{
+      socket.send(JSON.stringify(data));
+    }
+
+  }
 };
 const output = (str) => {
+  console.log(str);
+
   msgChannel.postMessage({ msg: str });
 };
 var socket;
@@ -27,7 +42,7 @@ connectSocketIfNotOpen(host).then((ws) => {
       const obj = JSON.parse(data);
       msgChannel.postMessage(obj);
     } catch (e) {
-      msgChannel.postMessage(data);
+      msgChannel.postMessage(data.toString());
     }
   };
   socket.send("list");

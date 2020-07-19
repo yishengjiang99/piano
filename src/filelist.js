@@ -28,10 +28,10 @@ const FileList = ({ debug, channels, files, postMessage }) => {
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  const handleSelectFile = (c) => {
-    postMessage(`read ${c}`);
+  const handleSelectFile = (event, file) => {
+    postMessage(`read ${file}`);
   };
-  const handleJoinChannel = (c) => {
+  const handleJoinChannel = (e, c) => {
     postMessage(`join ${c}`);
   };
   return (

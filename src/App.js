@@ -5,12 +5,11 @@ import LeftNav from "./left-nav";
 // import UpdateConfig from "./envelop-config";
 import Piano from "./piano";
 import Timer from "./timer";
-import { TheContext } from "./redux/store";
 
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { getNote, getNotes } from "./audioCtx";
-
+import { getNotes } from "./audioCtx";
+import {Chat} from './console.js';
 const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = (props) => {
@@ -23,7 +22,7 @@ export const IndexPage = (props) => {
   const [userEvent, setUserEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   const [scheduler, setScheduler] = useState(null);
-  const [debug, setDebug] = useState("");
+  const [debug, setDebug] = useState([]);
   useEffect(() => {
     if (!websocket) {
       setWebsocket(new Worker("./wsworker.js"));
@@ -39,47 +38,42 @@ export const IndexPage = (props) => {
       setFiles(msg.data);
     } else if (msg.type === "channelist") {
       setChannels(msg.data);
-    }
+    } else if(msg.type==='filecontent'){
+      setDebug(debug.concat(JSON.stringify(msg)));
+    } 
   }, [wsMessage]);
   useEffect(() => {
     const msg = timerMsg.lastMessage;
     if (!msg) return;
     if (msg.type === "debug") {
-      setDebug(debug + "\n" + JSON.stringify(msg));
+      setDebug(debug.concat(JSON.stringify(msg)));
     }
     if (msg.cmd === "tick") {
       setSeek(msg.n);
-      if (msg.notes && msg.notes.length > 0) {
-        setDebug(debug + "\n" + JSON.stringify(msg.notes));
-        getNotes(msg.notes.map((n) => n.freq)).triggerEnvelope(msg.notes[0].adsr);
-      }
     }
   }, [timerMsg]);
-  const consolee = useRef("console");
+// max-width: 600px; margin: 40px auto 60px
   return (
     <>
-      <div ref={consolee}>
-        {debug.split("\n").map((d) => (
-          <div>{d}</div>
-        ))}
-      </div>
       <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
       <ButtonGroup></ButtonGroup>
-      <Timer seek={seek}></Timer>
-      <Sequence
-        seek={seek}
-        onNewNote={(note) => {
-          note.cmd = "compose";
-          postWsMessage(note);
-        }}
-        onDeleteNote={(bar, noteIndex) => {
-          postWsMessage({ cmd: "date", bar, noteIndex });
-        }}
-        postMessage={postTimer}
-        newEvent={userEvent}
-        rows={15}
-        cols={20}
-      />
+      <main style={{width: '80%', minWidth:320, maxWidth:600, margin:"10px auto 60px"}}>
+        <Timer seek={seek}></Timer>
+        <Sequence
+          seek={seek}
+          onNewNote={(note) => {
+            note.cmd = "compose";
+            postWsMessage(note);
+          }}
+          onDeleteNote={(bar, noteIndex) => {
+            postWsMessage({ cmd: "delete", bar, noteIndex });
+          }}
+          postMessage={postTimer}
+          newEvent={userEvent}
+          rows={15}
+          cols={20}
+        />
+ 
 
       <Piano
         onUserEvent={(type, freq, time, index) => {
@@ -92,6 +86,12 @@ export const IndexPage = (props) => {
           });
         }}
       ></Piano>
+     
+      <div>
+      {debug.map((d) => (
+        <div>{d}</div>
+      ))}</div>
+      </main>
     </>
   );
 };

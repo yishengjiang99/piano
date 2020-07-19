@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { LinearProgress } from "@material-ui/core";
-
 import React from "react";
 import { getNote } from "./audioCtx.js";
-import { IconButton, Toolbar } from "@material-ui/core";
-import { connect, actions } from "./redux/store.js";
 import { useChannel } from "./useChannel";
 
 function usePrevious(value) {
@@ -14,7 +10,7 @@ function usePrevious(value) {
   });
   return ref.current;
 }
-const Timer = ({ seek }) => {
+const Timer = () => {
   const defaults = {
     bpm: 120, //120 quarter notes per minute.. and we tick twice per beat
     noteLength: 1 / 4,
@@ -26,7 +22,10 @@ const Timer = ({ seek }) => {
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
   const [playing, setPlaying] = useState(false);
   const toolbarRef = useRef();
+  const [time, setTime] = useState("0:00");
+  const [seek, setSeek] =useState(0);
   const prevMsg = usePrevious(msg);
+
   useEffect(() => {
     if (!playing) {
       postMessage("pause");
@@ -36,7 +35,6 @@ const Timer = ({ seek }) => {
   }, [playing]);
 
   useEffect(() => {
-    if (msg == prevMsg) return;
     if (!msg.lastMessage) {
       return;
     }
@@ -44,16 +42,17 @@ const Timer = ({ seek }) => {
       postMessage(`interval ${tickLength}`);
       return;
     }
-    if (msg.lastMessage.n) {
+    if (msg.lastMessage.time) {
+      setTime(msg.lastMessage.time)
     }
     if (msg.lastMessage.note) {
       getNote(msg.lastMessage.notefreq).triggerEnvelope(msg.lastMessage.note.adsr);
     }
-  }, [msg]);
+  }, [msg.lastMessage]);
 
   return (
     <div>
-      <Toolbar ref={toolbarRef}>
+      <span ref={toolbarRef}>
         <button
           onClick={(e) => {
             postMessage("-10");
@@ -64,14 +63,16 @@ const Timer = ({ seek }) => {
         >
           back
         </button>
-        {playing === true ? (
-          <button onClick={(e) => setPlaying(false)}>Pause</button>
+        <button onClick={(e) =>  postMessage("reset") }>reset</button>
+
+        {playing ? (
+          <button onClick={(e) => setPlaying(false)  && postMessage("pause") }>Pause</button>
         ) : (
-          <button onClick={(e) => setPlaying(true)}>Play</button>
+          <button onClick={(e) => setPlaying(true) && postMessage("start") }>Play</button>
         )}
         <button
           onClick={(e) => {
-            postMessage("-10");
+            postMessage("+10");
           }}
           onDoubleClick={(e) => {
             postMessage("reset");
@@ -79,9 +80,10 @@ const Timer = ({ seek }) => {
         >
           FWD
         </button>
-      </Toolbar>
+          {msg.lastMessage &&  JSON.stringify(msg.lastMessage)}
+      </span><span>{seek}</span>
       <progress value={seek} max="100"></progress>
-      <div>{((seek * tickLength) / 1000).toFixed(2)}</div>
+      <div>{time}</div>
     </div>
   );
 };
