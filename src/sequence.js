@@ -2,11 +2,15 @@ import styles from "./sequence.module.css";
 import React from "react";
 
 import { useState, useEffect, useRef } from "react";
-import { getContext, getNote } from "./audioCtx";
-import { idxToFreq, keyboardToFreq} from "./sound-keys";
+import { getContext, getNote, getNotes } from "./audioCtx";
+import { idxToFreq, keyboardToFreq, notesOfOctave} from "./sound-keys";
 import { connect, actions } from "./redux/store.js";
+import { useChannel } from './useChannel.js'
 const secondsPerBar = 0.25;
-var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx;
+const BAR_WIDTH = 90;
+const BAR_HEIGHT=20; 
+var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx,canvasFFTCtx;
+
 function mapStateToProps(state) {
   return {
     octave: state.octave,
@@ -35,10 +39,18 @@ const Sequence = ({
   const [paintBar, setPaintBar] = useState(null);
   const [ctx, setCtx] = useState(null);
   const [pendingNotes, setPendingNotes] = useState({});
+  const [fftc, postFftc] = useChannel("fftc");
 
-  var updateTimer, audioCtx;
+  const [zoomX, setZoomX] = useState(1);
   const canvasRef = useRef();
   const canvasHudRef = useRef();
+  const canvasFFTRef = useRef();
+ 
+  // const note_hz = notesOfOctave(octave).concat( notesOfOctave(octave+1)); // notesOfOctave(octave+1)
+  // const fftSize = 1024;
+
+
+ 
   const pushNote = async (note, _ctx) => {
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
@@ -81,13 +93,14 @@ const Sequence = ({
       onNewNote(note);
     }
 
-    if (bar - barCursor > cols) {
+    if (bar - barCursor >= cols) {
       setBarCursor(barCursor + cols);
     }
     if (note.length > 0.0001) {
       setPaintBar(note);
     }
   };
+
 
   const _resizeCanvas = () => {
     canvasWidth = canvasRef.current.parentElement.clientWidth;
@@ -118,7 +131,7 @@ const Sequence = ({
     console.log(blue);
     const noteIndex = Math.floor(y / cellHeight);
     const barIndex = Math.floor(x / cellWidth);
-    const note = { bar: barIndex, index: noteIndex, length: 200, frequency: idxToFreq(noteIndex,octave)};
+    const note = { bar: barIndex, index: noteIndex, length: 200, frequency: idxToFreq(noteIndex%12,3+Math.floor(noteIndex/12))};
 
     if (blue) {
       onDeleteNote(barIndex + barCursor, noteIndex);
@@ -126,15 +139,54 @@ const Sequence = ({
     } else {
       setPaintBar(note);
       onNewNote(note);
+      getNotes([note.frequency]).trigger();
     }
   };
+  useEffect(()=>{
+    if(fftc.lastMessage){
 
+      const {minDecibels,rmns, dataArray,time,binCount,sampleRate } = fftc.lastMessage;
+      // var normalize = Array(rows).fill(0);
+      // dataArray.map( (v,idx) => {
+      //   const hz = sampleRate/2/binCount;
+      //   const midi = 12 * Math.log2( hz/440);
+      //   const bin = midi - octave*12;
+      //   if(bin>=0 && bin<rows) normalize[idx] += v;
+      // })
+
+
+      const x0 = (currentBar - barCursor) * BAR_WIDTH;
+      canvasFFTCtx.fillStyle='black';
+      canvasFFTCtx.fillRect(x0,0,cellWidth,canvasHeight);
+      canvasFFTCtx.clearRect(x0, 0, cellWidth, canvasHeight);
+      const _binHeight = canvasHeight/binCount;
+      for (let i = 0; i <binCount; i++) {
+        let hue = (i / binCount) * 360;
+        canvasFFTCtx.fillStyle = "red";
+        var _binWidth = dataArray[i]/127*cellWidth*2
+       canvasFFTCtx.fillRect(x0, _binHeight*i, _binWidth, _binHeight);
+       //canvasFFTCtx.strokeText(rmns, x0, i*cellHeight, 100);
+          if(i==33){
+        canvasFFTCtx.strokeText(_binWidth, 55, 33, 100);//, i*cellHeight, 100);
+      }
+      }
+    
+      canvasFFTCtx.strokeText(rmns, 0, 10, 100);
+     // document.getElementById("status").contentText = sum;
+      
+    }
+
+    
+  },[fftc.lastMessage, currentBar]);
+
+  
   useEffect(() => {
     //on mount
     _resizeCanvas();
     window.onresize = _resizeCanvas();
     canvasCtx = canvasRef.current.getContext("2d");
     canvasHudCtx = canvasHudRef.current.getContext("2d");
+    canvasFFTCtx = canvasFFTRef.current.getContext("2d");
     _drawAxis();
   }, []);
 
@@ -166,6 +218,9 @@ const Sequence = ({
     canvasHudCtx.clearRect(0, 0, currentBar * cellWidth, canvasHeight);
 
     canvasHudCtx.fillRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
+    canvasFFTCtx.fillStyle = "rgba(0,111,0,0.0)";
+    canvasFFTCtx.clearRect(currentBar * cellWidth, 0,cellWidth, canvasHeight);
+
     postMessage({ n: currentBar, cmd: "tick" });
   }, [currentBar]);
   useEffect(() => {
@@ -176,7 +231,8 @@ const Sequence = ({
     canvasHudCtx.fillRect(((seek - 1) % cols) * cellWidth, 0, cellWidth, canvasHeight);
   }, [seek]);
   useEffect(() => {
-    barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight) 
+    && canvasFFTCtx.clearRect(0,0,canvasWidth,canvasHeight);
     _drawAxis();
   }, [barCursor]);
   useEffect(() => {
@@ -206,10 +262,10 @@ const Sequence = ({
         style={{
           height: "auto",
           width: "auto",
-          backgroundColor: "gray",
+          backgroundColor: "rbga(0,0,0,0)",
           position: "relative",
-          height: rows * 20,
-          width: cols * 35,
+          height: rows * BAR_HEIGHT,
+          width: cols * BAR_WIDTH*zoomX,
         }}
       >
         <canvas
@@ -217,16 +273,24 @@ const Sequence = ({
           style={{ position: "absolute" }}
           ref={canvasRef}
           onClick={(e) => _canvasClick(e)}
-          height={rows * 20}
-          width={cols * 35}
+          height={rows * BAR_HEIGHT}
+          width={cols * BAR_WIDTH*zoomX}
         ></canvas>
         <canvas
-          key={33}
+        key={313}
+        style={{ position: "absolute",zIndex:-1 }}
+        ref={canvasFFTRef}
+        onClick={e=>_canvasClick(e)}
+        height={rows * BAR_HEIGHT}
+        width={cols * BAR_WIDTH*zoomX}
+      ></canvas>
+        <canvas
+          key={533}
           style={{ position: "relative" }}
           ref={canvasHudRef}
           onClick={_canvasClick}
-          height={rows * 20}
-          width={cols * 35}
+          height={rows * BAR_HEIGHT}
+          width={cols * BAR_WIDTH*zoomX}
         ></canvas>
       </div>
       <div></div>

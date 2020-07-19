@@ -1,6 +1,7 @@
 .list {
   height: 12em;
-  width: 32em;
+  width: 70em;
+  left: 300px;
   position: relative;
   border: 1px solid #160801;
   border-radius: 1em;
@@ -14,7 +15,7 @@
   position: relative;
   float: left;
   height: 12em;
-  width: 3.8em;
+  width: 3em;
   z-index: 1;
   border-left: 1px solid #bbb;
   border-bottom: 1px solid #bbb;
@@ -24,7 +25,7 @@
   background: linear-gradient(to bottom, #eee 0, #fff 100%);
   margin: 0 0 0 -1em;
 }
-.keywhite:active {
+.keywhite.active {
   border-top: 1px solid #777;
   border-left: 1px solid #999;
   border-bottom: 1px solid #999;
@@ -47,7 +48,7 @@
   position: relative;
   float: left;
   height: 8em;
-  width: 2em;
+  width: 1.5em;
   margin: 0 0 0 -1em;
   z-index: 2;
   border: 1px solid #000;
