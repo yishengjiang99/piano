@@ -1,19 +1,25 @@
-import { noteToMajorTriad, noteToMinorTriad, melody,SAMPLE_RATE } from "./sound-keys.js";
+import { noteToMajorTriad, noteToMinorTriad, melody, SAMPLE_RATE } from "./sound-keys.js";
 
+let keyCounter = 0,
+  fftTimer = null;
 
 export function Envelope(adsr, audioParam) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
   var extended = [];
-  var state = "init", shape;
+  var state = "init",
+    shape;
   const trigger = () => {
-  
+    keyCounter += 3000;
     attackStart = ctx.currentTime;
     state = "attacking";
     audioParam.setValueCurveAtTime([0, 1.0], ctx.currentTime, attack);
     audioParam.setValueCurveAtTime([1.0, sustain * 1.0], ctx.currentTime + attack, decay);
     audioParam.setTargetAtTime(0.0000001, ctx.currentTime + attack + decay, release);
     audioParam.setValueAtTime(0, ctx.currentTime + attack + decay + 3);
+    if (keyCounter < 0 || fftTimer === null) {
+      fftTimer = requestAnimationFrame(fftLoop);
+    }
   };
   const triggerRelease = () => {
     state = "releasing";
@@ -56,7 +62,6 @@ export function Envelope(adsr, audioParam) {
   };
 }
 
-
 export let _settings = {
   osc3: ["sine", "sine", "square"],
   harmonicity: [0.5, 0.2, 0.1],
@@ -68,23 +73,20 @@ export let _settings = {
 };
 
 const ch = new BroadcastChannel("wschannel");
-ch.onmessage=function({data}){
-  if( data.cmd && data.cmd==='updateSetting'){
-    console.log('ctx got msg '+JSON.stringify(data))
-    const { key, idx, value} = data;
-    _settings[key][idx]= value;
+ch.onmessage = function ({ data }) {
+  if (data.cmd && data.cmd === "updateSetting") {
+    console.log("ctx got msg " + JSON.stringify(data));
+    const { key, idx, value } = data;
+    _settings[key][idx] = value;
   }
-}
+};
 const fftc = new BroadcastChannel("fftc");
-
 let ctx;
 let masterGain, compressor, analyser;
-let fft;
-
 
 export function getContext() {
-  if(ctx) return ctx;
-  ctx =  new AudioContext({sampleRate: SAMPLE_RATE});
+  if (ctx) return ctx;
+  ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
 
   if (ctx.state === "paused") ctx.resume();
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
@@ -92,12 +94,10 @@ export function getContext() {
     threshold: -60,
     radio: 4,
   });
-  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 0.2 });
+  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 1.0 });
   masterGain.connect(compressor);
   compressor.connect(analyser);
   analyser.connect(ctx.destination);
-
-  requestAnimationFrame(fftLoop);
   return ctx;
 }
 
@@ -113,72 +113,89 @@ export function getNote(notefreq, octave = 3) {
   return getNotes([notefreq]);
 }
 
-export const AudioParamProxy = function(audioParam, label) {
+export const AudioParamProxy = function (audioParam, label) {
   new Proxy(audioParam, {
     label: label,
     get: () => audioParam.value,
-    set: (value)=>{
-      const _opts={
+    set: (value) => {
+      const _opts = {
         min: audioParam.minValue,
-        max: audioParam.maxValue
-      }
+        max: audioParam.maxValue,
+      };
 
-      if(value < _opts.min || value > _opts.max) return false;
-      
+      if (value < _opts.min || value > _opts.max) return false;
+
       audioParam.setValueAtTime(value, 0);
-      
-      return true;
-    }
-  });
-}
 
-const fftLoop = ()=>{
+      return true;
+    },
+  });
+};
+
+const fftLoop = () => {
   const dataArray = new Uint8Array(analyser.fftSize);
   analyser.getByteTimeDomainData(dataArray);
-  const ndataArray = dataArray.map( v => Math.abs(v-127) );
-  const rmns = ndataArray.reduce((sum,val)=>sum += val*val, 0);
-  if(rmns>0){
+  const ndataArray = dataArray.map((v) => Math.abs(v - 127));
+  const rmns = ndataArray.reduce((sum, val) => (sum += val * val), 0);
+  if (rmns > 0) {
     fftc.postMessage({
       time: ctx.currentTime,
-      dataArray: ndataArray, 
+      dataArray: ndataArray,
       minDecibels: analyser.minDecibels,
-      binCount:   analyser.frequencyBinCount,
+      binCount: analyser.frequencyBinCount,
       sampleRate: ctx.sampleRate,
-      rmns: rmns
-     });
+      rmns: rmns,
+    });
   }
-  requestAnimationFrame(fftLoop);
-}
+  keyCounter -= 10;
 
+  if (keyCounter < 0) {
+    cancelAnimationFrame(fftTimer);
+    fftTimer = null;
+    return;
+  } else {
+    fftTimer = requestAnimationFrame(fftLoop);
+  }
+};
 
-export const VolumeProxy = (gainParam, label) => new Proxy(gainParam,
-  {
-    label: ()=>  label,
-    get: () =>  gainParam.value,
-    set: (value)=>{
-    const _opts = {  min: 0, max:2 };
+export const VolumeProxy = (gainParam, label) =>
+  new Proxy(gainParam, {
+    label: () => label,
+    get: () => gainParam.value,
+    set: (value) => {
+      const _opts = { min: 0, max: 2 };
 
-    if(value < _opts.min || value > _opts.max) return false;
-    gainParam.setValueAtTime(value, 0);
-    return true;
-   }
-});
+      if (value < _opts.min || value > _opts.max) return false;
+      gainParam.setValueAtTime(value, 0);
+      return true;
+    },
+  });
 const accel = 1;
 
-export const EQProxy = (filterChain,label ) => new Proxy(filterChain, {
-  label: label, 
-    get:          ()=> { aggregateFrequencyResponse(filterChain) },
-    bass:         filterChain.filter(biquad=>biquad.frequency<400), 
-    treble:       filterChain.filter(biquad=>biquad.frequency>900), 
-    moreBass:     filterChain.filter(biquad=>biquad.frequency<400).map(bass=>bass.gain.linearRampToValueAtTime(bass.gain.value*1.03 * accel)),
-    lessBass:     filterChain.filter(biquad=>biquad.frequency<400).map(bass=>bass.gain.linearRampToValueAtTime(bass.gain.value*0.96 * accel)),
-    moreTreble:   filterChain.filter(biquad=>biquad.frequency>700).map(treb=>treb.gain.linearRampToValueAtTime(treb.gain.value*1.03 * accel)),
-    lessTreble:   filterChain.filter(biquad=>biquad.frequency>700).map(treb=>treb.gain.linearRampToValueAtTime(treb.gain.value*0.96 * accel)),
-});
+export const EQProxy = (filterChain, label) =>
+  new Proxy(filterChain, {
+    label: label,
+    get: () => {
+      aggregateFrequencyResponse(filterChain);
+    },
+    bass: filterChain.filter((biquad) => biquad.frequency < 400),
+    treble: filterChain.filter((biquad) => biquad.frequency > 900),
+    moreBass: filterChain
+      .filter((biquad) => biquad.frequency < 400)
+      .map((bass) => bass.gain.linearRampToValueAtTime(bass.gain.value * 1.03 * accel)),
+    lessBass: filterChain
+      .filter((biquad) => biquad.frequency < 400)
+      .map((bass) => bass.gain.linearRampToValueAtTime(bass.gain.value * 0.96 * accel)),
+    moreTreble: filterChain
+      .filter((biquad) => biquad.frequency > 700)
+      .map((treb) => treb.gain.linearRampToValueAtTime(treb.gain.value * 1.03 * accel)),
+    lessTreble: filterChain
+      .filter((biquad) => biquad.frequency > 700)
+      .map((treb) => treb.gain.linearRampToValueAtTime(treb.gain.value * 0.96 * accel)),
+  });
 
-const aggregateFrequencyResponse = ()=> "";
+const aggregateFrequencyResponse = () => "";
 const activeSounds = {};
-
 
 export function getNotes(freqs, octave = 3) {
   freqs.sort();
