@@ -22,8 +22,8 @@ const Timer = () => {
   const tickLength = ((60 * 1000) / bpm / noteLength) * resolution;
   const [playing, setPlaying] = useState(false);
   const toolbarRef = useRef();
-  const [time, setTime] = useState("0:00");
-  const [seek, setSeek] =useState(0);
+  const [time, setTime] = useState(0);
+  const [seek, setSeek] = useState(0);
   const prevMsg = usePrevious(msg);
 
   useEffect(() => {
@@ -43,7 +43,10 @@ const Timer = () => {
       return;
     }
     if (msg.lastMessage.time) {
-      setTime(msg.lastMessage.time)
+      setTime(msg.lastMessage.time);
+    }
+    if (msg.lastMessage.tick) {
+      setTime(msg.lastMessage.tick);
     }
     if (msg.lastMessage.note) {
       getNote(msg.lastMessage.notefreq).triggerEnvelope(msg.lastMessage.note.adsr);
@@ -55,7 +58,7 @@ const Timer = () => {
       <span ref={toolbarRef}>
         <button
           onClick={(e) => {
-            postMessage("-10");
+            postMessage("-5");
           }}
           onDoubleClick={(e) => {
             postMessage("reset");
@@ -63,16 +66,16 @@ const Timer = () => {
         >
           back
         </button>
-        <button onClick={(e) =>  postMessage("reset") }>reset</button>
+        <button onClick={(e) => postMessage("reset")}>reset</button>
 
         {playing ? (
-          <button onClick={(e) => setPlaying(false)  && postMessage("pause") }>Pause</button>
+          <button onClick={(e) => setPlaying(false) && postMessage("pause")}>Pause</button>
         ) : (
-          <button onClick={(e) => setPlaying(true) && postMessage("start") }>Play</button>
+          <button onClick={(e) => setPlaying(true) && postMessage("start")}>Play</button>
         )}
         <button
           onClick={(e) => {
-            postMessage("+10");
+            postMessage("+5");
           }}
           onDoubleClick={(e) => {
             postMessage("reset");
@@ -80,11 +83,16 @@ const Timer = () => {
         >
           FWD
         </button>
-          {msg.lastMessage &&  JSON.stringify(msg.lastMessage)}
-      </span><span>{seek}</span>
-      <progress value={seek} max="100"></progress>
-      <div>{time}</div>
+      </span>
+      <span>{seek}</span>
+      <progress value={time / 1000} max="100"></progress>
+      <div>{display(time)}</div>
     </div>
   );
 };
+function display(ms) {
+  return ms;
+  // if (!ms) return "00:00";
+  // return Math.floor((ms / 1000) % 60) + ":" + Math.floor(ms % 100);
+}
 export default Timer;
