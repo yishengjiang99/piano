@@ -1,8 +1,8 @@
 import styles from "./Piano.module.css";
 import React, { useEffect, useState, createRef } from "react";
-import { keys, blackKeys,  keynotes, notesOfOctave } from "./sound-keys.js";
+import { keys, blackKeys, keynotes, notesOfOctave } from "./sound-keys.js";
 
-const Piano = ({  onUserEvent, octave }) => {
+const Piano = ({ onUserEvent, octave }) => {
   const notes = notesOfOctave(octave);
   useEffect(() => {
     window.onkeydown = (e) => {
@@ -40,7 +40,6 @@ const Piano = ({  onUserEvent, octave }) => {
       : `${styles.keywhite} ${styles[keynotes[index]]}`;
   return (
     <ul className={styles.list}>
-
       {keys.map((key, index) => (
         <li
           className={className(index, key)}
@@ -55,10 +54,10 @@ const Piano = ({  onUserEvent, octave }) => {
         <li
           className={className(index, key)}
           key={index}
-          onMouseDown={(e) => onUserEvent("keydown", 2*notes[index], e.timeStamp, 12+index)}
-          onMouseUp={(e) => onUserEvent("keyup", 2*notes[index], e.timeStamp, 12+index)}
-          onTouchStart={(e) => onUserEvent("keydown", 2*notes[index], e.timeStamp, 12+index)}
-          onTouchEnd={(e) => onUserEvent("keyup", 2*notes[index], e.timeStamp, 12+index)}
+          onMouseDown={(e) => onUserEvent("keydown", 2 * notes[index], e.timeStamp, 12 + index)}
+          onMouseUp={(e) => onUserEvent("keyup", 2 * notes[index], e.timeStamp, 12 + index)}
+          onTouchStart={(e) => onUserEvent("keydown", 2 * notes[index], e.timeStamp, 12 + index)}
+          onTouchEnd={(e) => onUserEvent("keyup", 2 * notes[index], e.timeStamp, 12 + index)}
         ></li>
       ))}
     </ul>

@@ -121,7 +121,14 @@ export const IndexPage = (props) => {
   // max-width: 600px; margin: 40px auto 60px
   const handleUserEvent = (type, freq, time, index) => {
     setUserEvent({
-      cmd: "compose",
+      cmd: "keyboard",
+      time: time,
+      type: type,
+      freq: freq,
+      index: index,
+    });
+    postWsMessage({
+      cmd: "keyboard",
       time: time,
       type: type,
       freq: freq,

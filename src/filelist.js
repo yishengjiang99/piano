@@ -5,19 +5,6 @@ const FileList = ({ debug, channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
-  const handleSelectFile = (event, file) => {
-    postMessage(`read ${file}`);
-  };
-  const handleJoinChannel = (e, c) => {
-    postMessage(`join ${c}`);
-  };
   return (
     <table>
       {files.slice(20).map((f) => (
@@ -28,7 +15,10 @@ const FileList = ({ debug, channels, files, postMessage }) => {
               onClick={() => {
                 postMessage(`read ${f}`);
               }}
-            ></button>
+            >
+              {" "}
+              open
+            </button>
           </td>
         </tr>
       ))}
@@ -41,7 +31,7 @@ const FileList = ({ debug, channels, files, postMessage }) => {
                 postMessage(`join ${c}`);
               }}
             >
-              {c}
+              join
             </button>
           </td>
         </tr>

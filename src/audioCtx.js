@@ -9,12 +9,16 @@ export function Envelope(adsr, audioParam) {
   var extended = [];
   var state = "init",
     shape;
-  const trigger = () => {
+  const trigger = (multiplier = 1) => {
     keyCounter += 3000;
     attackStart = ctx.currentTime;
     state = "attacking";
-    audioParam.setValueCurveAtTime([0, 1.0], ctx.currentTime, attack);
-    audioParam.setValueCurveAtTime([1.0, sustain * 1.0], ctx.currentTime + attack, decay);
+    audioParam.setValueCurveAtTime([0, multiplier], ctx.currentTime, attack);
+    audioParam.setValueCurveAtTime(
+      [multiplier, sustain * multiplier],
+      ctx.currentTime + attack,
+      decay
+    );
     audioParam.setTargetAtTime(0.0000001, ctx.currentTime + attack + decay, release);
     audioParam.setValueAtTime(0, ctx.currentTime + attack + decay + 3);
     if (keyCounter < 0 || fftTimer === null) {
@@ -32,7 +36,7 @@ export function Envelope(adsr, audioParam) {
     extended.push(ctx.currentTime);
     audioParam.cancelScheduledValues(0);
 
-    audioParam.linearRampToValueAtTime(sustain * 1.0, ctx.currentTime + decay);
+    //audioParam.linearRampToValueAtTime(sustain * 1.0, ctx.currentTime + decay);
   };
   return {
     trigger,
@@ -73,11 +77,39 @@ export let _settings = {
 };
 
 const ch = new BroadcastChannel("wschannel");
+const activeNotes = {};
 ch.onmessage = function ({ data }) {
   if (data.cmd && data.cmd === "updateSetting") {
-    console.log("ctx got msg " + JSON.stringify(data));
     const { key, idx, value } = data;
     _settings[key][idx] = value;
+  }
+
+  if ((data.cmd && data.cmd === "keyboard") || data.cmd === "playback") {
+    let i = 0;
+    console.log("data", data);
+    const { freq, index, time, type } = data;
+    switch (type) {
+      case "keydown":
+        const note = getNote(freq);
+        activeNotes[index] = {
+          start: time,
+          note: note,
+        };
+        note.trigger();
+        break;
+      case "keypress":
+        if (activeNotes[index] && !activeNotes[index].pressed) {
+          //   activeNotes[index].note.trigger((time - activeNotes[index].start) / 0.05);
+          activeNotes[index].pressed = time;
+        }
+        break;
+      case "keyup":
+        if (activeNotes[index]) {
+          activeNotes[index].note.triggerRelease();
+          activeNotes[index] = null;
+        }
+        break;
+    }
   }
 };
 const fftc = new BroadcastChannel("fftc");
@@ -109,7 +141,7 @@ export async function ensureAudioCtx() {
   return ctx;
 }
 let noteCache = {};
-export function getNote(notefreq, octave = 3) {
+export function getNote(notefreq) {
   return getNotes([notefreq]);
 }
 

@@ -66,7 +66,7 @@ const Sequence = ({
         setPaintBar(note);
         bar = currentBar + 1;
         setCurrentBar(bar);
-        setLastNoteTime(lastNoteTime + secondsPerBar);
+        setLastNoteTime(note.time);
       }
       if (pendingNote.envelope) pendingNote.envelope.hold();
     } else if (note.type == "keydown") {
@@ -74,7 +74,7 @@ const Sequence = ({
       pendingNotes[note.index].start = note.time;
 
       pendingNotes[note.index].envelope = getNote(note.freq);
-      pendingNotes[note.index].envelope.trigger();
+      //   pendingNotes[note.index].envelope.trigger();
       setPendingNotes(pendingNotes);
     } else if (note.type == "keyup") {
       var pendingNote = pendingNotes[note.index];
@@ -82,7 +82,7 @@ const Sequence = ({
         throw new Error("pending note for " + note.index + "not found");
       }
       note.bar = bar;
-      pendingNote.envelope.triggerRelease();
+      //   pendingNote.envelope.triggerRelease();
       note.length = note.time - pendingNote.time;
       note.adsr = pendingNote.envelope.cloneShape();
       pendingNote.envelope.status = "recycle";
