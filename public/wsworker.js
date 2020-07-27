@@ -1,21 +1,18 @@
-
-var host = "wss://api.grepawk.com/signal"; //:4000";
+var host = "wss://www.grepawk.com/signal"; //:4000";
 var msgChannel = new BroadcastChannel("wschannel");
 msgChannel.onmessage = ({ data }) => {
-  if (typeof data ==='string' && socket) socket.send(data);  
-  if (data.cmd && socket){
-    if(data.cmd=='updateSetting') return;
-    
-    if(data.cmd ==='compose' && data.adsr){
-      const {type,time,freq,index,bar, adsr} = data;
-      const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
-      socket.send(JSON.stringify({cmd:"compose", csv:csvstr}));
-      console.log("sending "+JSON.stringify({cmd:"compose", csv:csvstr}));
+  if (typeof data === "string" && socket) socket.send(data);
+  if (data.cmd && socket) {
+    if (data.cmd == "updateSetting") return;
 
-    }else{
+    if (data.cmd === "compose" && data.adsr) {
+      const { type, time, freq, index, bar, adsr } = data;
+      const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
+      socket.send(JSON.stringify({ cmd: "compose", csv: csvstr }));
+      console.log("sending " + JSON.stringify({ cmd: "compose", csv: csvstr }));
+    } else {
       socket.send(JSON.stringify(data));
     }
-
   }
 };
 const output = (str) => {
@@ -42,6 +39,7 @@ connectSocketIfNotOpen(host).then((ws) => {
     console.log(data);
     try {
       const obj = JSON.parse(data);
+      obj.cmd = obj.cmd || obj.type;
       msgChannel.postMessage(obj);
     } catch (e) {
       msgChannel.postMessage(data.toString());

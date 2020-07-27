@@ -10,7 +10,7 @@ clock.onmessage = (e) => {
       timerId = setInterval(function () {
         clock.postMessage({
           time: n * frequency,
-          tick: (n * frequency) / beatLength,
+          n: (n * frequency) / beatLength,
         });
         n++;
       }, frequency);

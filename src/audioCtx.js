@@ -94,7 +94,7 @@ export function getContext() {
     threshold: -60,
     radio: 4,
   });
-  analyser = new AnalyserNode(ctx, { fftSize: 1024, smoothingTimeConstant: 1.0 });
+  analyser = new AnalyserNode(ctx, { fftSize: 256, smoothingTimeConstant: 0.1 });
   masterGain.connect(compressor);
   compressor.connect(analyser);
   analyser.connect(ctx.destination);
@@ -134,19 +134,14 @@ export const AudioParamProxy = function (audioParam, label) {
 
 const fftLoop = () => {
   const dataArray = new Uint8Array(analyser.fftSize);
-  analyser.getByteTimeDomainData(dataArray);
-  const ndataArray = dataArray.map((v) => Math.abs(v - 127));
-  const rmns = ndataArray.reduce((sum, val) => (sum += val * val), 0);
-  if (rmns > 0) {
-    fftc.postMessage({
-      time: ctx.currentTime,
-      dataArray: ndataArray,
-      minDecibels: analyser.minDecibels,
-      binCount: analyser.frequencyBinCount,
-      sampleRate: ctx.sampleRate,
-      rmns: rmns,
-    });
-  }
+  analyser.getByteFrequencyData(dataArray);
+  fftc.postMessage({
+    time: ctx.currentTime,
+    dataArray: dataArray,
+    minDecibels: analyser.minDecibels,
+    binCount: analyser.frequencyBinCount,
+    sampleRate: ctx.sampleRate,
+  });
   keyCounter -= 10;
 
   if (keyCounter < 0) {

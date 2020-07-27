@@ -1,21 +1,5 @@
 import React from "react";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
 
-import MenuIcon from "@material-ui/icons/Menu";
-import SearchIcon from "@material-ui/icons/Search";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import Divider from "@material-ui/core/Divider";
-import DraftsIcon from "@material-ui/icons/Drafts";
-
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import InboxIcon from "@material-ui/icons/MoveToInbox";
-import MailIcon from "@material-ui/icons/Mail";
-import Drawer from "@material-ui/core/Drawer";
 import { useState } from "react";
 const FileList = ({ debug, channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
@@ -35,6 +19,54 @@ const FileList = ({ debug, channels, files, postMessage }) => {
     postMessage(`join ${c}`);
   };
   return (
+    <table>
+      {files.slice(20).map((f) => (
+        <tr>
+          <td>{f}</td>
+          <td>
+            <button
+              onClick={() => {
+                postMessage(`read ${f}`);
+              }}
+            ></button>
+          </td>
+        </tr>
+      ))}
+      {channels.slice(20).map((c) => (
+        <tr>
+          <td>{c}</td>
+          <td>
+            <button
+              onClick={() => {
+                postMessage(`join ${c}`);
+              }}
+            >
+              {c}
+            </button>
+          </td>
+        </tr>
+      ))}
+    </table>
+  );
+};
+
+/*
+</table>
+    
+      <ListItem
+        key={f}
+        button
+        selected={selectedIndex === 0}
+        onClick={(event) => handleSelectFile(event, f)}
+      >
+        <ListItemIcon>
+          <InboxIcon />
+        </ListItemIcon>
+        <ListItemText primary={f} />
+      </ListItem>
+    ))} 
+    </tr>
+    </table>
     <>
       <IconButton color="inherit" aria-label="open drawer" onClick={handleDrawerOpen} edge="start">
         <MenuIcon />
@@ -79,5 +111,5 @@ const FileList = ({ debug, channels, files, postMessage }) => {
     </>
   );
 };
-
+*/
 export default FileList;
