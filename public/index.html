@@ -33,45 +33,6 @@
         //# sourceMappingURL=audioworklet-polyfill.js.map
         </script>
        <script type="text/js-worker">
-        const clock = new BroadcastChannel();
-        var timerId = null;
-        var n = 0;
-        var frequency = 100;
-        var beatLength = 400;
-        clock.onmessage = (e) =>{
-            switch(e.data){
-                case 'start':
-                    if(!timerId) timerId = setInterval(function(){
-                        if(n % 4 === 0) clock.postMessage({
-                            t: n*freq
-                            n: n/4
-                        })
-                        else clock.postMessage({
-                            n: n*freq
-                        });
-                        n++;
-                    },frequency);
-                    break;
-                case 'stop':
-                    clearTimeout(timerId);
-                    break;
-                case 'reset':
-                    n = 0;
-                    clearTimeout(timerId);
-                    break;
-                case '-5':
-                    n = Math.max(0, n -20);
-                    break;
-                case '5+':
-                    n = n + 20;
-                    break;
-                default: break;
-            }
-        }
-      </script>
-
-
-
 
           </script>
           <!--

@@ -2,15 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { IndexPage } from "./App";
 import * as serviceWorker from "./serviceWorker";
-import { ContextProvider, initialState, reducer } from "./redux/store.js";
-import { useReducer } from "react";
-
+import LeftNav from "./left-nav";
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
   return (
-    <ContextProvider value={{ state, dispatch }}>
-      <IndexPage />
-    </ContextProvider>
+    <LeftNav>
+      <IndexPage />;
+    </LeftNav>
   );
 }
 

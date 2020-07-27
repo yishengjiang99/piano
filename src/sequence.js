@@ -4,24 +4,12 @@ import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { getContext, getNote, getNotes } from "./audioCtx";
 import { idxToFreq, keyboardToFreq, notesOfOctave } from "./sound-keys";
-import { connect, actions } from "./redux/store.js";
 import { useChannel } from "./useChannel.js";
 const secondsPerBar = 0.25;
 const BAR_WIDTH = 90;
 const BAR_HEIGHT = 40;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx, canvasFFTCtx;
 
-function mapStateToProps(state) {
-  return {
-    octave: state.octave,
-  };
-}
-function mapDispatchToProps(dispatch) {
-  return {
-    storeNewNote: (newNote) => dispatch({ type: actions.NEW_NOTE, payload: newNote }),
-    // onDeleteNote: (x, y) => dispatch({ type: actions.DELETE_NOTE, barIndex: x, noteIndex: y }),
-  };
-}
 const Sequence = ({
   octave,
   storeNewNote,
@@ -289,4 +277,4 @@ const Sequence = ({
 function sleep(sec) {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 }
-export default connect(mapStateToProps, mapDispatchToProps)(Sequence);
+export default Sequence;
