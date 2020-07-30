@@ -77,16 +77,12 @@ const Timer = () => {
           onClick={(e) => {
             postMessage("+5");
           }}
-          onDoubleClick={(e) => {
-            postMessage("reset");
-          }}
         >
           FWD
         </button>
       </span>
       <span>{seek}</span>
       <progress value={time / 1000} max="100"></progress>
-      <div>{display(time)}</div>
     </div>
   );
 };

@@ -12,12 +12,15 @@ const FileList = ({ debug, channels, files, postMessage }) => {
           <td>{f}</td>
           <td>
             <button
-              onClick={() => {
-                postMessage(`read ${f}`);
-              }}
+              onClick={() =>
+                fetch("https://www.grepawk.com/dbfs/" + f)
+                  .then((res) => res.text())
+                  .then((t) => {
+                    debugger;
+                  })
+              }
             >
-              {" "}
-              open
+              read
             </button>
           </td>
         </tr>

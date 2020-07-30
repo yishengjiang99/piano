@@ -7,7 +7,7 @@ import { idxToFreq, keyboardToFreq, notesOfOctave } from "./sound-keys";
 import { useChannel } from "./useChannel.js";
 const secondsPerBar = 0.25;
 const BAR_WIDTH = 90;
-const BAR_HEIGHT = 40;
+const BAR_HEIGHT = 20;
 var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx, canvasFFTCtx;
 
 const Sequence = ({
@@ -62,7 +62,7 @@ const Sequence = ({
       pendingNotes[note.index].start = note.time;
 
       pendingNotes[note.index].envelope = getNote(note.freq);
-      //   pendingNotes[note.index].envelope.trigger();
+      //pendingNotes[note.index].envelope.trigger();
       setPendingNotes(pendingNotes);
     } else if (note.type == "keyup") {
       var pendingNote = pendingNotes[note.index];
@@ -70,7 +70,7 @@ const Sequence = ({
         throw new Error("pending note for " + note.index + "not found");
       }
       note.bar = bar;
-      //   pendingNote.envelope.triggerRelease();
+      pendingNote.envelope.triggerRelease();
       note.length = note.time - pendingNote.time;
       note.adsr = pendingNote.envelope.cloneShape();
       pendingNote.envelope.status = "recycle";
@@ -235,7 +235,6 @@ const Sequence = ({
   }, [newEvent]);
   return (
     <>
-      <div className="hud"></div>
       <div
         className={styles.gridContainer}
         style={{

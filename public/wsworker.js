@@ -10,8 +10,6 @@ msgChannel.onmessage = ({ data }) => {
       const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
       socket.send(JSON.stringify({ cmd: "compose", csv: csvstr }));
       console.log("sending " + JSON.stringify({ cmd: "compose", csv: csvstr }));
-    } else {
-      socket.send(JSON.stringify(data));
     }
   }
 };
@@ -35,8 +33,13 @@ function connectSocketIfNotOpen(host) {
 connectSocketIfNotOpen(host).then((ws) => {
   output("connected");
   socket = socket;
+  let txt;
   socket.onmessage = ({ data }) => {
-    console.log(data);
+    if (typeof data === "Blob") {
+      txt = data.text();
+    }
+    console.log(txt, data, socket.binaryType);
+    //   if(socket.binaryType)
     try {
       const obj = JSON.parse(data);
       obj.cmd = obj.cmd || obj.type;

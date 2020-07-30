@@ -1,68 +1,16 @@
 import Sequence from "./sequence";
 import { useContext, useState, useReducer, useEffect } from "react";
 import React from "react";
-
+import { Popover } from "@material-ui/core";
 import Piano from "./piano";
 import Timer from "./timer";
-
+import SimplePopover from "./popover";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
 import { getNotes, _settings, updateSettings } from "./audioCtx";
+import { ControlPanel, ADSR } from "./ControlPanel.js";
+import AppBar from "./AppBar";
 const ButtonGroup = (props) => <div>{props.children}</div>;
-const ControlPanel = ({ settings, dispatch }) => (
-  <div class="cp">
-    <table>
-      <tr>
-        <td>Osc3</td>
-        <td>1</td>
-        <td>2</td>
-        <td>3</td>
-      </tr>
-      <tr>
-        <td>Type</td>
-        {[0, 1, 2].map((idx) => (
-          <td>
-            {" "}
-            {["sine", "square", "br", "sawtooth", "triangle"].map((option) => {
-              // eslint-disable-next-line no-unused-expressions
-              if (option == "br") return <br />;
-              return (
-                <button
-                  onClick={() => {
-                    dispatch({ idx: idx, key: "osc3", value: option });
-                  }}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </td>
-        ))}
-      </tr>
-      {["harmonicity", "delay", "detune"].map((attribute) => (
-        <tr>
-          <td>{attribute}</td>
-          {[0, 1, 2].map((idx) => {
-            return (
-              <td>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  onChange={(e) => {
-                    dispatch({ idx: idx, key: attribute, value: e.target.value });
-                  }}
-                  value={settings[attribute][idx]}
-                ></input>
-              </td>
-            );
-          })}
-        </tr>
-      ))}
-    </table>
-  </div>
-);
 
 export const IndexPage = (props) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
@@ -79,6 +27,7 @@ export const IndexPage = (props) => {
 
   const updateSettingReducer = (prevState, update) => {
     const { key, idx, value } = update;
+
     const mergedRow = (prevState[key][idx] = value);
     postWsMessage({ key, idx, value });
     return {
@@ -136,30 +85,46 @@ export const IndexPage = (props) => {
     });
   };
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr" }}>
-      <FileList files={files} channels={channels}></FileList>
-      <main>
-        <ButtonGroup></ButtonGroup>
-        <Timer seek={seek}></Timer>
-        <Sequence
-          seek={seek}
-          onNewNote={(note) => {
-            note.cmd = "compose";
-            postWsMessage(note);
-          }}
-          onDeleteNote={(bar, noteIndex) => {
-            postWsMessage({ cmd: "delete", bar, noteIndex });
-          }}
-          postMessage={postTimer}
-          newEvent={userEvent}
-          rows={44}
-          cols={10}
-        />
-      </main>
-      <side>
-        <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
-        <Piano octave={octave} onUserEvent={handleUserEvent}></Piano>
-      </side>
-    </div>
+    <>
+      <div
+        style={{
+          margin: 50,
+          display: "grid",
+          gridColumnGap: 10,
+          gridTemplateColumns: "1fr 2fr 1fr",
+        }}
+      >
+        <AppBar>
+          <SimplePopover title="OSCx3">
+            <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
+          </SimplePopover>
+          <SimplePopover title="Envelop">
+            <ADSR settings={settings} dispatch={dispatch}></ADSR>
+          </SimplePopover>
+        </AppBar>
+        <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
+        <main>
+          <h3>mix sound</h3>
+          <Sequence
+            seek={seek}
+            onNewNote={(note) => {
+              note.cmd = "compose";
+              postWsMessage(note);
+            }}
+            onDeleteNote={(bar, noteIndex) => {
+              postWsMessage({ cmd: "delete", bar, noteIndex });
+            }}
+            postMessage={postTimer}
+            newEvent={userEvent}
+            rows={30}
+            cols={10}
+          />
+          <Timer seek={seek}></Timer>
+        </main>
+        <side style={{ display: "grid", marginTop: 30, gridTemplateRow: "1fr, 1fr, 1fr" }}>
+          <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
+        </side>
+      </div>
+    </>
   );
 };

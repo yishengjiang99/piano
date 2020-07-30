@@ -67,13 +67,17 @@ export function Envelope(adsr, audioParam) {
 }
 
 export let _settings = {
-  osc3: ["sine", "sine", "square"],
+  osc3: ["sine", "triangle", "square"],
   harmonicity: [0.5, 0.2, 0.1],
   detune: [0, 2, 2],
   delay: [0, 0, 1],
-  lpf: [1600],
-  hpf: [70],
-  adsr: [0.01, 0.2, 0.8, 0.3],
+  LPF: { frequency: 2000, Q: 3 },
+  HPF: { frequency: 60, Q: 3 },
+
+  eqHZs: [62.5, 125, 250, 500, 1000],
+  adsr: [0.01, 0.2, 0.1, 0.3, 1.0],
+  LFO1: { frequeycy: 60, target: null },
+  LFO2: { frequeycy: 60, target: null },
 };
 
 const ch = new BroadcastChannel("wschannel");
@@ -105,7 +109,7 @@ ch.onmessage = function ({ data }) {
         break;
       case "keyup":
         if (activeNotes[index]) {
-          activeNotes[index].note.triggerRelease();
+          // activeNotes[index].note.triggerRelease();
           activeNotes[index] = null;
         }
         break;
@@ -114,8 +118,8 @@ ch.onmessage = function ({ data }) {
 };
 const fftc = new BroadcastChannel("fftc");
 let ctx;
-let masterGain, compressor, analyser;
-
+let masterGain, compressor, analyser, preAmp, postAmp, LPF, HPF;
+let LFO1, LFO2, EQ;
 export function getContext() {
   if (ctx) return ctx;
   ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
@@ -126,10 +130,38 @@ export function getContext() {
     threshold: -60,
     radio: 4,
   });
+  LPF = new BiquadFilterNode(ctx, {
+    type: "lowpass",
+    frequency: _settings.LPF.frequency,
+    Q: _settings.LPF.Q,
+  });
+  HPF = new BiquadFilterNode(ctx, {
+    type: "highpass",
+    frequency: _settings.HPF.frequency,
+    Q: _settings.HPF.Q,
+  });
+  LFO1 = new OscillatorNode(ctx, { frequency: _settings.LFO1.frequency });
+  LFO2 = new OscillatorNode(ctx, { frequency: _settings.LFO2.frequency });
+  EQ = [62.5, 125, 250, 500, 1000].map(
+    (hz) => new BiquadFilterNode(ctx, { type: "peaking", frequency: hz, Q: 1, gain: 1 })
+  );
+  EQ[0].connect(EQ[1]);
+  EQ[1].connect(EQ[2]);
+  EQ[2].connect(EQ[3]);
+  EQ[3].connect(EQ[4]);
   analyser = new AnalyserNode(ctx, { fftSize: 256, smoothingTimeConstant: 0.1 });
-  masterGain.connect(compressor);
-  compressor.connect(analyser);
-  analyser.connect(ctx.destination);
+  preAmp = new GainNode(ctx, { gain: 1 });
+  postAmp = new GainNode(ctx, { gain: 1 });
+
+  masterGain.connect(HPF);
+  masterGain.connect(EQ[0]);
+  EQ[4]
+    .connect(preAmp)
+    .connect(compressor)
+    .connect(postAmp)
+    .connect(analyser)
+    .connect(ctx.destination);
+
   return ctx;
 }
 

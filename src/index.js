@@ -4,11 +4,7 @@ import { IndexPage } from "./App";
 import * as serviceWorker from "./serviceWorker";
 import LeftNav from "./left-nav";
 function App() {
-  return (
-    <LeftNav>
-      <IndexPage />;
-    </LeftNav>
-  );
+  return <IndexPage />;
 }
 
 ReactDOM.render(<App />, document.getElementById("root"));
