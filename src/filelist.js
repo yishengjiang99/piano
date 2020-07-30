@@ -4,7 +4,7 @@ import { useState } from "react";
 const FileList = ({ debug, channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
-
+  debugger;
   return (
     <table>
       {files.slice(20).map((f) => (
@@ -15,9 +15,7 @@ const FileList = ({ debug, channels, files, postMessage }) => {
               onClick={() =>
                 fetch("https://www.grepawk.com/dbfs/" + f)
                   .then((res) => res.text())
-                  .then((t) => {
-                    debugger;
-                  })
+                  .then((t) => {})
               }
             >
               read

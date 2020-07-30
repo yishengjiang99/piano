@@ -48,14 +48,14 @@ export const IndexPage = (props) => {
   useEffect(() => {
     const msg = wsMessage.lastMessage;
     if (!msg) return;
-    if (msg.type === "fileList") {
+    if (msg.cmd === "fileList") {
       setFiles(msg.data);
-    } else if (msg.type === "channeList") {
+    } else if (msg.cmd === "channeList") {
       setChannels(msg.data);
-    } else if (msg.type === "filecontent") {
+    } else if (msg.cmd === "filecontent") {
       setDebug(debug.concat(JSON.stringify(msg)));
     }
-  }, [wsMessage]);
+  }, [wsMessage.lastMessage]);
 
   useEffect(() => {
     const msg = timerMsg.lastMessage;
@@ -102,7 +102,6 @@ export const IndexPage = (props) => {
             <ADSR settings={settings} dispatch={dispatch}></ADSR>
           </SimplePopover>
         </AppBar>
-        <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
         <main>
           <h3>mix sound</h3>
           <Sequence
@@ -121,10 +120,11 @@ export const IndexPage = (props) => {
           />
           <Timer seek={seek}></Timer>
         </main>
-        <side style={{ display: "grid", marginTop: 30, gridTemplateRow: "1fr, 1fr, 1fr" }}>
-          <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
+        <side style={{ display: "grid", marginTop: 30, gridTemplateRow: "1fr" }}>
+          <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
         </side>
       </div>
+      <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
     </>
   );
 };

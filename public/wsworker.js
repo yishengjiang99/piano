@@ -32,17 +32,10 @@ function connectSocketIfNotOpen(host) {
 }
 connectSocketIfNotOpen(host).then((ws) => {
   output("connected");
-  socket = socket;
   let txt;
   socket.onmessage = ({ data }) => {
-    if (typeof data === "Blob") {
-      txt = data.text();
-    }
-    console.log(txt, data, socket.binaryType);
-    //   if(socket.binaryType)
     try {
       const obj = JSON.parse(data);
-      obj.cmd = obj.cmd || obj.type;
       msgChannel.postMessage(obj);
     } catch (e) {
       msgChannel.postMessage(data.toString());
