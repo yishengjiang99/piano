@@ -1,4 +1,5 @@
 import { noteToMajorTriad, noteToMinorTriad, melody, SAMPLE_RATE } from "./sound-keys.js";
+import loadProcessor from "./processors/load-processor";
 
 let keyCounter = 0,
   fftTimer = null;
@@ -120,7 +121,9 @@ const fftc = new BroadcastChannel("fftc");
 let ctx;
 let masterGain, compressor, analyser, preAmp, postAmp, LPF, HPF;
 let LFO1, LFO2, EQ;
-export function getContext() {
+let passThrough;
+
+export async function getContext() {
   if (ctx) return ctx;
   ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
 
@@ -152,10 +155,12 @@ export function getContext() {
   analyser = new AnalyserNode(ctx, { fftSize: 256, smoothingTimeConstant: 0.1 });
   preAmp = new GainNode(ctx, { gain: 1 });
   postAmp = new GainNode(ctx, { gain: 1 });
-
+  debugger;
+  passThrough = await loadProcessor(ctx, "pass-through");
   masterGain.connect(HPF);
   masterGain.connect(EQ[0]);
   EQ[4]
+    .connect(passThrough)
     .connect(preAmp)
     .connect(compressor)
     .connect(postAmp)
@@ -216,45 +221,6 @@ const fftLoop = () => {
     fftTimer = requestAnimationFrame(fftLoop);
   }
 };
-
-export const VolumeProxy = (gainParam, label) =>
-  new Proxy(gainParam, {
-    label: () => label,
-    get: () => gainParam.value,
-    set: (value) => {
-      const _opts = { min: 0, max: 2 };
-
-      if (value < _opts.min || value > _opts.max) return false;
-      gainParam.setValueAtTime(value, 0);
-      return true;
-    },
-  });
-const accel = 1;
-
-export const EQProxy = (filterChain, label) =>
-  new Proxy(filterChain, {
-    label: label,
-    get: () => {
-      aggregateFrequencyResponse(filterChain);
-    },
-    bass: filterChain.filter((biquad) => biquad.frequency < 400),
-    treble: filterChain.filter((biquad) => biquad.frequency > 900),
-    moreBass: filterChain
-      .filter((biquad) => biquad.frequency < 400)
-      .map((bass) => bass.gain.linearRampToValueAtTime(bass.gain.value * 1.03 * accel)),
-    lessBass: filterChain
-      .filter((biquad) => biquad.frequency < 400)
-      .map((bass) => bass.gain.linearRampToValueAtTime(bass.gain.value * 0.96 * accel)),
-    moreTreble: filterChain
-      .filter((biquad) => biquad.frequency > 700)
-      .map((treb) => treb.gain.linearRampToValueAtTime(treb.gain.value * 1.03 * accel)),
-    lessTreble: filterChain
-      .filter((biquad) => biquad.frequency > 700)
-      .map((treb) => treb.gain.linearRampToValueAtTime(treb.gain.value * 0.96 * accel)),
-  });
-
-const aggregateFrequencyResponse = () => "";
-const activeSounds = {};
 
 export function getNotes(freqs, octave = 3) {
   freqs.sort();

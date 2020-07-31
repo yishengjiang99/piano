@@ -49,9 +49,9 @@ export const IndexPage = (props) => {
     const msg = wsMessage.lastMessage;
     if (!msg) return;
     if (msg.cmd === "fileList") {
-      setFiles(msg.data);
+      msg.data && msg.data.length && setFiles(msg.data);
     } else if (msg.cmd === "channeList") {
-      setChannels(msg.data);
+      msg.data && msg.data.length && setChannels(msg.data);
     } else if (msg.cmd === "filecontent") {
       setDebug(debug.concat(JSON.stringify(msg)));
     }
