@@ -1,22 +1,22 @@
 var host = "wss://www.grepawk.com/signal"; //:4000";
 var msgChannel = new BroadcastChannel("wschannel");
-msgChannel.onmessage = ({ data }) => {
+msgChannel.onmessage = ({data}) => {
   if (typeof data === "string" && socket) socket.send(data);
   if (data.cmd && socket) {
-    if (data.cmd == "updateSetting") return;
-
+    if (data.cmd == "updateSetting") {
+      socket.send(JSON.stringify(data));
+    }
     if (data.cmd === "compose" && data.adsr) {
-      const { type, time, freq, index, bar, adsr } = data;
-      const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
-      socket.send(JSON.stringify({ cmd: "compose", csv: csvstr }));
-      console.log("sending " + JSON.stringify({ cmd: "compose", csv: csvstr }));
+      const {type, time, freq, index, bar, adsr} = data;
+      const csvstr = ["compose", time, freq, index, adsr[0], adsr[1], adsr[2]].join(",");
+      socket.send(csvstr);
     }
   }
 };
 const output = (str) => {
   console.log(str);
 
-  msgChannel.postMessage({ msg: str });
+  msgChannel.postMessage({msg: str});
 };
 var socket;
 function connectSocketIfNotOpen(host) {
@@ -34,7 +34,7 @@ connectSocketIfNotOpen(host).then((ws) => {
   output("connected");
   socket = socket;
   let txt;
-  socket.onmessage = ({ data }) => {
+  socket.onmessage = ({data}) => {
     if (typeof data === "Blob") {
       txt = data.text();
     }

@@ -1,17 +1,18 @@
-import { useState, useRef, useEffect, useCallback, useReducer } from "react";
-
-export function useChannel(name) {
+import {useRef, useEffect, useCallback, useReducer} from "react";
+var cursor = 0;
+export function useChannel(name, size = 5) {
   const [messageState, dispatch] = useReducer(
     (prevState, data) => {
       const newMsg = data;
+      const list = prevState.messages || new Array(size);
       return {
         lastMessage: newMsg,
-        messages: prevState.messages.concat(newMsg),
+        messages: list,
       };
     },
     {
       lastMessage: null,
-      messages: [],
+      messages: new Array(size),
     }
   );
 
@@ -21,7 +22,7 @@ export function useChannel(name) {
   }
 
   useEffect(() => {
-    channel.current.onmessage = function ({ data }) {
+    channel.current.onmessage = function ({data}) {
       dispatch(data);
     };
     return function cleanup() {
