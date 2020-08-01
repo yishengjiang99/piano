@@ -1,7 +1,7 @@
 import React from "react";
-export const ControlPanel = ({ settings, dispatch }) => (
-  <div class="cp" style={{ margin: 12 }}>
-    <table>
+export const ControlPanel = ({settings, dispatch}) => (
+  <div class="cp" style={{margin: 12}}>
+    <table border={1}>
       <tr>
         <td>Osc3</td>
         <td>1</td>
@@ -12,14 +12,13 @@ export const ControlPanel = ({ settings, dispatch }) => (
         <td>Type</td>
         {[0, 1, 2].map((idx) => (
           <td>
-            {" "}
             {["sine", "square", "br", "sawtooth", "triangle"].map((option) => {
               // eslint-disable-next-line no-unused-expressions
               if (option == "br") return <br />;
               return (
                 <button
                   onClick={() => {
-                    dispatch({ idx: idx, key: "osc3", value: option });
+                    dispatch({idx: idx, key: "osc3", value: option});
                   }}
                 >
                   {option}
@@ -41,7 +40,7 @@ export const ControlPanel = ({ settings, dispatch }) => (
                   max={1}
                   step={0.1}
                   onChange={(e) => {
-                    dispatch({ idx: idx, key: attribute, value: e.target.value });
+                    dispatch({idx: idx, key: attribute, value: e.target.value});
                   }}
                   value={settings[attribute][idx]}
                 ></input>
@@ -54,7 +53,7 @@ export const ControlPanel = ({ settings, dispatch }) => (
   </div>
 );
 
-export const ADSR = ({ settings, dispatch }) => {
+export const ADSR = ({settings, dispatch}) => {
   const attribute = "adsr";
   return (
     <table>
@@ -76,7 +75,7 @@ export const ADSR = ({ settings, dispatch }) => {
                   max={2}
                   step={0.01}
                   onChange={(e) => {
-                    dispatch({ idx: idx, key: attribute, value: parseFloat(e.target.value) });
+                    dispatch({idx: idx, key: attribute, value: parseFloat(e.target.value)});
                   }}
                   value={settings.adsr[idx]}
                 ></input>

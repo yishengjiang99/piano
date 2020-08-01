@@ -1,9 +1,10 @@
 import React from "react";
 
-import { useState } from "react";
-const FileList = ({ debug, channels, files, postMessage }) => {
+import {useState} from "react";
+const FileList = ({debug, channels, files, postMessage}) => {
   const [open, setOpen] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  debugger;
   return (
     <table>
       {files.slice(20).map((f) => (

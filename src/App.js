@@ -1,16 +1,15 @@
 import Sequence from "./sequence";
-import { useContext, useState, useReducer, useEffect } from "react";
+import {useContext, useState, useReducer, useEffect} from "react";
 import React from "react";
-import { Popover } from "@material-ui/core";
+import {Popover} from "@material-ui/core";
 import Piano from "./piano";
 import Timer from "./timer";
 import SimplePopover from "./popover";
-import { useChannel } from "./useChannel";
+import {useChannel} from "./useChannel";
 import FileList from "./filelist";
-import { getNotes, _settings, updateSettings } from "./audioCtx";
-import { ControlPanel, ADSR } from "./ControlPanel.js";
+import {_settings} from "./audioCtx";
+import {ControlPanel, ADSR} from "./ControlPanel.js";
 import AppBar from "./AppBar";
-const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = (props) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
@@ -26,13 +25,13 @@ export const IndexPage = (props) => {
   const [debug, setDebug] = useState([]);
 
   const updateSettingReducer = (prevState, update) => {
-    const { key, idx, value } = update;
+    const {key, idx, value} = update;
 
     const mergedRow = (prevState[key][idx] = value);
-    postWsMessage({ key, idx, value });
+    postWsMessage({key, idx, value});
     return {
       ...prevState,
-      ...{ key: mergedRow },
+      ...{key: mergedRow},
     };
   };
   const [settings, dispatch] = useReducer(updateSettingReducer, _settings);
@@ -94,14 +93,7 @@ export const IndexPage = (props) => {
           gridTemplateColumns: "1fr 2fr 1fr",
         }}
       >
-        <AppBar>
-          <SimplePopover title="OSCx3">
-            <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
-          </SimplePopover>
-          <SimplePopover title="Envelop">
-            <ADSR settings={settings} dispatch={dispatch}></ADSR>
-          </SimplePopover>
-        </AppBar>
+
         <main>
           <h3>mix sound</h3>
           <Sequence
@@ -111,7 +103,7 @@ export const IndexPage = (props) => {
               postWsMessage(note);
             }}
             onDeleteNote={(bar, noteIndex) => {
-              postWsMessage({ cmd: "delete", bar, noteIndex });
+              postWsMessage({cmd: "delete", bar, noteIndex});
             }}
             postMessage={postTimer}
             newEvent={userEvent}
@@ -120,8 +112,10 @@ export const IndexPage = (props) => {
           />
           <Timer seek={seek}></Timer>
         </main>
-        <side style={{ display: "grid", marginTop: 30, gridTemplateRow: "1fr" }}>
+        <side style={{display: "grid", marginTop: 30, gridTemplateRow: "1fr,1fr,1fr"}}>
           <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
+          <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
+          <ADSR settings={settings} dispatch={dispatch}></ADSR>
         </side>
       </div>
       <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
