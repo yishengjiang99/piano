@@ -102,17 +102,12 @@ ch.onmessage = function ({data}) {
         note.trigger();
         break;
       case "keypress":
-        if (activeNotes[index] && !activeNotes[index].pressed) {
-          //   activeNotes[index].note.trigger((time - activeNotes[index].start) / 0.05);
-          activeNotes[index].pressed = time;
-        }
+        // if (activeNotes[index]) activeNotes[index].triggerRelease();
         break;
       case "keyup":
-        if (activeNotes[index]) {
-          // activeNotes[index].note.triggerRelease();
-          activeNotes[index] = null;
-        }
+        activeNotes[index] && activeNotes[index].triggerRelease();
         break;
+      default: break;
     }
   }
 };
@@ -156,8 +151,7 @@ export async function getContext() {
   postAmp = new GainNode(ctx, {gain: 1});
 
   masterGain.connect(HPF);
-  masterGain.connect(EQ[0]);
-  EQ[4]
+  masterGain.connect(EQ[0])
     .connect(preAmp)
     .connect(compressor)
     .connect(postAmp)
@@ -220,6 +214,7 @@ const fftLoop = () => {
 };
 
 export function getNotes(freqs, octave = 3) {
+  ensureAudioCtx();
   freqs.sort();
   const hashkey = freqs[0]; // * 4 + freqs[1] && freqs[1] * 2) || (0 + freqs[3] && freqs[3] * 1);
   if (noteCache[hashkey] && noteCache[hashkey].state !== "attacking") return noteCache[hashkey];

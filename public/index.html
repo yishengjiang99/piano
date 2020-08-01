@@ -12,7 +12,6 @@
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
     <link rel="manifest" href="./manifest.json" />
-    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-firestore.js"></script>
 
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
@@ -50,25 +49,25 @@
     </script>
     
 <script type='module'>
-   const firebaseConfig = {
-    apiKey: "AIzaSyAV4Q9le3SmcMVzogttnJSSxd4zikhBixw",
-    authDomain: "dsp-over-rtc.firebaseapp.com",
-    databaseURL: "https://dsp-over-rtc.firebaseio.com",
-    projectId: "dsp-over-rtc",
-    storageBucket: "dsp-over-rtc.appspot.com",
-    messagingSenderId: "731533454193",
-    appId: "1:731533454193:web:d62fcaf297e1fe5cf624d0",
-    measurementId: "G-8RCQ4PX008",
-};
+//    const firebaseConfig = {
+//     apiKey: "AIzaSyAV4Q9le3SmcMVzogttnJSSxd4zikhBixw",
+//     authDomain: "dsp-over-rtc.firebaseapp.com",
+//     databaseURL: "https://dsp-over-rtc.firebaseio.com",
+//     projectId: "dsp-over-rtc",
+//     storageBucket: "dsp-over-rtc.appspot.com",
+//     messagingSenderId: "731533454193",
+//     appId: "1:731533454193:web:d62fcaf297e1fe5cf624d0",
+//     measurementId: "G-8RCQ4PX008",
+// };
 
-window.get_db = function (ref) {
-  if (!window.db) {
-    firebase.initializeApp(firebaseConfig);
-    window.db = firebase.database();
-  }
-  if (ref) return window.db.ref(ref);
-  else return window.db;
-};
+// window.get_db = function (ref) {
+//   if (!window.db) {
+//     firebase.initializeApp(firebaseConfig);
+//     window.db = firebase.database();
+//   }
+//   if (ref) return window.db.ref(ref);
+//   else return window.db;
+// };
 
 </script>
   </body>

@@ -18,11 +18,12 @@ const Sequence = ({
   onNewNote,
   postWsMessage
 }) => {
+  const [debugMessage, postDebug] = useChannel("debug")
+
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
-  const [lastNoteTime, setLastNoteTime] = useState(0);
   const [pendingNotes, setPendingNotes] = useState([]);
-  const [fftc, postFftc] = useChannel("fftc");
+  const [fftc, postFftc] = useChannel("fftc", 2);
   const [zoomX, setZoomX] = useState(1);
   const canvasRef = useRef();
   const canvasHudRef = useRef();
@@ -126,10 +127,6 @@ const Sequence = ({
     }
   }, [fftc.lastMessage, currentBar, barCursor, canvasHeight]);
 
-
-
-
-
   useEffect(() => {
     const canvasHudCtx = canvasHudRef.current.getContext("2d");
     const canvasFFTCtx = canvasFFTRef.current.getContext('2d');
@@ -139,7 +136,7 @@ const Sequence = ({
     canvasFFTCtx.fillStyle = "rgba(0,111,0,0.0)";
     canvasFFTCtx.clearRect(currentBar * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
 
-    postMessage({n: currentBar, cmd: "tick"});
+    //  postMessage({n: currentBar, cmd: "tick"});
   }, [canvasHeight, currentBar]);
 
   useEffect(() => {
@@ -163,42 +160,68 @@ const Sequence = ({
         canvasCtx.fillRect(
           (bar - barCursor) * BAR_WIDTH,
           index * BAR_HEIGHT,
-          BAR_WIDTH * (attackLength + releaseLength) / 0.250 - 1,
+          BAR_WIDTH * (releaseLength) / 250 - 1,
           BAR_HEIGHT - 1
         );
       })
     }
-
-    const {type, time, freq, index} = newEvent;
+    const {type, time, start, freq, index, duration} = newEvent;
+    postDebug([type, time, start, duration].join('--'))
     switch (type) {
       case 'keydown':
-        setPendingNotes((prev) => prev[index] = [time] && prev);
-        if (time - lastNoteTime > secondsPerBar) {
+        setPendingNotes((state) => {
+          state[index] = {
+            start: time
+          }
+          return state;
+        })
+        if (!lastNoteTime.current || time - lastNoteTime.current > secondsPerBar) {
           setCurrentBar((prev) => prev + 1);
-          setLastNoteTime(time);
+          lastNoteTime.current = time;
         }
+        postWsMessage({
+          newEvent,
+          duration: duration
+        })
         break;
       case 'keypress':
-        setPendingNotes((prev) => prev[index] = [prev[index], time, null] && prev)
-        const attackvol = time - pendingNotes[index][0];
-        postFftc("attack " + attackvol + " freq");
+        setPendingNotes((state) => {
+          state[index].press = time;
+          return state;
+        })
+        const attackvol = time - pendingNotes[index].start;
+        postWsMessage("attack " + attackvol + " " + freq);
+        //  postDebug("attack " + attackvol + " freq")
         break;
       case 'keyup':
-        const startTime = pendingNotes[index][0];
-        const releaseTime = pendingNotes[index][1];
-        const releasevol = time - releaseTime;
+        const startTime = pendingNotes[index].start;
+        const releaseTime = pendingNotes[index].press;
+        const releasevol = time - startTime;
         console.log(releaseTime, startTime, freq);
-        postFftc("release " + releasevol + " " + freq);
+        postWsMessage({
+          ...newEvent,
+          duration: duration
+        })
+        //        postDebug("release " + releasevol + "\n\n")
         painNote({bar: currentBar, index, attackLength: releaseTime - startTime, releaseLength: time - releaseTime})
-        onNewNote({            /*    const { type, time, freq, index, bar, adsr } = data; */
+        onNewNote({
           ...newEvent,
           type: "compose",
           adsr: [startTime, releaseTime, time],
         })
+
+        pendingNotes[index] = null;
         break;
       default: break;
     }
-  }, [barCursor, currentBar, lastNoteTime, newEvent, onNewNote, pendingNotes, postFftc]);
+
+    return function cleanup() {
+      console.log(pendingNotes);
+      //   postDebug(JSON.stringify(pendingNotes));
+
+    }
+  }, [newEvent]);
+  let lastNoteTime = useRef();
   return (
     <>
       <div
