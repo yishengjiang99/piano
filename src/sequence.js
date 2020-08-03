@@ -2,10 +2,10 @@
 import styles from "./sequence.module.css";
 import React from "react";
 
-import {useState, useCallback, useEffect, useRef} from "react";
-import {idxToFreq, keyboardToFreq, notesOfOctave} from "./sound-keys";
-import {useChannel} from "./useChannel.js";
-import {Envelope} from "./audioCtx";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { idxToFreq, keyboardToFreq, notesOfOctave } from "./sound-keys";
+import { useChannel } from "./useChannel.js";
+import { Envelope } from "./audioCtx";
 
 const Sequence = ({
   octave,
@@ -17,9 +17,9 @@ const Sequence = ({
   tracks,
   seek,
   onNewNote,
-  postWsMessage
+  postWsMessage,
 }) => {
-  const [debugMessage, postDebug] = useChannel("debug")
+  const [debugMessage, postDebug] = useChannel("debug");
 
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
@@ -41,33 +41,31 @@ const Sequence = ({
   // const fftSize = 1024;
   useEffect(() => {
     const _drawAxis = () => {
-      const canvasCtx = canvasRef.current.getContext('2d');
+      const canvasCtx = canvasRef.current.getContext("2d");
       canvasCtx.strokeStyle = "rbga(1,1,1,1)";
       canvasCtx.strokeWidth = "1px";
-      for (let i = 0;i < rows;i++) {
+      for (let i = 0; i < rows; i++) {
         canvasCtx.moveTo(0, i * BAR_HEIGHT);
         canvasCtx.lineTo(canvasWidth, i * BAR_HEIGHT);
         canvasCtx.stroke();
       }
-      for (let j = 0;j < cols;j++) {
+      for (let j = 0; j < cols; j++) {
         canvasCtx.moveTo(j * BAR_WIDTH, 0);
         canvasCtx.lineTo(j * BAR_WIDTH, canvasHeight);
         canvasCtx.stroke();
       }
-    }
+    };
 
-    const canvasCtx = canvasRef.current.getContext('2d');
-    const canvasFFTCtx = canvasFFTRef.current.getContext('2d')
+    const canvasCtx = canvasRef.current.getContext("2d");
+    const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
     barCursor > 0 &&
       canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight) &&
       canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     _drawAxis(canvasCtx);
-
   }, [canvasRef, canvasFFTRef, barCursor, canvasWidth, canvasHeight, rows, cols]);
 
-
   const _canvasClick = (e) => {
-    const canvasCtx = canvasRef.current.getContext("2d")
+    const canvasCtx = canvasRef.current.getContext("2d");
     const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
 
     var blue = canvasCtx.getImageData(x, y, 1, 1).data[2] > 200;
@@ -101,7 +99,7 @@ const Sequence = ({
     }
     if (blue) {
       onDeleteNote(barIndex + barCursor, noteIndex);
-      paintABar({...note, color: "clear"});
+      paintABar({ ...note, color: "clear" });
     } else {
       paintABar(note);
       onNewNote(note);
@@ -109,20 +107,19 @@ const Sequence = ({
   };
   useEffect(() => {
     if (fftc.lastMessage) {
-      const {minDecibels, rmns, dataArray, time, binCount, sampleRate} = fftc.lastMessage;
-      const canvasFFTCtx = canvasFFTRef.current.getContext('2d');
+      const { minDecibels, rmns, dataArray, time, binCount, sampleRate } = fftc.lastMessage;
+      const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
       const x0 = (currentBar - barCursor) * BAR_WIDTH;
       canvasFFTCtx.fillStyle = "black";
       canvasFFTCtx.fillRect(x0, 0, BAR_WIDTH, canvasHeight);
       canvasFFTCtx.clearRect(x0, 0, BAR_WIDTH, canvasHeight);
       const _binHeight = canvasHeight / binCount;
       var m = 0;
-      for (let i = 0;i < binCount;i++) {
+      for (let i = 0; i < binCount; i++) {
         let hue = (i / binCount) * 360;
         canvasFFTCtx.fillStyle = "red";
         var _binWidth = (dataArray[i] / 360) * BAR_WIDTH;
         canvasFFTCtx.fillRect(x0, _binHeight * i, _binWidth, _binHeight);
-
       }
 
       // document.getElementById("status").contentText = sum;
@@ -131,7 +128,7 @@ const Sequence = ({
 
   useEffect(() => {
     const canvasHudCtx = canvasHudRef.current.getContext("2d");
-    const canvasFFTCtx = canvasFFTRef.current.getContext('2d');
+    const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
     canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
     canvasHudCtx.clearRect(0, 0, currentBar * BAR_WIDTH, canvasHeight);
     canvasHudCtx.fillRect(currentBar * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
@@ -156,75 +153,81 @@ const Sequence = ({
     if (newEvent === null) {
       return; // false
     }
-    function painNote({bar, index, attackLength}) {
+    function painNote({ bar, index, attackLength }) {
       requestAnimationFrame(() => {
-        debugger;
         const canvasCtx = canvasRef.current.getContext("2d");
         canvasCtx.fillRect(
           (bar - barCursor) * BAR_WIDTH,
           index * BAR_HEIGHT,
-          BAR_WIDTH * (attackLength) / 250 - 1,
+          (BAR_WIDTH * attackLength) / 250 - 1,
           BAR_HEIGHT - 1
         );
-      })
+      });
     }
-    const {type, time, start, freq, index, duration} = newEvent;
-    postDebug([type, time, start, duration].join('--'))
+    const { type, time, start, freq, index, duration } = newEvent;
+    postDebug([type, time, start, duration].join("--"));
     const idx_symbol = Symbol(index);
     let isInit = pendingNotes[idx_symbol] === null;
-    const envelop = pendingNotes[idx_symbol] || {start: time, release: null};
+    const envelop = pendingNotes[idx_symbol] || { start: time, release: null };
 
     switch (type) {
-      case 'keydown':
-      case 'mousedown':
-        if ((!lastNoteTime || (time - lastNoteTime) > secondsPerBar)) {
+      case "keydown":
+      case "mousedown":
+        if (!lastNoteTime || time - lastNoteTime > secondsPerBar) {
           setCurrentBar((prev) => prev + 1);
           setLastNoteTime(time);
         }
         envelop.start = time;
         postWsMessage({
           cmd: "keyboard",
-          time, freq, index,
-          type: "keypress"
+          time,
+          freq,
+          index,
+          type: "keypress",
         });
         break;
       // eslint-disable-next-line no-fallthrough
-      case 'keypress':
+      case "keypress":
         envelop.hold = time;
         if (!envelop.start) Envelope.start = time;
 
         postWsMessage({
           cmd: "keyboard",
-          time, freq, index,
-          type: "keypress"
+          time,
+          freq,
+          index,
+          type: "keypress",
         });
         break;
-      case 'mouseup':
-      case 'keyup':
+      case "mouseup":
+      case "keyup":
         postWsMessage({
           cmd: "keyboard",
 
-          time, freq, index,
-          type: "keyup"
+          time,
+          freq,
+          index,
+          type: "keyup",
         });
-        const starttime = pendingNotes[idx_symbol] && pendingNotes[idx_symbol].start || time - 125;
-        painNote({bar: currentBar, index, attackLength: time - starttime});
+        const starttime =
+          (pendingNotes[idx_symbol] && pendingNotes[idx_symbol].start) || time - 125;
+        painNote({ bar: currentBar, index, attackLength: time - starttime });
         onNewNote({
           ...newEvent,
           type: "compose",
-          adsr: [start, time]
-        })
+          adsr: [start, time],
+        });
         setPendingNotes(pendingNotes);
         break;
-      default: postDebug(type + ' ' + time);
+      default:
+        postDebug(type + " " + time);
         break;
     }
 
     return function cleanup() {
       console.log(pendingNotes);
       //   postDebug(JSON.stringify(pendingNotes));
-
-    }
+    };
   }, [newEvent]);
 
   return (
@@ -239,7 +242,7 @@ const Sequence = ({
       >
         <canvas
           key={11}
-          style={{position: "absolute"}}
+          style={{ position: "absolute" }}
           ref={canvasRef}
           onClick={(e) => _canvasClick(e)}
           height={rows * BAR_HEIGHT}
@@ -247,7 +250,7 @@ const Sequence = ({
         ></canvas>
         <canvas
           key={313}
-          style={{position: "absolute", zIndex: -1}}
+          style={{ position: "absolute", zIndex: -1 }}
           ref={canvasFFTRef}
           onClick={(e) => _canvasClick(e)}
           height={rows * BAR_HEIGHT}
@@ -255,7 +258,7 @@ const Sequence = ({
         ></canvas>
         <canvas
           key={533}
-          style={{position: "relative"}}
+          style={{ position: "relative" }}
           ref={canvasHudRef}
           onClick={_canvasClick}
           height={rows * BAR_HEIGHT}

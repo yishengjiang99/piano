@@ -1,4 +1,4 @@
-var host = "wss://dsp.grepawk.com/signal"; //:4000";
+var host = "wss://www.grepawk.com/signal"; //:4000";
 var msgChannel = new BroadcastChannel("wschannel");
 msgChannel.onmessage = ({ data }) => {
   if (typeof data === "string" && socket) socket.send(data);
@@ -40,7 +40,7 @@ connectSocketIfNotOpen(host).then((ws) => {
     try {
       const obj = JSON.parse(data);
       obj.cmd = obj.cmd || obj.type;
-      //  msgChannel.postMessage(obj);
+      msgChannel.postMessage(obj);
     } catch (e) {
       //msgChannel.postMessage(data.toString());
     }

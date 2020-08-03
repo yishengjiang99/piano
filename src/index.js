@@ -1,29 +1,23 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import {IndexPage} from "./App";
-<<<<<<< HEAD
+import { IndexPage } from "./App";
 
 import * as serviceWorker from "./serviceWorker";
 
-
-=======
-import * as serviceWorker from "./serviceWorker";
-
->>>>>>> master
 function App() {
   const [latestUserEvent, setLatestUserEvent] = useState(null);
   useEffect(() => {
-    window.addEventListener("keydown", (e) => setLatestUserEvent(e), {capture: true});
-    window.addEventListener("keypress", (e) => setLatestUserEvent(e), {capture: true});
-    window.addEventListener("keyup", (e) => setLatestUserEvent(e), {capture: true});
-    window.addEventListener("mouse", (e) => setLatestUserEvent(e), {capture: true});
-    window.addEventListener("mouseup", (e) => setLatestUserEvent(e), {capture: true});
+    window.addEventListener("keydown", (e) => setLatestUserEvent(e), { capture: true });
+    window.addEventListener("keypress", (e) => setLatestUserEvent(e), { capture: true });
+    window.addEventListener("keyup", (e) => setLatestUserEvent(e), { capture: true });
+    window.addEventListener("mouse", (e) => setLatestUserEvent(e), { capture: true });
+    window.addEventListener("mouseup", (e) => setLatestUserEvent(e), { capture: true });
   }, []);
-
 
   return ReactDOM.createPortal(
     <IndexPage windowUserEvent={latestUserEvent} />,
-    document.getElementsByTagName("body")[0]);
+    document.getElementsByTagName("body")[0]
+  );
 }
 ReactDOM.render(<App />, document.getElementById("root"));
 
