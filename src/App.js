@@ -1,6 +1,12 @@
 import Sequence from "./sequence";
+<<<<<<< HEAD
 import {useState, useReducer, useEffect} from "react";
 import React from "react";
+=======
+import {useContext, useState, useReducer, useEffect} from "react";
+import React from "react";
+import {Popover} from "@material-ui/core";
+>>>>>>> master
 import Piano from "./piano";
 import Timer from "./timer";
 import SimplePopover from "./popover";
@@ -9,9 +15,12 @@ import FileList from "./filelist";
 import {_settings} from "./audioCtx";
 import {ControlPanel, ADSR} from "./ControlPanel.js";
 import AppBar from "./AppBar";
+<<<<<<< HEAD
 import {keys, notesOfOctave} from "./sound-keys.js";
 
 const ButtonGroup = (props) => <div>{props.children}</div>;
+=======
+>>>>>>> master
 
 export const IndexPage = ({windowUserEvent}) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
@@ -55,7 +64,11 @@ export const IndexPage = ({windowUserEvent}) => {
     } else if (msg.cmd === "filecontent") {
       setDebug(debug.concat(JSON.stringify(msg)));
     }
+<<<<<<< HEAD
   }, [debug, wsMessage.lastMessage]);
+=======
+  }, [wsMessage.lastMessage]);
+>>>>>>> master
 
   useEffect(() => {
     const msg = timerMsg.lastMessage;
@@ -115,9 +128,13 @@ export const IndexPage = ({windowUserEvent}) => {
           gridTemplateColumns: "1fr  2fr 2fr",
         }}
       >
+<<<<<<< HEAD
         <div style={{display: "grid", marginTop: 30, gridTemplateRow: "1fr"}}>
           <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
         </div>
+=======
+
+>>>>>>> master
         <main>
           <h2>
             <input type={"text"} contentEditable={true} oninput={_sudo} value='mix sound' />
@@ -140,6 +157,7 @@ export const IndexPage = ({windowUserEvent}) => {
           />
           <Timer seek={seek}></Timer>
         </main>
+<<<<<<< HEAD
         <div id='console' style={{height: 699, overflowY: 'scroll'}}>
           <p><div><b>{debugMessage.lastMessage}</b></div></p>
 
@@ -147,6 +165,15 @@ export const IndexPage = ({windowUserEvent}) => {
         </div>
       </div>
       <Piano octave={octave}></Piano>
+=======
+        <side style={{display: "grid", marginTop: 30, gridTemplateRow: "1fr,1fr,1fr"}}>
+          <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
+          <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
+          <ADSR settings={settings} dispatch={dispatch}></ADSR>
+        </side>
+      </div>
+      <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
+>>>>>>> master
     </>
   );
 };

@@ -25,8 +25,18 @@
     <title>React App</title>
 
   </head>
-  <body>
+  <body style='background-color:white; color:gray;'>
 
+<div style='width:10px;height:10px;position:absolute;right:120px;top:130px'>
+<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+  <filter id="diffuseLighting1" x="0" y="0" width="100%" height="100%">
+    <feDiffuseLighting in="SourceGraphic" lighting-color="blue">
+      <fePointLight x="5" y="5" z="0.5" />
+    </feDiffuseLighting>
+  </filter>
+  <rect x="0" y="0" width="200" height="200" style="filter: url(#diffuseLighting1);" />
+</svg>
+</div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
       <div id="root"></div>
 
@@ -44,6 +54,7 @@
     </script>
     
 <script type='module'>
+<<<<<<< HEAD
 //    const firebaseConfig = {
 //     apiKey: "AIzaSyAV4Q9le3SmcMVzogttnJSSxd4zikhBixw",
 //     authDomain: "dsp-over-rtc.firebaseapp.com",
@@ -63,6 +74,9 @@
 //   if (ref) return window.db.ref(ref);
 //   else return window.db;
 // };
+=======
+
+>>>>>>> master
 
 </script>
   </body>

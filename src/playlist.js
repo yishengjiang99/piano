@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect, useRef } from "react";
+import {useState, useEffect, useRef} from "react";
 import {
   Drawer,
   Card,
@@ -12,7 +12,6 @@ import {
   Slider,
 } from "@material-ui/core";
 import Select from "react-select";
-import { ParamConfig } from "./envelop-config";
 
 const defaultSound = {
   value: "/sound/song.mp3",
@@ -20,7 +19,7 @@ const defaultSound = {
 };
 function chunk(array, size) {
   const chunked_arr = [];
-  for (let i = 0; i < array.length; i++) {
+  for (let i = 0;i < array.length;i++) {
     const last = chunked_arr[chunked_arr.length - 1];
     if (!last || last.length === size) {
       chunked_arr.push([array[i]]);
@@ -30,7 +29,7 @@ function chunk(array, size) {
   }
   return chunked_arr;
 }
-const BgSound = ({ src, userTriggered, index }) => {
+const BgSound = ({src, userTriggered, index}) => {
   const [inputNode, setInputNode] = useState(null);
   // const [userTriggered, setUserTriggered] = useState(_userTriggered);
   const [audioCtx, setAudioCtx] = useState(null);
@@ -56,19 +55,7 @@ const BgSound = ({ src, userTriggered, index }) => {
   return (
     <>
       <audio ref={audioRef} src={src} controls />
-      {inputNode !== null ? (
-        <ParamConfig
-          disabled={inputNode !== null}
-          param={"volume"}
-          onInput={(e, v) => {
-            if (!userTriggered) setUserTriggered(true);
-            inputNode.gain.gain.setValueAtTime(
-              v,
-              inputNode.inputNode.context.currentTime
-            );
-          }}
-        />
-      ) : null}
+
     </>
   );
 };
@@ -82,7 +69,6 @@ const Playlist = (props) => {
   const [sounds, setSounds] = useState(props.files || null);
   const [userTriggered, setUserTriggered] = useState(false);
   const [nowPlaying, setNowPlaying] = useState("/sound/song.mp3");
-  const [bufferState, setBufferState] = useState("UNSENT");
 
   useEffect(() => {
     const fetchSounds = async () => {
@@ -151,7 +137,7 @@ const Playlist = (props) => {
         />
         <div>
           {sounds &&
-            (props.mode && props.mode == "buttons"
+            (props.mode && props.mode === "buttons"
               ? soundButtons(sounds)
               : soundSelectBar(sounds))}
         </div>
