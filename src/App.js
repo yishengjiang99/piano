@@ -1,21 +1,24 @@
 import Sequence from "./sequence";
-import {useContext, useState, useReducer, useEffect} from "react";
+import { useState, useReducer, useEffect } from "react";
 import React from "react";
-import {Popover} from "@material-ui/core";
 import Piano from "./piano";
 import Timer from "./timer";
 import SimplePopover from "./popover";
-import {useChannel} from "./useChannel";
+import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import {_settings} from "./audioCtx";
-import {ControlPanel, ADSR} from "./ControlPanel.js";
+import { _settings } from "./audioCtx";
+import { ControlPanel, ADSR } from "./ControlPanel.js";
 import AppBar from "./AppBar";
+import { keys, notesOfOctave } from "./sound-keys.js";
 
-export const IndexPage = (props) => {
+const ButtonGroup = (props) => <div>{props.children}</div>;
+
+export const IndexPage = ({ windowUserEvent }) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
-  const [octave, setOctve] = useState(3);
+  const [octave, setOctave] = useState(3);
 
+  const [debugMessage, postDebug] = useChannel("debug", 20);
   const [files, setFiles] = useState([]);
   const [channels, setChannels] = useState([]);
   const [seek, setSeek] = useState(0);
@@ -25,13 +28,13 @@ export const IndexPage = (props) => {
   const [debug, setDebug] = useState([]);
 
   const updateSettingReducer = (prevState, update) => {
-    const {key, idx, value} = update;
+    const { key, idx, value } = update;
 
     const mergedRow = (prevState[key][idx] = value);
-    postWsMessage({key, idx, value});
+    postWsMessage({ key, idx, value });
     return {
       ...prevState,
-      ...{key: mergedRow},
+      ...{ key: mergedRow },
     };
   };
   const [settings, dispatch] = useReducer(updateSettingReducer, _settings);
@@ -43,7 +46,7 @@ export const IndexPage = (props) => {
     if (!scheduler) {
       setScheduler(new Worker("./offlinetimer.js"));
     }
-  }, []);
+  }, [scheduler, websocket]);
   useEffect(() => {
     const msg = wsMessage.lastMessage;
     if (!msg) return;
@@ -54,71 +57,131 @@ export const IndexPage = (props) => {
     } else if (msg.cmd === "filecontent") {
       setDebug(debug.concat(JSON.stringify(msg)));
     }
-  }, [wsMessage.lastMessage]);
+  }, [debug, wsMessage.lastMessage]);
 
   useEffect(() => {
     const msg = timerMsg.lastMessage;
     if (!msg) return;
-    if (msg.type === "debug") {
-      setDebug(debug.concat(JSON.stringify(msg)));
-    }
+
     if (msg.cmd === "tick") {
       setSeek(msg.n);
     }
-  }, [timerMsg]);
+  }, [timerMsg, setDebug, setSeek, debug]);
   // max-width: 600px; margin: 40px auto 60px
-  const handleUserEvent = (type, freq, time, index) => {
-    setUserEvent({
-      cmd: "keyboard",
-      time: time,
-      type: type,
-      freq: freq,
-      index: index,
-    });
-    postWsMessage({
-      cmd: "keyboard",
-      time: time,
-      type: type,
-      freq: freq,
-      index: index,
-    });
+
+  useEffect(
+    (evt) => {
+      const handleUserEvent = (evt) => {
+        let index = evt.target.dataset["index"] || (evt.key && keys.indexOf(evt.key));
+
+        if (evt.keyCode && evt.keyCode === "[") setOctave(Math.min(octave + 1, 7));
+        if (evt.keyCode && evt.keyCode === "]") setOctave(Math.math(octave - 1, 1));
+
+        if (index >= 0) {
+          console.log(evt);
+          setUserEvent({
+            cmd: "keyboard",
+            type: evt.type,
+            time: evt.timeStamp,
+            start: evt._targetInsta && evt._targetInst.actualStartTime,
+            duration: evt._targetInst && evt._targetInst.actualDuration,
+            freq: notesOfOctave(octave)[index],
+            index: index,
+          });
+          evt.preventDefault();
+        }
+      };
+      windowUserEvent && handleUserEvent(windowUserEvent);
+    },
+    [windowUserEvent, octave]
+  );
+
+  const _sudo = (evt) => {
+    const input = evt.target.value;
+    alert(input);
   };
   return (
     <>
+      <AppBar>
+        <SimplePopover title="OSCx3">
+          <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
+        </SimplePopover>
+        <SimplePopover title="Envelop">
+          <ADSR settings={settings} dispatch={dispatch}></ADSR>
+        </SimplePopover>
+        <span>
+          {" "}
+          <button
+            onClick={(e) => {
+              if (octave >= 5) {
+                alert("no");
+                return;
+              }
+              setOctave(octave + 1);
+            }}
+          >
+            +
+          </button>
+          Oct {octave}
+          <button
+            onClick={(e) => {
+              if (octave < 1) {
+                alert("no");
+                return;
+              }
+              setOctave(octave - 1);
+            }}
+          >
+            -
+          </button>
+        </span>
+      </AppBar>
       <div
         style={{
-          margin: 50,
+          marginTop: 10,
           display: "grid",
           gridColumnGap: 10,
-          gridTemplateColumns: "1fr 2fr 1fr",
+          gridTemplateColumns: "1fr  2fr 2fr",
         }}
       >
+        <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
 
         <main>
-          <h3>mix sound</h3>
+          <h2>
+            <input type={"text"} contentEditable={true} oninput={_sudo} value="mix sound" />
+          </h2>
           <Sequence
             seek={seek}
+            //  postWsMessage={postWsMessage}
             onNewNote={(note) => {
               note.cmd = "compose";
               postWsMessage(note);
             }}
             onDeleteNote={(bar, noteIndex) => {
-              postWsMessage({cmd: "delete", bar, noteIndex});
+              postWsMessage({ cmd: "delete", bar, noteIndex });
             }}
+            postWsMessage={postWsMessage}
             postMessage={postTimer}
             newEvent={userEvent}
             rows={30}
             cols={10}
+            ocatave={octave}
           />
           <Timer seek={seek}></Timer>
         </main>
-        <side style={{display: "grid", marginTop: 30, gridTemplateRow: "1fr,1fr,1fr"}}>
-          <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
-          <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
-          <ADSR settings={settings} dispatch={dispatch}></ADSR>
-        </side>
+        <div id="console" style={{ height: 699, overflowY: "scroll" }}>
+          <p>
+            <div>
+              <b>{debugMessage.lastMessage}</b>
+            </div>
+          </p>
+
+          {debugMessage.messages.splice(-20).map((line) => (
+            <div>{line}</div>
+          ))}
+        </div>
       </div>
-      <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
+      <Piano octave={octave}></Piano>
     </>
   );
 };

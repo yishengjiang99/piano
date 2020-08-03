@@ -1,6 +1,6 @@
 import React from "react";
-export const ControlPanel = ({settings, dispatch}) => (
-  <div class="cp" style={{margin: 12}}>
+export const ControlPanel = ({ settings, dispatch }) => (
+  <div class="cp" style={{ margin: 12 }}>
     <table border={1}>
       <tr>
         <td>Osc3</td>
@@ -18,7 +18,7 @@ export const ControlPanel = ({settings, dispatch}) => (
               return (
                 <button
                   onClick={() => {
-                    dispatch({idx: idx, key: "osc3", value: option});
+                    dispatch({ idx: idx, key: "osc3", value: option });
                   }}
                 >
                   {option}
@@ -28,7 +28,7 @@ export const ControlPanel = ({settings, dispatch}) => (
           </td>
         ))}
       </tr>
-      {["harmonicity", "delay", "detune"].map((attribute) => (
+      {["overtone", "delay", "detune"].map((attribute) => (
         <tr>
           <td>{attribute}</td>
           {[0, 1, 2].map((idx) => {
@@ -37,10 +37,10 @@ export const ControlPanel = ({settings, dispatch}) => (
                 <input
                   type="range"
                   min={0}
-                  max={1}
+                  max={attribute === "overtone" ? 4 : 2}
                   step={0.1}
                   onChange={(e) => {
-                    dispatch({idx: idx, key: attribute, value: e.target.value});
+                    dispatch({ idx: idx, key: attribute, value: e.target.value });
                   }}
                   value={settings[attribute][idx]}
                 ></input>
@@ -53,7 +53,7 @@ export const ControlPanel = ({settings, dispatch}) => (
   </div>
 );
 
-export const ADSR = ({settings, dispatch}) => {
+export const ADSR = ({ settings, dispatch }) => {
   const attribute = "adsr";
   return (
     <table>
@@ -75,7 +75,7 @@ export const ADSR = ({settings, dispatch}) => {
                   max={2}
                   step={0.01}
                   onChange={(e) => {
-                    dispatch({idx: idx, key: attribute, value: parseFloat(e.target.value)});
+                    dispatch({ idx: idx, key: attribute, value: parseFloat(e.target.value) });
                   }}
                   value={settings.adsr[idx]}
                 ></input>
