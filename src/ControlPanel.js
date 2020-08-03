@@ -12,7 +12,6 @@ export const ControlPanel = ({ settings, dispatch }) => (
         <td>Type</td>
         {[0, 1, 2].map((idx) => (
           <td>
-            {" "}
             {["sine", "square", "br", "sawtooth", "triangle"].map((option) => {
               // eslint-disable-next-line no-unused-expressions
               if (option == "br") return <br />;

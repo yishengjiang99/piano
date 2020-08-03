@@ -1,7 +1,7 @@
 import React from "react";
 
-import {useState} from "react";
-const FileList = ({debug, channels, files, postMessage}) => {
+import { useState } from "react";
+const FileList = ({ debug, channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
   return (
@@ -19,7 +19,7 @@ const FileList = ({debug, channels, files, postMessage}) => {
                 }
               >
                 read
-            </button>
+              </button>
             </td>
           </tr>
         ))}
@@ -33,7 +33,7 @@ const FileList = ({debug, channels, files, postMessage}) => {
                 }}
               >
                 join
-            </button>
+              </button>
             </td>
           </tr>
         ))}
@@ -42,66 +42,4 @@ const FileList = ({debug, channels, files, postMessage}) => {
   );
 };
 
-/*
-</table>
-    
-      <ListItem
-        key={f}
-        button
-        selected={selectedIndex === 0}
-        onClick={(event) => handleSelectFile(event, f)}
-      >
-        <ListItemIcon>
-          <InboxIcon />
-        </ListItemIcon>
-        <ListItemText primary={f} />
-      </ListItem>
-    ))} 
-    </tr>
-    </table>
-    <>
-      <IconButton color="inherit" aria-label="open drawer" onClick={handleDrawerOpen} edge="start">
-        <MenuIcon />
-      </IconButton>
-      <Drawer style={{ width: 280 }} variant="persistent" anchor="left" open={open}>
-        <IconButton onClick={handleDrawerClose}>
-          <ChevronLeftIcon />
-        </IconButton>
-        <List component="nav" aria-label="tracks">
-          {files.map((f) => (
-            <ListItem
-              key={f}
-              button
-              selected={selectedIndex === 0}
-              onClick={(event) => handleSelectFile(event, f)}
-            >
-              <ListItemIcon>
-                <InboxIcon />
-              </ListItemIcon>
-              <ListItemText primary={f} />
-            </ListItem>
-          ))}
-        </List>
-
-        <Divider />
-        <List component="nav" aria-label="channels">
-          {channels.map((c) => (
-            <ListItem
-              key={c}
-              button
-              selected={selectedIndex === 0}
-              onClick={(event) => handleJoinChannel(event, c)}
-            >
-              <ListItemIcon>
-                <InboxIcon />
-              </ListItemIcon>
-              <ListItemText primary={c} />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-    </>
-  );
-};
-*/
 export default FileList;

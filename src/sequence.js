@@ -5,6 +5,7 @@ import React from "react";
 import {useState, useCallback, useEffect, useRef} from "react";
 import {idxToFreq, keyboardToFreq, notesOfOctave} from "./sound-keys";
 import {useChannel} from "./useChannel.js";
+import {Envelope} from "./audioCtx";
 
 const Sequence = ({
   octave,
@@ -22,7 +23,8 @@ const Sequence = ({
 
   const [currentBar, setCurrentBar] = useState(-1);
   const [barCursor, setBarCursor] = useState(0);
-  const [pendingNotes, setPendingNotes] = useState([]);
+  const [pendingNotes, setPendingNotes] = useState({});
+  const [lastNoteTime, setLastNoteTime] = useState(null);
   const [fftc, postFftc] = useChannel("fftc", 2);
   const [zoomX, setZoomX] = useState(1);
   const canvasRef = useRef();
@@ -154,65 +156,68 @@ const Sequence = ({
     if (newEvent === null) {
       return; // false
     }
-    function painNote({bar, index, attackLength, releaseLength}) {
+    function painNote({bar, index, attackLength}) {
       requestAnimationFrame(() => {
+        debugger;
         const canvasCtx = canvasRef.current.getContext("2d");
         canvasCtx.fillRect(
           (bar - barCursor) * BAR_WIDTH,
           index * BAR_HEIGHT,
-          BAR_WIDTH * (releaseLength) / 250 - 1,
+          BAR_WIDTH * (attackLength) / 250 - 1,
           BAR_HEIGHT - 1
         );
       })
     }
     const {type, time, start, freq, index, duration} = newEvent;
     postDebug([type, time, start, duration].join('--'))
+    const idx_symbol = Symbol(index);
+    let isInit = pendingNotes[idx_symbol] === null;
+    const envelop = pendingNotes[idx_symbol] || {start: time, release: null};
+
     switch (type) {
       case 'keydown':
-        setPendingNotes((state) => {
-          state[index] = {
-            start: time
-          }
-          return state;
-        })
-        if (!lastNoteTime.current || time - lastNoteTime.current > secondsPerBar) {
+      case 'mousedown':
+        if ((!lastNoteTime || (time - lastNoteTime) > secondsPerBar)) {
           setCurrentBar((prev) => prev + 1);
-          lastNoteTime.current = time;
+          setLastNoteTime(time);
         }
+        envelop.start = time;
         postWsMessage({
-          newEvent,
-          duration: duration
-        })
+          cmd: "keyboard",
+          time, freq, index,
+          type: "keypress"
+        });
         break;
+      // eslint-disable-next-line no-fallthrough
       case 'keypress':
-        setPendingNotes((state) => {
-          state[index].press = time;
-          return state;
-        })
-        const attackvol = time - pendingNotes[index].start;
-        postWsMessage("attack " + attackvol + " " + freq);
-        //  postDebug("attack " + attackvol + " freq")
-        break;
-      case 'keyup':
-        const startTime = pendingNotes[index].start;
-        const releaseTime = pendingNotes[index].press;
-        const releasevol = time - startTime;
-        console.log(releaseTime, startTime, freq);
+        envelop.hold = time;
+        if (!envelop.start) Envelope.start = time;
+
         postWsMessage({
-          ...newEvent,
-          duration: duration
-        })
-        //        postDebug("release " + releasevol + "\n\n")
-        painNote({bar: currentBar, index, attackLength: releaseTime - startTime, releaseLength: time - releaseTime})
+          cmd: "keyboard",
+          time, freq, index,
+          type: "keypress"
+        });
+        break;
+      case 'mouseup':
+      case 'keyup':
+        postWsMessage({
+          cmd: "keyboard",
+
+          time, freq, index,
+          type: "keyup"
+        });
+        const starttime = pendingNotes[idx_symbol] && pendingNotes[idx_symbol].start || time - 125;
+        painNote({bar: currentBar, index, attackLength: time - starttime});
         onNewNote({
           ...newEvent,
           type: "compose",
-          adsr: [startTime, releaseTime, time],
+          adsr: [start, time]
         })
-
-        pendingNotes[index] = null;
+        setPendingNotes(pendingNotes);
         break;
-      default: break;
+      default: postDebug(type + ' ' + time);
+        break;
     }
 
     return function cleanup() {
@@ -221,7 +226,7 @@ const Sequence = ({
 
     }
   }, [newEvent]);
-  let lastNoteTime = useRef();
+
   return (
     <>
       <div
@@ -257,7 +262,7 @@ const Sequence = ({
           width={cols * BAR_WIDTH * zoomX}
         ></canvas>
       </div>
-      <div></div>
+      <div>{currentBar}</div>
     </>
   );
 };

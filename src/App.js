@@ -1,5 +1,5 @@
 import Sequence from "./sequence";
-import {useContext, useState, useReducer, useEffect} from "react";
+import {useState, useReducer, useEffect} from "react";
 import React from "react";
 import Piano from "./piano";
 import Timer from "./timer";
@@ -9,14 +9,14 @@ import FileList from "./filelist";
 import {_settings} from "./audioCtx";
 import {ControlPanel, ADSR} from "./ControlPanel.js";
 import AppBar from "./AppBar";
-import {keys, blackKeys, keynotes, notesOfOctave} from "./sound-keys.js";
+import {keys, notesOfOctave} from "./sound-keys.js";
 
 const ButtonGroup = (props) => <div>{props.children}</div>;
 
-export const IndexPage = (props) => {
+export const IndexPage = ({windowUserEvent}) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
-  const [debugMessage, postDebug] = useChannel("debug", 1315)
+  const [debugMessage, postDebug] = useChannel("debug", 20)
   const [files, setFiles] = useState([]);
   const [channels, setChannels] = useState([]);
   const [seek, setSeek] = useState(0);
@@ -67,27 +67,36 @@ export const IndexPage = (props) => {
   }, [timerMsg, setDebug, setSeek, debug]);
   const [octave, setOctave] = useState(3);
   // max-width: 600px; margin: 40px auto 60px
-  const handleUserEvent = evt => {
-    let index = evt.target.dataset["index"] || (evt.key && keys.indexOf(evt.key));
 
-    if (evt.keyCode && evt.keyCode === "+") setOctave(Math.min(octave + 1, 7))
-    if (evt.keyCode && evt.keyCode === "-") setOctave(Math.math(octave - 1, 1))
+  useEffect((evt) => {
+    const handleUserEvent = evt => {
+      let index = evt.target.dataset["index"] || (evt.key && keys.indexOf(evt.key));
 
-    if (index >= 0) {
-      console.log(evt);
-      setUserEvent({
-        cmd: "keyboard",
-        type: evt.type,
-        time: evt.timeStamp,
-        start: evt._targetInst.actualStartTime,
-        duration: evt._targetInst.actualDuration,
-        freq: notesOfOctave(octave)[index],
-        index: index
-      })
-      evt.preventDefault();
-    }
-    return true;
-  };
+      if (evt.keyCode && evt.keyCode === "+") setOctave(Math.min(octave + 1, 7))
+      if (evt.keyCode && evt.keyCode === "-") setOctave(Math.math(octave - 1, 1))
+
+      if (index >= 0) {
+        console.log(evt);
+        setUserEvent({
+          cmd: "keyboard",
+          type: evt.type,
+          time: evt.timeStamp,
+          start: evt._targetInsta && evt._targetInst.actualStartTime,
+          duration: evt._targetInst && evt._targetInst.actualDuration,
+          freq: notesOfOctave(octave)[index],
+          index: index
+        })
+        evt.preventDefault();
+      }
+    };
+    windowUserEvent && handleUserEvent(windowUserEvent);
+  }, [windowUserEvent, octave]);
+
+
+  const _sudo = (evt) => {
+    const input = evt.target.value;
+    alert(input);
+  }
   return (
     <>
       <AppBar>
@@ -99,23 +108,8 @@ export const IndexPage = (props) => {
         </SimplePopover>
       </AppBar>
       <div
-        tabIndex={0}
-        autoFocus
-        onKeyDown={handleUserEvent}
-        onKeyDownCapture={handleUserEvent}
-        onKeyUp={handleUserEvent}
-
-        onKeyUpCapture={handleUserEvent}
-        onKeyPress={handleUserEvent}
-
-        onKeyPressCapture={handleUserEvent}
-        // onTouchStart={handleUserEvent}
-        // onTouchCancel={handleUserEvent}
-        // onTouchEnd={handleUserEvent}
-        onClick={handleUserEvent}
-
         style={{
-          marginTop: 190,
+          marginTop: 10,
           display: "grid",
           gridColumnGap: 10,
           gridTemplateColumns: "1fr  2fr 2fr",
@@ -125,8 +119,9 @@ export const IndexPage = (props) => {
           <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
         </div>
         <main>
-
-          <h3>mix sound</h3>
+          <h2>
+            <input type={"text"} contentEditable={true} oninput={_sudo} value='mix sound' />
+          </h2>
           <Sequence
             seek={seek}
             //  postWsMessage={postWsMessage}
@@ -145,13 +140,13 @@ export const IndexPage = (props) => {
           />
           <Timer seek={seek}></Timer>
         </main>
-        <div id='console'>
+        <div id='console' style={{height: 699, overflowY: 'scroll'}}>
           <p><div><b>{debugMessage.lastMessage}</b></div></p>
 
           {debugMessage.messages.splice(-20).map(line => <div>{line}</div>)}
         </div>
       </div>
-      <Piano octave={3} onUserEvent={handleUserEvent}></Piano>
+      <Piano octave={octave}></Piano>
     </>
   );
 };
