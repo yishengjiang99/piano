@@ -1,3 +1,6 @@
 [submodule "functions/vendor/fluent-ffmpeg"]
 	path = functions/vendor/fluent-ffmpeg
 	url = git://github.com/schaermu/node-fluent-ffmpeg.git
+[submodule "src/wave-tables"]
+	path = src/wave-tables
+	url = git@github.com:mohayonao/wave-tables.git

@@ -6,12 +6,11 @@ import Timer from "./timer";
 import SimplePopover from "./popover";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { _settings } from "./audioCtx";
-import { ControlPanel, ADSR } from "./ControlPanel.js";
+import { _settings, passThrough, noteCache} from "./audioCtx";
+import { ControlPanel, ADSR,Volumes } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
 
-const ButtonGroup = (props) => <div>{props.children}</div>;
 
 export const IndexPage = ({ windowUserEvent }) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
@@ -26,7 +25,9 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [websocket, setWebsocket] = useState(null);
   const [scheduler, setScheduler] = useState(null);
   const [debug, setDebug] = useState([]);
-
+  const [audioState, setAudioState] = useState({
+    peak: 0
+  })
   const updateSettingReducer = (prevState, update) => {
     const { key, idx, value } = update;
 
@@ -96,6 +97,7 @@ export const IndexPage = ({ windowUserEvent }) => {
     [windowUserEvent, octave]
   );
 
+
   const _sudo = (evt) => {
     const input = evt.target.value;
     alert(input);
@@ -109,8 +111,10 @@ export const IndexPage = ({ windowUserEvent }) => {
         <SimplePopover title="Envelop">
           <ADSR settings={settings} dispatch={dispatch}></ADSR>
         </SimplePopover>
+        <SimplePopover title="compression">
+        <Volumes settings={settings} dispatch={dispatch}></Volumes>
+      </SimplePopover>
         <span>
-          {" "}
           <button
             onClick={(e) => {
               if (octave >= 5) {
@@ -144,8 +148,12 @@ export const IndexPage = ({ windowUserEvent }) => {
           gridTemplateColumns: "1fr  2fr 2fr",
         }}
       >
-        <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
+     
 
+<div>
+<FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
+{audioState.peak}<meter value={audioState.peak} max="100"></meter>
+</div>
         <main>
           <h2>
             <input type={"text"} contentEditable={true} oninput={_sudo} value="mix sound" />
@@ -171,10 +179,12 @@ export const IndexPage = ({ windowUserEvent }) => {
         </main>
         <div id="console" style={{ height: 699, overflowY: "scroll" }}>
           <p>
-            <div>
-              <b>{debugMessage.lastMessage}</b>
-            </div>
+          <b>{debugMessage.lastMessage}</b>
+
           </p>
+          {Object.keys(noteCache).map(key=>{
+            return <p>{key} {noteCache[key].toString()} </p>
+          })}
 
           {debugMessage.messages.splice(-20).map((line) => (
             <div>{line}</div>

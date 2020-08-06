@@ -1,6 +1,6 @@
 import React from "react";
 export const ControlPanel = ({ settings, dispatch }) => (
-  <div class="cp" style={{ margin: 12 }}>
+  <div class="cp" style={{ marginRight: 12 }}>
     <table border={1}>
       <tr>
         <td>Osc3</td>
@@ -42,7 +42,7 @@ export const ControlPanel = ({ settings, dispatch }) => (
                   onChange={(e) => {
                     dispatch({ idx: idx, key: attribute, value: e.target.value });
                   }}
-                  value={settings[attribute][idx]}
+                  defaultValue={settings[attribute][idx]}
                 ></input>
               </td>
             );
@@ -54,6 +54,8 @@ export const ControlPanel = ({ settings, dispatch }) => (
 );
 
 export const ADSR = ({ settings, dispatch }) => {
+  const mins = [0.01, 0.01, 0.01, 0.01];
+  const max = [2, 2, 0.9, 0.9];
   const attribute = "adsr";
   return (
     <table>
@@ -62,8 +64,7 @@ export const ADSR = ({ settings, dispatch }) => {
       </thead>
       <tbody>
         {["attack", "decay", "sustain", "release"].map((name, idx) => {
-          const mins = [0.01, 0.01, 0.01, 0.01];
-          const max = [2, 2, 0.9, 0.9];
+    
           const val = settings[attribute][idx];
           return (
             <tr key={idx}>
@@ -71,15 +72,50 @@ export const ADSR = ({ settings, dispatch }) => {
               <td>
                 <input
                   type="range"
-                  min={0.01}
-                  max={2}
+                  min={mins[idx]}
+                  max={max[idx]}
                   step={0.01}
                   onChange={(e) => {
                     dispatch({ idx: idx, key: attribute, value: parseFloat(e.target.value) });
                   }}
-                  value={settings.adsr[idx]}
+                  defaultValue={settings.adsr[idx]}
                 ></input>
               </td>
+              <td>{val}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+};
+export const Volumes = ({ settings, dispatch }) => {
+  const mins = [-55, 1, 0.01, 0.01]; //ratio=1 is no compression at all
+  const max =   [-1, 20, 2, 2];
+  const attribute = "compression";
+  return (
+    <table border={1}>
+      <tbody>
+        {["threshold", "ratio","preAmp","postAmp"].map((name, idx) => {
+  
+          const val = settings[attribute][idx];
+          return (
+            <tr key={idx}>
+              <td>{name}</td>
+              <td>
+                <input
+                  type="range"
+                  min={mins[idx]}
+                  max={max[idx]}
+                  step={0.01}
+                  onChange={(e) => {
+                    dispatch({ idx: idx, key: attribute, value: parseFloat(e.target.value) });
+                  }}
+                  default={settings.compression[idx]}
+                ></input>
+              </td>
+              <td>{settings.compression[idx]}</td>
+
             </tr>
           );
         })}

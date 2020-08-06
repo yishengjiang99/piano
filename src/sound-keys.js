@@ -1,7 +1,7 @@
 /* eslint-disable no-magic-numbers*/
 /* eslint-disable comma-dangle*/
 
-export const SAMPLE_RATE = 2<<15;
+export const SAMPLE_RATE = 2<<16;
 export const FFTSIZE = 2 << 7;
 
 export const map_fft_bins_to_octaves = (octave)=>{

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { IndexPage } from "./App";
-
 import * as serviceWorker from "./serviceWorker";
 
 function App() {
