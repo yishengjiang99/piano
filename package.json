@@ -8,13 +8,16 @@
   "dependencies": {
     "@material-ui/core": "^4.10.2",
     "@material-ui/icons": "^4.9.1",
-    "express": "^4.17.1",
+    "jest-each": "^26.2.0",
+    "parcel": "^1.12.4",
+    "parcel-bundler": "^1.12.4",
     "react": "^16.13.1",
+    "react-dag": "^2.0.0-alpha-8",
     "react-dom": "^16.13.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
-    "typescript": "^3.9.5"
+    "tone": "^14.7.39"
   },
   "scripts": {
     "build": "react-scripts build",
@@ -41,5 +44,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.11.1"
   }
 }

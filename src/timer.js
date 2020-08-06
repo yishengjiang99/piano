@@ -55,7 +55,7 @@ const Timer = () => {
 
   return (
     <div>
-      <span ref={toolbarRef}>
+      <div ref={toolbarRef}>
         <button
           onClick={(e) => {
             postMessage("-5");
@@ -80,8 +80,9 @@ const Timer = () => {
         >
           FWD
         </button>
-      </span>
-      <span>{seek}</span>
+        <span>{seek}</span>
+
+      </div>
       <progress value={time / 1000} max="100"></progress>
     </div>
   );

@@ -32,7 +32,7 @@ const Sequence = ({
   const canvasFFTRef = useRef();
   const secondsPerBar = 0.25;
   const BAR_WIDTH = 90;
-  const BAR_HEIGHT = 20;
+  const BAR_HEIGHT = 10;
   const canvasWidth = BAR_WIDTH * cols;
   const canvasHeight = BAR_HEIGHT * rows;
   // var canvasWidth, canvasHeight, BAR_WIDTH, BAR_HEIGHT, canvasHudCtx, canvasCtx, canvasFFTCtx;
@@ -113,9 +113,15 @@ const Sequence = ({
       canvasFFTCtx.fillStyle = "black";
       canvasFFTCtx.fillRect(x0, 0, BAR_WIDTH, canvasHeight);
       canvasFFTCtx.clearRect(x0, 0, BAR_WIDTH, canvasHeight);
-      const _binHeight = canvasHeight / binCount;
       var m = 0;
-      for (let i = 0; i < binCount; i++) {
+      var _binHeight = canvasHeight/50;
+      for (let i = 0; i < 50; i++) {
+        const _binHeight = 
+        i<10 ? canvasHeight/20 :
+        i<20 ? canvasHeight/30 :
+        i<40 ? canvasHeight/40 : 
+        canvasHeight/100;
+        
         let hue = (i / binCount) * 360;
         canvasFFTCtx.fillStyle = "red";
         var _binWidth = (dataArray[i] / 360) * BAR_WIDTH;
