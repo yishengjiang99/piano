@@ -114,14 +114,14 @@ const Sequence = ({
       canvasFFTCtx.fillRect(x0, 0, BAR_WIDTH, canvasHeight);
       canvasFFTCtx.clearRect(x0, 0, BAR_WIDTH, canvasHeight);
       var m = 0;
-      var _binHeight = canvasHeight/50;
+      var _binHeight = canvasHeight / 50;
       for (let i = 0; i < 50; i++) {
-        const _binHeight = 
-        i<10 ? canvasHeight/20 :
-        i<20 ? canvasHeight/30 :
-        i<40 ? canvasHeight/40 : 
-        canvasHeight/100;
-        
+        const _binHeight =
+          i < 10 ? canvasHeight / 20 :
+            i < 20 ? canvasHeight / 30 :
+              i < 40 ? canvasHeight / 40 :
+                canvasHeight / 100;
+
         let hue = (i / binCount) * 360;
         canvasFFTCtx.fillStyle = "red";
         var _binWidth = (dataArray[i] / 360) * BAR_WIDTH;
@@ -145,14 +145,14 @@ const Sequence = ({
   }, [canvasHeight, currentBar]);
 
   useEffect(() => {
-    if (barCursor !== ~~(seek - 1) / cols) setBarCursor(~~((seek - 1) / cols));
+    if (barCursor !== ~~(currentBar) / cols) setBarCursor(~~((currentBar) / cols));
     const canvasHudCtx = canvasHudRef.current.getContext("2d");
 
     canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-    canvasHudCtx.clearRect(0, 0, ((seek - 1) % cols) * BAR_WIDTH, canvasHeight);
+    canvasHudCtx.clearRect(0, 0, ((currentBar) % cols) * BAR_WIDTH, canvasHeight);
 
-    canvasHudCtx.fillRect(((seek - 1) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-  }, [barCursor, canvasHeight, cols, seek]);
+    canvasHudCtx.fillRect(((currentBar) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
+  }, [barCursor, canvasHeight, cols, currentBar]);
 
   useEffect(() => {
     //key start, release, hold
@@ -271,7 +271,7 @@ const Sequence = ({
           width={cols * BAR_WIDTH * zoomX}
         ></canvas>
       </div>
-      <div>{currentBar}</div>
+      <div>{currentBar}|{barCursor}</div>
     </>
   );
 };
