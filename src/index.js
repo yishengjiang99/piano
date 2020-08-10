@@ -9,7 +9,7 @@ function App() {
     window.addEventListener("keydown", (e) => setLatestUserEvent(e), { capture: true });
     window.addEventListener("keypress", (e) => setLatestUserEvent(e), { capture: true });
     window.addEventListener("keyup", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("mouse", (e) => setLatestUserEvent(e), { capture: true });
+    window.addEventListener("mousedown", (e) => setLatestUserEvent(e), { capture: true });
     window.addEventListener("mouseup", (e) => setLatestUserEvent(e), { capture: true });
   }, []);
 

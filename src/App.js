@@ -6,8 +6,8 @@ import Timer from "./timer";
 import SimplePopover from "./popover";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { _settings, passThrough, noteCache} from "./audioCtx";
-import { ControlPanel, ADSR,Volumes } from "./ControlPanel.js";
+import { _settings, passThrough, noteCache } from "./audioCtx";
+import { ControlPanel, ADSR, Volumes } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
 
@@ -112,8 +112,8 @@ export const IndexPage = ({ windowUserEvent }) => {
           <ADSR settings={settings} dispatch={dispatch}></ADSR>
         </SimplePopover>
         <SimplePopover title="compression">
-        <Volumes settings={settings} dispatch={dispatch}></Volumes>
-      </SimplePopover>
+          <Volumes settings={settings} dispatch={dispatch}></Volumes>
+        </SimplePopover>
         <span>
           <button
             onClick={(e) => {
@@ -142,18 +142,18 @@ export const IndexPage = ({ windowUserEvent }) => {
       </AppBar>
       <div
         style={{
-          marginTop: 10,
+          marginTop: 76,
           display: "grid",
           gridColumnGap: 10,
           gridTemplateColumns: "1fr  2fr 2fr",
         }}
       >
-     
 
-<div>
-<FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
-{audioState.peak}<meter value={audioState.peak} max="100"></meter>
-</div>
+
+        <div>
+          <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
+          {audioState.peak}<meter value={audioState.peak} max="100"></meter>
+        </div>
         <main>
           <h2>
             <input type={"text"} contentEditable={true} oninput={_sudo} value="mix sound" />
@@ -176,13 +176,15 @@ export const IndexPage = ({ windowUserEvent }) => {
             ocatave={octave}
           />
           <Timer seek={seek}></Timer>
+          <Piano octave={octave}></Piano>
+
         </main>
         <div id="console" style={{ height: 699, overflowY: "scroll" }}>
           <p>
-          <b>{debugMessage.lastMessage}</b>
+            <b>{debugMessage.lastMessage}</b>
 
           </p>
-          {Object.keys(noteCache).map(key=>{
+          {Object.keys(noteCache).map(key => {
             return <p>{key} {noteCache[key].toString()} </p>
           })}
 
@@ -191,7 +193,6 @@ export const IndexPage = ({ windowUserEvent }) => {
           ))}
         </div>
       </div>
-      <Piano octave={octave}></Piano>
     </>
   );
 };
