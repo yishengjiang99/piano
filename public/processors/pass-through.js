@@ -1,19 +1,12 @@
 class PassThroughProcessor extends AudioWorkletProcessor {
   process(inputs, outputs, parameters) {
-    const output = outputs[0];
-    var max = 0;
-
-    output.forEach((channel) => {
-      for (let i = 0; i < channel.length; i++) {
-        channel[i] = inputs[i];
-        if(channel[i]>max){
-          max = channel[i];
-        }
+    var peak = 0;
+    for (let channel = 0; channel < inputs[0].length; channel++) {
+      for (let i = 0; i < outputs[0][channel].length; i++) {
+        outputs[0][channel][i] = inputs[0][channel][i];
+        if (inputs[0][channel[i]] > peak) peak = inputs[0][channel[i]];
       }
-    });
-    this.port.postMessage({
-      peak:max
-    })
+    }
     return true;
   }
 }

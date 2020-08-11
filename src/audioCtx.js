@@ -1,6 +1,6 @@
 import { noteToMajorTriad, SAMPLE_RATE } from "./sound-keys.js";
-import {loadProcessor} from './load-processor';
-let keyCounter = 0, init=false;
+import { loadProcessor } from './load-processor';
+let keyCounter = 0, init = false;
 let fftTimer = null;
 let ctx;
 let masterGain, compressor, analyser, preAmp, postAmp, LPF, HPF;
@@ -8,9 +8,9 @@ let LFO1, LFO2, EQ, passThrough;
 let waveShape, periodicWave;
 export let noteCache = {};
 
-function loadWaveShape(url){
-  fetch(url).then(res=>res.json()).then(json=> waveShape = json);
-  noteCache={}; //reset existing oscs on nerxt note;
+function loadWaveShape(url) {
+  fetch(url).then(res => res.json()).then(json => waveShape = json);
+  noteCache = {}; //reset existing oscs on nerxt note;
 }
 loadWaveShape("/wave-table/Piano.json");
 
@@ -20,21 +20,21 @@ ch.onmessage = async function ({ data }) {
     const { key, idx, value } = data;
     _settings[key][idx] = value;
     value = parseFloat(value);
-    if(key=='compression'){
-      if(idx==='threshold'){
+    if (key == 'compression') {
+      if (idx === 'threshold') {
         compressor.threshold
-        .setValueAtTime(value,ctx.currentTime);
+          .setValueAtTime(value, ctx.currentTime);
       }
-      if(idx==='ratio'){
-        compressor.ratio        .setValueAtTime(value,ctx.currentTime);
+      if (idx === 'ratio') {
+        compressor.ratio.setValueAtTime(value, ctx.currentTime);
 
       }
-      if(idx==='preAmp'){
-        preAmp.gain        .setValueAtTime(value,ctx.currentTime);
+      if (idx === 'preAmp') {
+        preAmp.gain.setValueAtTime(value, ctx.currentTime);
 
       }
-      if(idx==='postAmp'){
-        postAmp.gain        .setValueAtTime(value,ctx.currentTime);
+      if (idx === 'postAmp') {
+        postAmp.gain.setValueAtTime(value, ctx.currentTime);
 
       }
     }
@@ -109,7 +109,7 @@ export function Envelope(adsr, audioParam) {
     //audioParam.linearRampToValueAtTime(sustain * 1.0, ctx.currentTime + decay);
   };
   return {
-    toString:()=>`${audioParam.value} ${attackStart}`,
+    toString: () => `${audioParam.value} ${attackStart}`,
     trigger,
     triggerRelease,
     hold,
@@ -144,7 +144,7 @@ export let _settings = {
   delay: [0, 1, 1],
   LPF: { frequency: 2000, Q: 3 },
   HPF: { frequency: 60, Q: 1 },
-  compression: {threshold:-50, ratio:5, preAmp: 1, postAmp:1},
+  compression: { threshold: -50, ratio: 5, preAmp: 1, postAmp: 1 },
   eqHZs: [62.5, 125, 250, 500, 1000],
   adsr: [0.01, 0.04, 0.5, 0.4, 1.0],
   LFO1: { frequeycy: 60, target: null },
@@ -158,7 +158,7 @@ export function getNote(freq) {
   const hashkey = freq;
   if (noteCache[hashkey] && ctx.currentTime - noteCache[hashkey].started > 5)
     return noteCache[hashkey];
-  if(!periodicWave && waveShape){
+  if (!periodicWave && waveShape) {
     periodicWave = ctx.createPeriodicWave([waveShape.real, waveShape.image]);
   }
   const outputGain = new GainNode(ctx, { gain: 0 });
@@ -173,7 +173,7 @@ export function getNote(freq) {
     })
     .map((osc, idx) => {
       idx = idx % 3;
-     // if(idx==1 && periodicWave) osc.setPeriodicWave(periodicWave)
+      // if(idx==1 && periodicWave) osc.setPeriodicWave(periodicWave)
 
       var _gain = new GainNode(ctx, { gain: _settings.overtone[idx] });
       var delay = new DelayNode(ctx, { delay: _settings.delay[idx] });
@@ -183,21 +183,22 @@ export function getNote(freq) {
     });
   outputGain.connect(masterGain);
   var gainEnvelope = new Envelope(_settings.adsr, outputGain.gain);
-  noteCache[freq]=gainEnvelope;
+  noteCache[freq] = gainEnvelope;
   return gainEnvelope;
 }
 
 
-export function attachBuffer(buffer){
-  let bn = new AudioBufferSourceNode(ctx,{
-    loop:true,
-    playbackRate:1
+export function attachBuffer(buffer) {
+  let bn = new AudioBufferSourceNode(ctx, {
+    loop: true,
+    playbackRate: 1
   })
   bn.connect(masterGain);
 }
-export function attachNode(node){
+export function attachNode(node) {
   node.connect(masterGain);
 }
+
 export async function getContext() {
   if (ctx) return ctx;
   ctx = new AudioContext();
@@ -222,23 +223,23 @@ export async function getContext() {
 
   analyser = new AnalyserNode(ctx, { fftSize: 256, smoothingTimeConstant: 0.1 });
   preAmp = new GainNode(ctx, { gain: _settings.compression.preAmp });
-  postAmp = new GainNode(ctx, { gain:  _settings.compression.postAmp });
+  postAmp = new GainNode(ctx, { gain: _settings.compression.postAmp });
   // LFO1.connect(masterGain.gain);
   // LFO1.start()
   // passThrough = await loadProcessor(ctx,'pass-through');
-  
+  passThrough = await loadProcessor(ctx, 'pass-through');
   var splitter = ctx.createChannelSplitter(2);
   var merger = ctx.createChannelMerger(2);
   var headTurnDelay = ctx.createDelay(1);
   var headTurnGain = ctx.createGain(2);
 
   masterGain.connect(splitter);
-  splitter.connect(headTurnDelay,0).connect(headTurnGain,0).connect(merger,0,0);
-  splitter.connect(merger,1,1)
+  splitter.connect(headTurnDelay, 0).connect(headTurnGain, 0).connect(merger, 0, 0);
+  splitter.connect(merger, 1, 1)
   merger.connect(preAmp);
 
 
-  preAmp
+  preAmp.connect(passThrough)
     .connect(compressor)
     .connect(postAmp)
     .connect(analyser)
@@ -293,7 +294,7 @@ function kick() {
 
   gainOsc2.gain.setValueAtTime(1.5, ctx.currentTime);
   gainOsc2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
- 
+
   osc.frequency.setValueAtTime(120, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
 
