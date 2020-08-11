@@ -198,7 +198,6 @@ export function attachBuffer(buffer) {
 export function attachNode(node) {
   node.connect(masterGain);
 }
-
 export async function getContext() {
   if (ctx) return ctx;
   ctx = new AudioContext();
@@ -227,7 +226,7 @@ export async function getContext() {
   // LFO1.connect(masterGain.gain);
   // LFO1.start()
   // passThrough = await loadProcessor(ctx,'pass-through');
-  passThrough = await loadProcessor(ctx, 'pass-through');
+
   var splitter = ctx.createChannelSplitter(2);
   var merger = ctx.createChannelMerger(2);
   var headTurnDelay = ctx.createDelay(1);
@@ -239,7 +238,7 @@ export async function getContext() {
   merger.connect(preAmp);
 
 
-  preAmp.connect(passThrough)
+  preAmp
     .connect(compressor)
     .connect(postAmp)
     .connect(analyser)
@@ -268,7 +267,7 @@ const fftLoop = () => {
     binCount: analyser.frequencyBinCount,
     sampleRate: ctx.sampleRate,
   });
-  keyCounter -= 10;
+  keyCounter -= 5;
 
   if (keyCounter < 0) {
     cancelAnimationFrame(fftTimer);

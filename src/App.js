@@ -22,6 +22,7 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [channels, setChannels] = useState([]);
   const [seek, setSeek] = useState(0);
   const [userEvent, setUserEvent] = useState(null);
+  const [remoteEvent, setRemoteEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   const [scheduler, setScheduler] = useState(null);
   const [debug, setDebug] = useState([]);
@@ -171,12 +172,30 @@ export const IndexPage = ({ windowUserEvent }) => {
             postWsMessage={postWsMessage}
             postMessage={postTimer}
             newEvent={userEvent}
-            rows={30}
+            rows={12}
+            cols={10}
+            ocatave={octave}
+          />
+
+          <Sequence
+            seek={seek}
+            //  postWsMessage={postWsMessage}
+            onNewNote={(note) => {
+              note.cmd = "compose";
+              postWsMessage(note);
+            }}
+            onDeleteNote={(bar, noteIndex) => {
+              postWsMessage({ cmd: "delete", bar, noteIndex });
+            }}
+            postWsMessage={postWsMessage}
+            postMessage={postTimer}
+            newEvent={remoteEvent}
+            rows={12}
             cols={10}
             ocatave={octave}
           />
           <Timer seek={seek}></Timer>
-          <Piano octave={octave}></Piano>
+          <SimplePopover title='piano'><Piano octave={octave}></Piano></SimplePopover>
 
         </main>
         <div id="console" style={{ height: 699, overflowY: "scroll" }}>

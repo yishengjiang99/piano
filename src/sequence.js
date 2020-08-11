@@ -105,11 +105,12 @@ const Sequence = ({
       onNewNote(note);
     }
   };
+
   useEffect(() => {
     if (fftc.lastMessage) {
       const { minDecibels, rmns, dataArray, time, binCount, sampleRate } = fftc.lastMessage;
       const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-      const x0 = (currentBar - barCursor) * BAR_WIDTH;
+      const x0 = (currentBar % cols) * BAR_WIDTH;
       canvasFFTCtx.fillStyle = "black";
       canvasFFTCtx.fillRect(x0, 0, BAR_WIDTH, canvasHeight);
       canvasFFTCtx.clearRect(x0, 0, BAR_WIDTH, canvasHeight);
@@ -132,27 +133,17 @@ const Sequence = ({
     }
   }, [fftc.lastMessage, currentBar, barCursor, canvasHeight]);
 
-  useEffect(() => {
-    const canvasHudCtx = canvasHudRef.current.getContext("2d");
-    const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-    canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-    canvasHudCtx.clearRect(0, 0, currentBar * BAR_WIDTH, canvasHeight);
-    canvasHudCtx.fillRect(currentBar * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-    canvasFFTCtx.fillStyle = "rgba(0,111,0,0.0)";
-    canvasFFTCtx.clearRect(currentBar * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-
-    //  postMessage({n: currentBar, cmd: "tick"});
-  }, [canvasHeight, currentBar]);
 
   useEffect(() => {
-    if (barCursor !== ~~(currentBar) / cols) setBarCursor(~~((currentBar) / cols));
-    const canvasHudCtx = canvasHudRef.current.getContext("2d");
-
-    canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-    canvasHudCtx.clearRect(0, 0, ((currentBar) % cols) * BAR_WIDTH, canvasHeight);
-
-    canvasHudCtx.fillRect(((currentBar) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-  }, [barCursor, canvasHeight, cols, currentBar]);
+    if (currentBar > 0 && currentBar % cols === 0) {
+      requestAnimationFrame(() => {
+        const canvasHudCtx = canvasHudRef.current.getContext("2d");
+        canvasHudCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
+        canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      })
+    }
+  }, currentBar);
 
   useEffect(() => {
     //key start, release, hold
@@ -163,7 +154,7 @@ const Sequence = ({
       requestAnimationFrame(() => {
         const canvasCtx = canvasRef.current.getContext("2d");
         canvasCtx.fillRect(
-          (bar - barCursor) * BAR_WIDTH,
+          (bar % cols) * BAR_WIDTH,
           index * BAR_HEIGHT,
           (BAR_WIDTH * attackLength) / 250 - 1,
           BAR_HEIGHT - 1
@@ -180,8 +171,14 @@ const Sequence = ({
       case "keydown":
       case "mousedown":
         if (!lastNoteTime || time - lastNoteTime > secondsPerBar) {
-          setCurrentBar((prev) => prev + 1);
-          setLastNoteTime(time);
+          requestAnimationFrame(function () {
+            const canvasHudCtx = canvasHudRef.current.getContext("2d");
+            canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
+            canvasHudCtx.clearRect(0, 0, ((currentBar + 1) % cols) * BAR_WIDTH, canvasHeight);
+            canvasHudCtx.fillRect(((currentBar + 1) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
+            setCurrentBar((prev) => prev + 1);
+            setLastNoteTime(time);
+          })
         }
         envelop.start = time;
         postWsMessage({
