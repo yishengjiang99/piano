@@ -8,7 +8,7 @@ msgChannel.onmessage = ({ data }) => {
     }
     if (data.cmd === "compose" && data.adsr) {
       const { type, time, freq, index, bar, adsr } = data;
-      const csvstr = ["compose", time, freq, index, adsr[0], adsr[1], adsr[2]].join(",");
+      const csvstr = ["compose", bar, freq, index, adsr[0], adsr[1], adsr[2]].join(",");
       socket.send("csv:" + csvstr);
     }
   }
@@ -32,10 +32,15 @@ connectSocketIfNotOpen(host).then((ws) => {
   output("connected");
   let txt;
   socket.onmessage = ({ data }) => {
-    if (typeof data === "Blob") {
-      txt = data.text();
+    txt = data;
+
+    if (txt && txt.startsWith("filecontent")) {
+      const lines = txt.replace("filecontent\n", ""); //.split("\n");
+      msgChannel.postMessage({
+        cmd: "filecontent",
+        data: lines
+      })
     }
-    console.log(txt, data, socket.binaryType);
     //   if(socket.binaryType)
     try {
       const obj = JSON.parse(data);

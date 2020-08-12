@@ -26,6 +26,7 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [websocket, setWebsocket] = useState(null);
   const [scheduler, setScheduler] = useState(null);
   const [debug, setDebug] = useState([]);
+  const [readNotes, setReadNotes] = useState();
   const [audioState, setAudioState] = useState({
     peak: 0
   })
@@ -57,7 +58,7 @@ export const IndexPage = ({ windowUserEvent }) => {
     } else if (msg.cmd === "channeList") {
       msg.data && msg.data.length && setChannels(msg.data);
     } else if (msg.cmd === "filecontent") {
-      setDebug(debug.concat(JSON.stringify(msg)));
+      setReadNotes(msg.data);
     }
   }, [debug, wsMessage.lastMessage]);
 
@@ -80,7 +81,6 @@ export const IndexPage = ({ windowUserEvent }) => {
         if (evt.keyCode && evt.keyCode === "]") setOctave(Math.math(octave - 1, 1));
 
         if (index >= 0) {
-          console.log(evt);
           setUserEvent({
             cmd: "keyboard",
             type: evt.type,
@@ -159,6 +159,7 @@ export const IndexPage = ({ windowUserEvent }) => {
           <h2>
             <input type={"text"} contentEditable={true} oninput={_sudo} value="mix sound" />
           </h2>
+          <h3>treb</h3>
           <Sequence
             seek={seek}
             //  postWsMessage={postWsMessage}
@@ -172,16 +173,20 @@ export const IndexPage = ({ windowUserEvent }) => {
             postWsMessage={postWsMessage}
             postMessage={postTimer}
             newEvent={userEvent}
+            readNotes={readNotes}
+
             rows={12}
             cols={10}
             ocatave={octave}
           />
+          <h3>Bass</h3>
 
           <Sequence
             seek={seek}
             //  postWsMessage={postWsMessage}
             onNewNote={(note) => {
               note.cmd = "compose";
+              debugger;
               postWsMessage(note);
             }}
             onDeleteNote={(bar, noteIndex) => {
@@ -192,6 +197,7 @@ export const IndexPage = ({ windowUserEvent }) => {
             newEvent={remoteEvent}
             rows={12}
             cols={10}
+            readNotes={readNotes}
             ocatave={octave}
           />
           <Timer seek={seek}></Timer>

@@ -2,7 +2,7 @@ const clock = new BroadcastChannel("clock");
 const wsevent = new BroadcastChannel("wschannel");
 const events = [];
 wsevent.onmessage = function (evt) {
-  if (evt.data.cmd == "keyboard") {
+  if (evt.data.cmd == "keyboard" || evt.data.cmd == 'readnotes') {
     events.push(evt.data);
     if (timerId || n) {
       clearTimeout(timerId);
