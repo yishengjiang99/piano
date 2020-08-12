@@ -27,6 +27,7 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [scheduler, setScheduler] = useState(null);
   const [debug, setDebug] = useState([]);
   const [readNotes, setReadNotes] = useState();
+
   const [audioState, setAudioState] = useState({
     peak: 0
   })
@@ -202,6 +203,7 @@ export const IndexPage = ({ windowUserEvent }) => {
           />
           <Timer seek={seek}></Timer>
           <SimplePopover title='piano'><Piano octave={octave}></Piano></SimplePopover>
+
 
         </main>
         <div id="console" style={{ height: 699, overflowY: "scroll" }}>

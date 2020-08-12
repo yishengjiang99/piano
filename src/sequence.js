@@ -187,7 +187,7 @@ const Sequence = ({
       })
     }
   }, [currentBar]);
-
+  
   useEffect(() => {
     //key start, release, hold
     if (newEvent === null) {

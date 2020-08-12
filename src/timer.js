@@ -55,6 +55,7 @@ const Timer = () => {
 
   return (
     <div style={{ width: "80em" }}>
+
       <div ref={toolbarRef}>
         <button
           onClick={(e) => {
@@ -81,7 +82,7 @@ const Timer = () => {
           FWD
         </button>
         <span>{seek}</span>
-        <span>{time}</span>
+       <span>{time}</span>
 
       </div>
       <progress value={time / 1000} max="22"></progress>
