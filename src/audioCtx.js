@@ -72,7 +72,6 @@ ch.onmessage = async function ({ data }) {
 
 const fftc = new BroadcastChannel("fftc");
 
-const activeNotes = {};
 export function Envelope(adsr, audioParam) {
   const [attack, decay, sustain, release] = adsr;
   var attackStart, releaseStart;
