@@ -18,6 +18,7 @@ const Sequence = ({
   seek,
   onNewNote,
   postWsMessage,
+  readNotes
 }) => {
   const [debugMessage, postDebug] = useChannel("debug");
 
@@ -64,6 +65,27 @@ const Sequence = ({
     _drawAxis(canvasCtx);
   }, [canvasRef, canvasFFTRef, barCursor, canvasWidth, canvasHeight, rows, cols]);
 
+  function paintABar(paintBar) {
+    const canvasCtx = canvasRef.current.getContext("2d");
+
+    if (paintBar.color === "clear") {
+      canvasCtx.clearRect(
+        (paintBar.bar - barCursor) * BAR_WIDTH,
+        paintBar.index * BAR_HEIGHT,
+        BAR_WIDTH * (paintBar.length / 250) - 1,
+        BAR_HEIGHT - 1
+      );
+    } else {
+      canvasCtx.fillStyle = paintBar.color || "blue";
+
+      canvasCtx.fillRect(
+        (paintBar.bar - barCursor) * BAR_WIDTH,
+        paintBar.index * BAR_HEIGHT,
+        BAR_WIDTH * (paintBar.length / 250) - 1,
+        BAR_HEIGHT - 1
+      );
+    }
+  }
   const _canvasClick = (e) => {
     const canvasCtx = canvasRef.current.getContext("2d");
     const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
@@ -78,25 +100,7 @@ const Sequence = ({
       frequency: idxToFreq(noteIndex % 12, 3 + Math.floor(noteIndex / 12)),
     };
 
-    function paintABar(paintBar) {
-      if (paintBar.color === "clear") {
-        canvasCtx.clearRect(
-          (paintBar.bar - barCursor) * BAR_WIDTH,
-          paintBar.index * BAR_HEIGHT,
-          BAR_WIDTH * (paintBar.length / 250) - 1,
-          BAR_HEIGHT - 1
-        );
-      } else {
-        canvasCtx.fillStyle = paintBar.color || "blue";
 
-        canvasCtx.fillRect(
-          (paintBar.bar - barCursor) * BAR_WIDTH,
-          paintBar.index * BAR_HEIGHT,
-          BAR_WIDTH * (paintBar.length / 250) - 1,
-          BAR_HEIGHT - 1
-        );
-      }
-    }
     if (blue) {
       onDeleteNote(barIndex + barCursor, noteIndex);
       paintABar({ ...note, color: "clear" });
@@ -106,10 +110,50 @@ const Sequence = ({
     }
   };
   useEffect(() => {
+    if (readNotes) {
+      const canvasCtx = canvasRef.current.getContext("2d");
+
+      readNotes.split("\n").forEach(line => {
+        line = line.split(',');
+        canvasCtx.fillStyle = "blue";
+        const bar = parseInt(line[0]);// + .0;
+        const index = parseInt(line[2]);// + .0;
+        const start = parseFloat(line[3]);// + .0;
+        const end = parseFloat(line[4]);// + .0;
+        postWsMessage({
+          cmd: "readnotes",
+          bar,
+          index,
+          type: "keydown",
+          freq: parseFloat(line[1]),
+          time: start
+        })
+        // postWsMessage({
+        //   cmd: "readnotes",
+        //   bar,
+        //   index,
+        //   type: "keyup",
+        //   freq: parseFloat(line[1]),
+        //   time: end
+        // })
+        const length = end - start;
+
+        if (bar >= barCursor && bar < barCursor + cols) {
+          canvasCtx.fillRect(
+            (bar - barCursor) * BAR_WIDTH,
+            index * BAR_HEIGHT,
+            BAR_WIDTH * (length / 250) - 1,
+            BAR_HEIGHT - 1
+          );
+        }
+      })
+    }
+  }, [readNotes, postDebug])
+  useEffect(() => {
     if (fftc.lastMessage) {
       const { minDecibels, rmns, dataArray, time, binCount, sampleRate } = fftc.lastMessage;
       const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-      const x0 = (currentBar - barCursor) * BAR_WIDTH;
+      const x0 = (currentBar % cols) * BAR_WIDTH;
       canvasFFTCtx.fillStyle = "black";
       canvasFFTCtx.fillRect(x0, 0, BAR_WIDTH, canvasHeight);
       canvasFFTCtx.clearRect(x0, 0, BAR_WIDTH, canvasHeight);
@@ -132,28 +176,18 @@ const Sequence = ({
     }
   }, [fftc.lastMessage, currentBar, barCursor, canvasHeight]);
 
-  useEffect(() => {
-    const canvasHudCtx = canvasHudRef.current.getContext("2d");
-    const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-    canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-    canvasHudCtx.clearRect(0, 0, currentBar * BAR_WIDTH, canvasHeight);
-    canvasHudCtx.fillRect(currentBar * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-    canvasFFTCtx.fillStyle = "rgba(0,111,0,0.0)";
-    canvasFFTCtx.clearRect(currentBar * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-
-    //  postMessage({n: currentBar, cmd: "tick"});
-  }, [canvasHeight, currentBar]);
 
   useEffect(() => {
-    if (barCursor !== ~~(currentBar) / cols) setBarCursor(~~((currentBar) / cols));
-    const canvasHudCtx = canvasHudRef.current.getContext("2d");
-
-    canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-    canvasHudCtx.clearRect(0, 0, ((currentBar) % cols) * BAR_WIDTH, canvasHeight);
-
-    canvasHudCtx.fillRect(((currentBar) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-  }, [barCursor, canvasHeight, cols, currentBar]);
-
+    if (currentBar > 0 && currentBar % cols === 0) {
+      requestAnimationFrame(() => {
+        const canvasHudCtx = canvasHudRef.current.getContext("2d");
+        canvasHudCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
+        canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      })
+    }
+  }, [currentBar]);
+  
   useEffect(() => {
     //key start, release, hold
     if (newEvent === null) {
@@ -163,7 +197,7 @@ const Sequence = ({
       requestAnimationFrame(() => {
         const canvasCtx = canvasRef.current.getContext("2d");
         canvasCtx.fillRect(
-          (bar - barCursor) * BAR_WIDTH,
+          (bar % cols) * BAR_WIDTH,
           index * BAR_HEIGHT,
           (BAR_WIDTH * attackLength) / 250 - 1,
           BAR_HEIGHT - 1
@@ -180,12 +214,19 @@ const Sequence = ({
       case "keydown":
       case "mousedown":
         if (!lastNoteTime || time - lastNoteTime > secondsPerBar) {
-          setCurrentBar((prev) => prev + 1);
-          setLastNoteTime(time);
+          requestAnimationFrame(function () {
+            const canvasHudCtx = canvasHudRef.current.getContext("2d");
+            canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
+            canvasHudCtx.clearRect(0, 0, ((currentBar + 1) % cols) * BAR_WIDTH, canvasHeight);
+            canvasHudCtx.fillRect(((currentBar + 1) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
+            setCurrentBar((prev) => prev + 1);
+            setLastNoteTime(time);
+          })
         }
         envelop.start = time;
         postWsMessage({
           cmd: "keyboard",
+          bar: currentBar,
           time,
           freq,
           index,
@@ -199,6 +240,7 @@ const Sequence = ({
 
         postWsMessage({
           cmd: "keyboard",
+          bar: currentBar,
           time,
           freq,
           index,
@@ -209,7 +251,7 @@ const Sequence = ({
       case "keyup":
         postWsMessage({
           cmd: "keyboard",
-
+          bar: currentBar,
           time,
           freq,
           index,
@@ -221,7 +263,8 @@ const Sequence = ({
         onNewNote({
           ...newEvent,
           type: "compose",
-          adsr: [start, time],
+          bar: currentBar,
+          adsr: [starttime, time],
         });
         setPendingNotes(pendingNotes);
         break;
