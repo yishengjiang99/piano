@@ -6,10 +6,11 @@ import Timer from "./timer";
 import SimplePopover from "./popover";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { _settings, passThrough } from "./audioCtx";
-import { ControlPanel, ADSR, Volumes } from "./ControlPanel.js";
+import { _settings } from "./audioCtx";
+import { ControlPanel, ADSR, Volumes, OctaveControl } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
+import { SvgBar } from './svg';
 
 
 export const IndexPage = ({ windowUserEvent }) => {
@@ -72,6 +73,9 @@ export const IndexPage = ({ windowUserEvent }) => {
     if (msg.cmd === "tick") {
       setSeek(msg.n);
     }
+    if (msg.cmd === "audioState") {
+      setAudioState(msg)
+    }
   }, [timerMsg, setDebug, setSeek, debug]);
   // max-width: 600px; margin: 40px auto 60px
 
@@ -119,31 +123,7 @@ export const IndexPage = ({ windowUserEvent }) => {
         <SimplePopover title="compression">
           <Volumes settings={settings} dispatch={dispatch}></Volumes>
         </SimplePopover>
-        <span>
-          <button
-            onClick={(e) => {
-              if (octave >= 5) {
-                alert("no");
-                return;
-              }
-              setOctave(octave + 1);
-            }}
-          >
-            +
-          </button>
-          Oct {octave}
-          <button
-            onClick={(e) => {
-              if (octave < 1) {
-                alert("no");
-                return;
-              }
-              setOctave(octave - 1);
-            }}
-          >
-            -
-          </button>
-        </span>
+        <OctaveControl setOctave={setOctave} octave={octave}></OctaveControl>
       </AppBar>
       <div
         style={{
@@ -153,9 +133,9 @@ export const IndexPage = ({ windowUserEvent }) => {
           gridTemplateColumns: "1fr  2fr 2fr",
         }}
       >
-
-
         <div>
+          <SvgBar width={200} label='rms' value={audioState.rms}></SvgBar>
+
           <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
           {audioState.peak}<meter value={audioState.peak} max="100"></meter>
         </div>

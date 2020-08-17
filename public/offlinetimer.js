@@ -19,6 +19,11 @@ var queue, t0_performance, t0_playback;
 clock.onmessage = (e) => {
   switch (e.data) {
     case "start":
+      clock.postMessage({
+        time: 0,
+        n: 0,
+        cmd: "tick"
+      });
     case "resume":
       queue = events;
       t0_performance = (queue[0] && queue[0].time) || 0;
@@ -30,12 +35,14 @@ clock.onmessage = (e) => {
       console.log(debug);
       timerId = setInterval(function () {
         const now = n * frequency;
+        const _bar = now / beatLength;
         clock.postMessage({
           time: now,
-          n: now / beatLength,
+          n: _bar,
+          cmd: "tick"
         });
         var k = 0;
-        while (k++ < 2 && queue[0] && queue[0].time - t0_performance < now) {
+        while (k++ < 2 && queue[0] && queue[0].bar <= _bar) {
           const _event = queue[0];
           queue.splice(0, 1);
           console.log(_event);
@@ -52,8 +59,10 @@ clock.onmessage = (e) => {
       n = 0;
       clearTimeout(timerId);
       clock.postMessage({
-        time: n * frequency,
-        tick: n / 4,
+        time: 0,
+        n: 0,
+        cmd: "tick"
+
       });
       break;
     case "-5":

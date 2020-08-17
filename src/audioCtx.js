@@ -16,6 +16,7 @@ export let _settings = {
   LFO2: { frequeycy: 60, target: null },
   compression: { threshold: -50, ratio: 5, preAmp: 1, postAmp: 1 },
 };
+export let passthrough;
 export let noteCache;
 
 let keyCounter = 0, fftTimer = null;
@@ -23,9 +24,10 @@ let compressor, analyser, preAmp, postAmp;
 
 let instruments = {};
 const activeNotes = {};
-const ch = new BroadcastChannel("wschannel");
+const wschannel = new BroadcastChannel("wschannel");
+wschannel.onmessage = handleWs;
 
-ch.onmessage = async function ({ data }) {
+async function handleWs({ data }) {
   if (data.cmd && data.cmd === "updateSetting") {
     const { key, idx, value } = data;
     _settings[key][idx] = value;
@@ -50,7 +52,7 @@ ch.onmessage = async function ({ data }) {
     }
   }
   if (data.cmd && (data.cmd === "keyboard" || data.cmd === "playback")) {
-    ensureAudioCtx();
+    await getContext();
     data.instrument = data.instrument || "piano";
 
     const { freq, index, time, type, instrument } = data;
@@ -84,10 +86,9 @@ const fftc = new BroadcastChannel("fftc");
 
 
 export async function getContext() {
-  if (ctx) return ctx;
+  if (ctx && postAmp) return ctx;
 
-  ctx = new AudioContext();
-
+  ctx = ctx || new AudioContext();
   if (ctx.state === "paused") ctx.resume();
 
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
@@ -96,6 +97,7 @@ export async function getContext() {
   instruments['piano'] = getPianoNote;
   instruments['LPSaw'] = getLPSaw;
 
+  passthrough = await require("./load-processor").loadProcessor(ctx, "pass-through");
   compressor = new DynamicsCompressorNode(ctx, {
     threshold: _settings.compression.threshold,
     radio: 4,
@@ -108,18 +110,12 @@ export async function getContext() {
     .connect(compressor)
     .connect(postAmp)
     .connect(analyser)
+    .connect(passthrough)
     .connect(ctx.destination);
 
   return ctx;
 }
 
-export async function ensureAudioCtx() {
-  if (ctx == null || ctx.state === "paused") {
-    const audioCtx = await getContext();
-    ctx = audioCtx;
-  }
-  return ctx;
-}
 
 const fftLoop = () => {
   const dataArray = new Uint8Array(analyser.fftSize);

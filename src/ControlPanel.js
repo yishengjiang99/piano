@@ -64,7 +64,7 @@ export const ADSR = ({ settings, dispatch }) => {
       </thead>
       <tbody>
         {["attack", "decay", "sustain", "release"].map((name, idx) => {
-    
+
           const val = settings[attribute][idx];
           return (
             <tr key={idx}>
@@ -89,15 +89,44 @@ export const ADSR = ({ settings, dispatch }) => {
     </table>
   );
 };
+export const OctaveControl = ({ octave, setOctave }) => {
+  return (
+    <span>
+      <button
+        onClick={(e) => {
+          if (octave >= 5) {
+            alert("no");
+            return;
+          }
+          setOctave(octave + 1);
+        }}
+      >
+        +
+  </button>
+  Oct {octave}
+      <button
+        onClick={(e) => {
+          if (octave < 1) {
+            alert("no");
+            return;
+          }
+          setOctave(octave - 1);
+        }}
+      >
+        -
+  </button>
+    </span>
+  );
+}
 export const Volumes = ({ settings, dispatch }) => {
   const mins = [-55, 1, 0.01, 0.01]; //ratio=1 is no compression at all
-  const max =   [-1, 20, 2, 2];
+  const max = [-1, 20, 2, 2];
   const attribute = "compression";
   return (
     <table border={1}>
       <tbody>
-        {["threshold", "ratio","preAmp","postAmp"].map((name, idx) => {
-  
+        {["threshold", "ratio", "preAmp", "postAmp"].map((name, idx) => {
+
           const val = settings[attribute][idx];
           return (
             <tr key={idx}>

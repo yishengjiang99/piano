@@ -1,14 +1,24 @@
-export const loadProcessor =  async (ctx, processorName)=>{
+const clockChannel = new BroadcastChannel("clock");
+
+export const loadProcessor = async (ctx, processorName) => {
 
   try {
     switch (processorName) {
       case "pass-through":
       case "PassThrough":
-        try{
+        try {
           await ctx.audioWorklet.addModule("./processors/pass-through.js");
           let node = new AudioWorkletNode(ctx, "pass-through");
+          node.port.onmessage = function ({ data }) {
+            requestAnimationFrame(() => {
+              clockChannel.postMessage({
+                ...data,
+                cmd: "audioState",
+              });
+            })
+          }
           return node;
-        }catch(e){
+        } catch (e) {
           return null;
         }
 
