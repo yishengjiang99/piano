@@ -30,7 +30,6 @@ window.addEventListener("audioCtxGot", function ({ detail }) {
   drums.toDestination();
   var beat = 0;
   window.addEventListener("keydown", function () {
-
     drums.triggerAttackRelease(beat++ % 4 === 0 ? "2C" : '3C', "8n");
     beat++;
   })

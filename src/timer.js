@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import React from "react";
-import { getNote } from "./audioCtx.js";
 import { useChannel } from "./useChannel";
 
 function usePrevious(value) {
@@ -48,9 +47,7 @@ const Timer = () => {
     if (msg.lastMessage.n) {
       setSeek(msg.lastMessage.n);
     }
-    if (msg.lastMessage.note) {
-      getNote(msg.lastMessage.notefreq).triggerEnvelope(msg.lastMessage.note.adsr);
-    }
+
   }, [msg.lastMessage]);
 
   return (
@@ -82,7 +79,7 @@ const Timer = () => {
           FWD
         </button>
         <span>{seek}</span>
-       <span>{time}</span>
+        <span>{time}</span>
 
       </div>
       <progress value={time / 1000} max="22"></progress>

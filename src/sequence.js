@@ -2,12 +2,14 @@
 import styles from "./sequence.module.css";
 import React from "react";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { idxToFreq, keyboardToFreq, notesOfOctave } from "./sound-keys";
+import { useState, useEffect, useRef } from "react";
+import { idxToFreq } from "./sound-keys";
 import { useChannel } from "./useChannel.js";
-import { Envelope } from "./audioCtx";
 
 const Sequence = ({
+  active,
+  instrument,
+  setInstrument,
   octave,
   storeNewNote,
   onDeleteNote,
@@ -87,6 +89,10 @@ const Sequence = ({
     }
   }
   const _canvasClick = (e) => {
+    if (!active) {
+      setInstrument(instrument);
+      return;
+    }
     const canvasCtx = canvasRef.current.getContext("2d");
     const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
 
@@ -128,14 +134,6 @@ const Sequence = ({
           freq: parseFloat(line[1]),
           time: start
         })
-        // postWsMessage({
-        //   cmd: "readnotes",
-        //   bar,
-        //   index,
-        //   type: "keyup",
-        //   freq: parseFloat(line[1]),
-        //   time: end
-        // })
         const length = end - start;
 
         if (bar >= barCursor && bar < barCursor + cols) {
@@ -186,8 +184,8 @@ const Sequence = ({
         canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       })
     }
-  }, [currentBar]);
-  
+  }, [barCursor]);
+
   useEffect(() => {
     //key start, release, hold
     if (newEvent === null) {
@@ -204,7 +202,7 @@ const Sequence = ({
         );
       });
     }
-    const { type, time, start, freq, index, duration } = newEvent;
+    const { type, time, start, freq, index, duration, instrument } = newEvent;
     postDebug([type, time, start, duration].join("--"));
     const idx_symbol = Symbol(index);
     let isInit = pendingNotes[idx_symbol] === null;
@@ -220,6 +218,13 @@ const Sequence = ({
             canvasHudCtx.clearRect(0, 0, ((currentBar + 1) % cols) * BAR_WIDTH, canvasHeight);
             canvasHudCtx.fillRect(((currentBar + 1) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
             setCurrentBar((prev) => prev + 1);
+            setBarCursor((barCursor) => {
+              if (currentBar - barCursor >= cols) {
+                return barCursor + cols;
+              } else {
+                return barCursor;
+              }
+            })
             setLastNoteTime(time);
           })
         }
@@ -230,19 +235,21 @@ const Sequence = ({
           time,
           freq,
           index,
+          instrument,
           type: "keypress",
         });
         break;
       // eslint-disable-next-line no-fallthrough
       case "keypress":
         envelop.hold = time;
-        if (!envelop.start) Envelope.start = time;
+        if (!envelop.start) envelop.start = time;
 
         postWsMessage({
           cmd: "keyboard",
           bar: currentBar,
           time,
           freq,
+          instrument,
           index,
           type: "keypress",
         });
@@ -254,6 +261,7 @@ const Sequence = ({
           bar: currentBar,
           time,
           freq,
+          instrument,
           index,
           type: "keyup",
         });
@@ -281,6 +289,7 @@ const Sequence = ({
 
   return (
     <>
+      <h5>{instrument} {active ? "ACTIVE" : ""}</h5>
       <div
         className={styles.gridContainer}
         style={{

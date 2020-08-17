@@ -6,7 +6,7 @@ import Timer from "./timer";
 import SimplePopover from "./popover";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { _settings, passThrough, noteCache } from "./audioCtx";
+import { _settings, passThrough } from "./audioCtx";
 import { ControlPanel, ADSR, Volumes } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
@@ -27,7 +27,7 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [scheduler, setScheduler] = useState(null);
   const [debug, setDebug] = useState([]);
   const [readNotes, setReadNotes] = useState();
-
+  const [instrument, setInstrument] = useState("piano");
   const [audioState, setAudioState] = useState({
     peak: 0
   })
@@ -51,7 +51,9 @@ export const IndexPage = ({ windowUserEvent }) => {
       setScheduler(new Worker("./offlinetimer.js"));
     }
   }, [scheduler, websocket]);
+
   useEffect(() => {
+    if (!wsMessage) return;
     const msg = wsMessage.lastMessage;
     if (!msg) return;
     if (msg.cmd === "fileList") {
@@ -90,6 +92,7 @@ export const IndexPage = ({ windowUserEvent }) => {
             duration: evt._targetInst && evt._targetInst.actualDuration,
             freq: notesOfOctave(octave)[index],
             index: index,
+            instrument: instrument
           });
           evt.preventDefault();
         }
@@ -158,51 +161,36 @@ export const IndexPage = ({ windowUserEvent }) => {
         </div>
         <main>
           <h2>
-            <input type={"text"} contentEditable={true} oninput={_sudo} value="mix sound" />
+            <input type={"text"} contentEditable={true} onInput={_sudo} value="mix sound" />
           </h2>
-          <h3>treb</h3>
-          <Sequence
-            seek={seek}
-            //  postWsMessage={postWsMessage}
-            onNewNote={(note) => {
-              note.cmd = "compose";
-              postWsMessage(note);
-            }}
-            onDeleteNote={(bar, noteIndex) => {
-              postWsMessage({ cmd: "delete", bar, noteIndex });
-            }}
-            postWsMessage={postWsMessage}
-            postMessage={postTimer}
-            newEvent={userEvent}
-            readNotes={readNotes}
+          {['piano', 'LPSaw'].map(_instrument => {
+            return (
+              <Sequence
+                instrument={_instrument}
+                active={_instrument === instrument}
+                seek={seek}
+                //  postWsMessage={postWsMessage}
+                onNewNote={(note) => {
+                  note.cmd = "compose";
+                  postWsMessage(note);
+                }}
+                onDeleteNote={(bar, noteIndex) => {
+                  postWsMessage({ cmd: "delete", bar, noteIndex });
+                }}
+                postWsMessage={postWsMessage}
+                postMessage={postTimer}
+                newEvent={userEvent && userEvent.instrument === _instrument && userEvent}
+                readNotes={readNotes}
+                setInstrument={setInstrument}
+                rows={12}
+                cols={10}
+                ocatave={octave}
+              />
+            )
+          })}
 
-            rows={12}
-            cols={10}
-            ocatave={octave}
-          />
-          <h3>Bass</h3>
-
-          <Sequence
-            seek={seek}
-            //  postWsMessage={postWsMessage}
-            onNewNote={(note) => {
-              note.cmd = "compose";
-              debugger;
-              postWsMessage(note);
-            }}
-            onDeleteNote={(bar, noteIndex) => {
-              postWsMessage({ cmd: "delete", bar, noteIndex });
-            }}
-            postWsMessage={postWsMessage}
-            postMessage={postTimer}
-            newEvent={remoteEvent}
-            rows={12}
-            cols={10}
-            readNotes={readNotes}
-            ocatave={octave}
-          />
           <Timer seek={seek}></Timer>
-          <SimplePopover title='piano'><Piano octave={octave}></Piano></SimplePopover>
+          <SimplePopover onClick={() => setInstrument("piano")} title='piano'><Piano octave={octave}></Piano></SimplePopover>
 
 
         </main>
@@ -211,9 +199,7 @@ export const IndexPage = ({ windowUserEvent }) => {
             <b>{debugMessage.lastMessage}</b>
 
           </p>
-          {Object.keys(noteCache).map(key => {
-            return <p>{key} {noteCache[key].toString()} </p>
-          })}
+
 
           {debugMessage.messages.splice(-20).map((line) => (
             <div>{line}</div>

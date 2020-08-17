@@ -7,8 +7,8 @@ msgChannel.onmessage = ({ data }) => {
       //   socket.send(JSON.stringify(data));
     }
     if (data.cmd === "compose" && data.adsr) {
-      const { type, time, freq, index, bar, adsr } = data;
-      const csvstr = ["compose", bar, freq, index, adsr[0], adsr[1], adsr[2]].join(",");
+      const { type, time, instrument, freq, index, bar, adsr } = data;
+      const csvstr = ["compose", bar, freq, index, adsr[0], adsr[1], adsr[2], instrument].join(",");
       socket.send("csv:" + csvstr);
     }
   }
