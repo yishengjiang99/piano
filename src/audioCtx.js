@@ -61,6 +61,7 @@ async function handleWs({ data }) {
       case "keypress":
         if (activeNotes[index]) activeNotes[index].hold();
         else {
+          debugger;
           const note = instruments[instrument](freq);
           activeNotes[index] = note;
           note.trigger();
@@ -92,10 +93,12 @@ export async function getContext() {
   if (ctx.state === "paused") ctx.resume();
 
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
-  const { getLPSaw, getPianoNote, _noteCache } = initAudioSources(ctx, masterGain, _settings);
-  noteCache = _noteCache;
-  instruments['piano'] = getPianoNote;
-  instruments['LPSaw'] = getLPSaw;
+  const sounds = initAudioSources(ctx, masterGain, _settings);
+
+  Object.keys(sounds).map(functionName => {
+    instruments[functionName] = sounds[functionName];
+  })
+
 
   passthrough = await require("./load-processor").loadProcessor(ctx, "pass-through");
   compressor = new DynamicsCompressorNode(ctx, {
@@ -110,7 +113,7 @@ export async function getContext() {
     .connect(compressor)
     .connect(postAmp)
     .connect(analyser)
-    .connect(passthrough)
+    // .connect(passthrough)
     .connect(ctx.destination);
 
   return ctx;

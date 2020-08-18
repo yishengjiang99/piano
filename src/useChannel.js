@@ -5,12 +5,14 @@ export function useChannel(name, size = 5) {
       state.lastMessage = data;
       state.messages[state.cursor % size] = data;
       state.cursor++;
+      state.total++;
       return state;
     },
     {
       lastMessage: null,
       messages: new Array(size).fill(),
       cursor: 0,
+      total: 0
     }
   );
 
@@ -31,12 +33,13 @@ export function useChannel(name, size = 5) {
   return [
     {
       lastMessage: messageState.lastMessage,
+      total: messageState.cursor,
       messages:
         messageState.cursor > size
           ? messageState.messages
-              .slice(0, (messageState.cursor % size) - 1)
-              .concat(["*" + messageState.messages[(messageState.cursor % size) - 1]])
-              .concat(messageState.messages.slice((messageState.cursor % size) - 1))
+            .slice(0, (messageState.cursor % size) - 1)
+            .concat(["*" + messageState.messages[(messageState.cursor % size) - 1]])
+            .concat(messageState.messages.slice((messageState.cursor % size) - 1))
           : messageState.messages.slice(0, messageState.cursor + 1),
     },
     postMessage,

@@ -193,6 +193,7 @@ const Sequence = ({
     }
     function painNote({ bar, index, attackLength }) {
       requestAnimationFrame(() => {
+        postDebug("attack length " + attackLength);
         const canvasCtx = canvasRef.current.getContext("2d");
         canvasCtx.fillRect(
           (bar % cols) * BAR_WIDTH,
@@ -229,6 +230,7 @@ const Sequence = ({
           })
         }
         envelop.start = time;
+        pendingNotes[idx_symbol] = envelop;
         postWsMessage({
           cmd: "keyboard",
           bar: currentBar,
@@ -238,6 +240,7 @@ const Sequence = ({
           instrument,
           type: "keypress",
         });
+
         break;
       // eslint-disable-next-line no-fallthrough
       case "keypress":

@@ -124,6 +124,7 @@ export const IndexPage = ({ windowUserEvent }) => {
           <Volumes settings={settings} dispatch={dispatch}></Volumes>
         </SimplePopover>
         <OctaveControl setOctave={setOctave} octave={octave}></OctaveControl>
+        ws:{wsMessage.total} timermsg: {timerMsg.total}
       </AppBar>
       <div
         style={{
@@ -143,7 +144,7 @@ export const IndexPage = ({ windowUserEvent }) => {
           <h2>
             <input type={"text"} contentEditable={true} onInput={_sudo} value="mix sound" />
           </h2>
-          {['piano', 'LPSaw'].map(_instrument => {
+          {['getLPSaw', 'getPianoNote', 'getDrums'].map(_instrument => {
             return (
               <Sequence
                 instrument={_instrument}
