@@ -8,6 +8,7 @@
   "dependencies": {
     "@material-ui/core": "^4.10.2",
     "@material-ui/icons": "^4.9.1",
+    "@tonejs/midi": "^2.0.25",
     "jest-each": "^26.2.0",
     "parcel": "^1.12.4",
     "parcel-bundler": "^1.12.4",

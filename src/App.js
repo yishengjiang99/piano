@@ -11,7 +11,7 @@ import { ControlPanel, ADSR, Volumes, OctaveControl } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
 import { SvgBar } from './svg';
-
+import { Screen } from './bar';
 
 export const IndexPage = ({ windowUserEvent }) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
@@ -113,6 +113,7 @@ export const IndexPage = ({ windowUserEvent }) => {
   };
   return (
     <>
+      <Screen></Screen>
       <AppBar>
         <SimplePopover title="OSCx3">
           <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>

@@ -45,7 +45,7 @@ export default function ({ children }) {
   };
   return (
     <AppBar
-      position="fixed"
+      position="block"
       className={clsx(classes.appBar, {
         [classes.appBarShift]: open,
       })}

@@ -2,26 +2,22 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { IndexPage } from "./App";
 import * as serviceWorker from "./serviceWorker";
-import { audioPath } from './audioCtx';
+import { Screen } from './bar';
 import { setContext, MembraneSynth } from 'tone';
 // import { MembraneSynth } from 'tone/Tone/instrument';
 
-function App() {
-  const [latestUserEvent, setLatestUserEvent] = useState(null);
-  useEffect(() => {
-    window.addEventListener("keydown", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("keypress", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("keyup", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("mousedown", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("mouseup", (e) => setLatestUserEvent(e), { capture: true });
-  }, []);
-
-  return ReactDOM.createPortal(
-    <IndexPage windowUserEvent={latestUserEvent} />,
-    document.getElementsByTagName("body")[0]
-  );
-}
-ReactDOM.render(<App />, document.getElementById("root"));
+// function App() {
+//   const [latestUserEvent, setLatestUserEvent] = useState(null);
+//   useEffect(() => {
+//     window.addEventListener("keydown", (e) => setLatestUserEvent(e), { capture: true });
+//     window.addEventListener("keypress", (e) => setLatestUserEvent(e), { capture: true });
+//     window.addEventListener("keyup", (e) => setLatestUserEvent(e), { capture: true });
+//     window.addEventListener("mousedown", (e) => setLatestUserEvent(e), { capture: true });
+//     window.addEventListener("mouseup", (e) => setLatestUserEvent(e), { capture: true });
+//   }, []);
+//   return
+// }
+ReactDOM.render(<Screen />, document.getElementById("root"));
 
 window.addEventListener("audioCtxGot", function ({ detail }) {
   const { ctx, masterGain, analyser } = detail;
