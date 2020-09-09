@@ -3,15 +3,15 @@ import initAudioSources from './audio_sources'; //sounds';
 export let ctx;
 export let masterGain;
 export let _settings = {
-  osc3: ["sine", "sine", "square"],
+  osc3: ["sine", "sine", "sine"],
   overtone: [0.8, 0.3, 0.1],
-  detune: [0, 0, 5],
+  detune: [0, 1, 2],
   delay: [0, 1, 1],
   LPF: { frequency: 2000, Q: 3 },
   HPF: { frequency: 60, Q: 3 },
 
   eqHZs: [62.5, 125, 250, 500, 1000],
-  adsr: [0.02, 0.5, 0.1, 0.03, 1.0],
+  adsr: [0.02, 0.2, 0.5, 0.2, 1.4],
   LFO1: { frequeycy: 60, target: null },
   LFO2: { frequeycy: 60, target: null },
   compression: { threshold: -50, ratio: 5, preAmp: 1, postAmp: 1 },
@@ -22,7 +22,7 @@ export let noteCache;
 let keyCounter = 0, fftTimer = null;
 let compressor, analyser, preAmp, postAmp;
 
-let instruments = {};
+export let instruments = {};
 const activeNotes = {};
 const wschannel = new BroadcastChannel("wschannel");
 wschannel.onmessage = handleWs;
@@ -61,7 +61,6 @@ async function handleWs({ data }) {
       case "keypress":
         if (activeNotes[index]) activeNotes[index].hold();
         else {
-          debugger;
           const note = instruments[instrument](freq);
           activeNotes[index] = note;
           note.trigger();
@@ -93,7 +92,7 @@ export async function getContext() {
   if (ctx.state === "paused") ctx.resume();
 
   masterGain = masterGain || new GainNode(ctx, { gain: 1 });
-  const sounds = initAudioSources(ctx, masterGain, _settings);
+  const sounds = await initAudioSources(ctx, masterGain, _settings);
 
   Object.keys(sounds).map(functionName => {
     instruments[functionName] = sounds[functionName];

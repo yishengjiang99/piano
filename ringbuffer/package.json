@@ -76,5 +76,8 @@
       "typedoc",
       "typescript"
     ]
+  },
+  "dependencies": {
+    "web-audio-engine": "file:web-audio-engine"
   }
 }

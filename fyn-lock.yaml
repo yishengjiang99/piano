@@ -3413,6 +3413,13 @@ adjust-sourcemap-loader:
    loader-utils: 1.2.3
    object-path: 0.11.4
    regex-parser: 2.2.10
+adsr:
+ _latest: 1.0.1
+ _:
+  ^1.0.0: 1.0.1
+ 1.0.1:
+  $: sha1-p7wI5e+KceY2SryW/OffHESIHMM=
+  _: 'https://registry.npmjs.org/adsr/-/adsr-1.0.1.tgz'
 aggregate-error:
  _latest: 3.0.1
  _:
@@ -3776,6 +3783,13 @@ atob:
  2.1.2:
   $: sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
   _: 'https://registry.npmjs.org/atob/-/atob-2.1.2.tgz'
+audio-loader:
+ _latest: 1.0.3
+ _:
+  ^0.5.0: 0.5.0
+ 0.5.0:
+  $: sha1-nBJdGyXDPNliYIQFTZ9rfzHdyQg=
+  _: 'https://registry.npmjs.org/audio-loader/-/audio-loader-0.5.0.tgz'
 automation-events:
  _latest: 2.0.16
  _:
@@ -9772,6 +9786,13 @@ midi-file:
  1.1.2:
   $: sha512-VQNzirfADDFXTymgPJv2VfLylCq14spRNFhpA6u7dLqPMbw1BqGf5u9B0k7z++8X1RMs57pyn+G4kzhyIatlyw==
   _: 'https://registry.npmjs.org/midi-file/-/midi-file-1.1.2.tgz'
+midimessage:
+ _latest: 1.0.5
+ _:
+  ^1.0.5: 1.0.5
+ 1.0.5:
+  $: sha1-rZnwTYY6BTolY9VTxb81BwtIgCw=
+  _: 'https://registry.npmjs.org/midimessage/-/midimessage-1.0.5.tgz'
 miller-rabin:
  _latest: 4.0.1
  _:
@@ -10222,6 +10243,17 @@ normalize-url:
    prepend-http: ^1.0.0
    query-string: ^4.1.0
    sort-keys: ^1.0.0
+note-parser:
+ _latest: 2.0.1
+ _:
+  ^1.1.0: 1.1.0
+  ^2.0.0: 2.0.1
+ 2.0.1:
+  $: sha1-JDj9V6RolLQCs6IHF5hmASnI+8E=
+  _: 'https://registry.npmjs.org/note-parser/-/note-parser-2.0.1.tgz'
+ 1.1.0:
+  $: sha1-EunxflFFDsmU8TZKAZgsImZ7jms=
+  _: 'https://registry.npmjs.org/note-parser/-/note-parser-1.1.0.tgz'
 npm-run-path:
  _latest: 4.0.1
  _:
@@ -13095,6 +13127,17 @@ safer-buffer:
  2.1.2:
   $: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
   _: 'https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz'
+sample-player:
+ _latest: 0.5.5
+ _:
+  ^0.5.5: 0.5.5
+ 0.5.5:
+  $: sha1-vDW+o0Scb6lyUo8CKpu8KHIZVjc=
+  _: 'https://registry.npmjs.org/sample-player/-/sample-player-0.5.5.tgz'
+  dependencies:
+   adsr: ^1.0.0
+   midimessage: ^1.0.5
+   note-parser: ^1.1.0
 sane:
  _latest: 4.1.0
  _:
@@ -13525,6 +13568,18 @@ sort-keys:
   _: 'https://registry.npmjs.org/sort-keys/-/sort-keys-1.1.2.tgz'
   dependencies:
    is-plain-obj: ^1.0.0
+soundfont-player:
+ _latest: 0.12.0
+ _:
+  ^0.12.0: 0.12.0
+ 0.12.0:
+  top: 1
+  $: sha512-8BJIsAt7h1PK3thSZDgF6zecgGhYkK74JnZO8WRZi3h34qG6H/DYlnv7cpRvL7Q9C8N6qld4Qwj7nJsX1gYjEA==
+  _: 'https://registry.npmjs.org/soundfont-player/-/soundfont-player-0.12.0.tgz'
+  dependencies:
+   audio-loader: ^0.5.0
+   note-parser: ^2.0.0
+   sample-player: ^0.5.5
 source-list-map:
  _latest: 2.0.1
  _:

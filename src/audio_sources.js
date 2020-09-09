@@ -1,36 +1,24 @@
 
-import { MembraneSynth, MetalSynth, MetalSynthOptions, MembraneSynthOptions, Frequency, NoiseSynth } from 'tone';
-
+const { MembraneSynth, MetalSynth, MetalSynthOptions, MembraneSynthOptions, Frequency, NoiseSynth } = require("tone")
 const { Envelope } = require("./envelope");
-const { noteToMajorTriad } = require("./sound-keys");
+const { noteToMajorTriad, frequencyToMidi } = require("./sound-keys");
+var Soundfont = require('soundfont-player');
+module.exports = async function (ctx, inputNode, _settings) {
 
-
-export default function (ctx, inputNode, _settings) {
-
-    const stdEnvelope = (toneSynth) => {
-        var start, release;
-        return {
-            trigger: function () {
-                start = ctx.currentTime;
-                toneSynth.triggerAttack(start, 0.2);
-
-            },
-            triggerRelease: function () {
-
-                release = ctx.currentTime;
-                toneSynth.triggerRelease()
-                //            toneSynth.triggerRelease()
-                //   toneSynth.map(s => s.triggerRelease());
-
-            },
-            hold: function () {
-                //   toneSynth.hold();
-            }
-        }
-    }
+    const sfinnst = await Soundfont.instrument(ctx, "https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/marimba-mp3.js")
 
     const noteCache = {};
     return {
+        soundFont: function (freq) {
+            const note = frequencyToMidi(freq);
+
+            return {
+                trigger: () => sfinnst.play(note),
+                triggerRelease: () => { },
+                hold: () => { },
+                triggerEnvelop: () => sfinnst.play(note),
+            }
+        },
         getLPSaw: function (freq) {
             const osc = new OscillatorNode(ctx, { type: 'sawtooth', frequency: freq });
             const lpf = new BiquadFilterNode(ctx, { type: "lowpass", frequency: 2 * freq });
@@ -41,6 +29,27 @@ export default function (ctx, inputNode, _settings) {
             return env;
         },
         getDrums: function (freq) {
+            const stdEnvelope = (toneSynth) => {
+                var start, release;
+                return {
+                    trigger: function () {
+                        start = ctx.currentTime;
+                        toneSynth.triggerAttack(start, 0.2);
+
+                    },
+                    triggerRelease: function () {
+
+                        release = ctx.currentTime;
+                        toneSynth.triggerRelease()
+                        //            toneSynth.triggerRelease()
+                        //   toneSynth.map(s => s.triggerRelease());
+
+                    },
+                    hold: function () {
+                        //   toneSynth.hold();
+                    }
+                }
+            }
 
             const hashKey = freq << 3;
             if (noteCache[hashKey]) return noteCache[hashKey];
@@ -57,7 +66,7 @@ export default function (ctx, inputNode, _settings) {
 
 
         },
-        getPianoNote: function (freq) {
+        osc3: function (freq) {
             const hashkey = freq;
             if (noteCache[hashkey] && ctx.currentTime - noteCache[hashkey].started > 5)
                 return noteCache[hashkey];

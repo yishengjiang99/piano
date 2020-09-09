@@ -6,13 +6,12 @@ import Timer from "./timer";
 import SimplePopover from "./popover";
 import { useChannel } from "./useChannel";
 import FileList from "./filelist";
-import { _settings } from "./audioCtx";
+import { _settings, instruments } from "./audioCtx";
 import { ControlPanel, ADSR, Volumes, OctaveControl } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
 import { SvgBar } from './svg';
 import { Screen } from './bar';
-
 export const IndexPage = ({ windowUserEvent }) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
@@ -28,7 +27,7 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [scheduler, setScheduler] = useState(null);
   const [debug, setDebug] = useState([]);
   const [readNotes, setReadNotes] = useState();
-  const [instrument, setInstrument] = useState("piano");
+  const [instrument, setInstrument] = useState("osc3");
   const [audioState, setAudioState] = useState({
     peak: 0
   })
@@ -145,7 +144,7 @@ export const IndexPage = ({ windowUserEvent }) => {
           <h2>
             <input type={"text"} contentEditable={true} onInput={_sudo} value="mix sound" />
           </h2>
-          {['getLPSaw', 'getPianoNote', 'getDrums'].map(_instrument => {
+          {['getLPSaw', 'osc3', 'soundFont', 'getDrums'].map(_instrument => {
             return (
               <Sequence
                 instrument={_instrument}
