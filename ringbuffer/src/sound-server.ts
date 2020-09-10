@@ -1,8 +1,4 @@
-import { resolve } from "path";
-import { createServer } from "net";
-import { execSync } from "child_process";
-import * as fs from "fs";
-import { WebAudioContext, OfflineAudioContext } from "../web-audio-engine/build/web-audio-engine";
+import { loadSFSet } from "./sound-font-loader";
 
 const ctx = new WebAudioContext();
 const keyboardKeys = "awsedftgyhj".split("");
@@ -17,16 +13,3 @@ const oscilators = [...keyboardKeys.keys()]
     oscillator.frequency.value = freq;
     oscillator.gain = 0;
   });
-
-const notes = Buffer.from("awsedftgyhj");
-createServer((socket) => {
-  let note;
-  Readable(oscillator).pipe("../fifo/1");
-
-  socket.on("data", (d) => (note = notes.indexOf(d[0])) > -1 && (
-    oscilators[note].pipe(socket);
-   )
-}).listen({
-  host: "localhost",
-  port: "3001",
-});
