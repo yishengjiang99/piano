@@ -1,72 +1,55 @@
-import { mainModule } from "process";
-import { PassThrough, Readable } from "stream";
-const { Midi } = require("@tonejs/midi");
+import { Midi } from "@tonejs/midi";
 
 function sigfig(num, sigdig) {
   const mask = 10 << sigdig;
 
   return Math.floor(num * mask) / mask;
 }
+const sleep = async (ms) => await new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function loadMidi(filename) {
   const midi = await new Midi(require("fs").readFileSync(filename));
   return midi.tracks.map((track) =>
-    track.notes.map((note) =>
-      [note.time, note.midi, note.duration, note.velocity].map((n) => sigfig(n, 4))
-    )
+    track.notes.map((note) => [
+      sigfig(note.time, 3),
+      note.midi,
+      sigfig(note.duration, 3),
+      sigfig(note.velocity, 3),
+      track.instrument.number,
+    ])
   );
 }
 
-export function midiReader(tracks) {
-  let lastTick = null;
-  let time = 0;
+export async function* midiTrackGenerator(tracks) {
+  const start = process.hrtime();
+
   const hrdiff = (h1, h2) => h2[0] - h1[0] + (h2[1] - h1[1]) * 1e-9;
-  return new Readable({
-    // objectMode: true,
-    read() {
-      if (!lastTick) lastTick = process.hrtime();
-      const now = process.hrtime();
-      time += hrdiff(lastTick, now);
-      lastTick = now;
-      this.push(time + "");
+  while (true) {
+    const time = hrdiff(start, process.hrtime());
+    let next = null;
+    for (const track of tracks) {
+      if (track.length === 0) continue;
 
-      // let done = true;
-      // for (const track of tracks) {
-      //   if (!track[0]) continue;
-      //   done = false;
-      //   if (track[0][0] < time) {
-      //     this.push(track[0].join(","));
-      //     track.shift();
-      //   }
-      // }
-    },
-  });
+      if (track[0][0] <= time) {
+        yield [time].concat(track[0]);
+        track.shift();
+        next = 0;
+      } else {
+        next = null === next ? track[0][0] - time : Math.min(track[0][0] - time, next);
+      }
+    }
+    await sleep(next * 1000);
+  }
 }
-
-// function(){
-//   while (done) {
-//     if (!lastTick) lastTick = new Date().getUTCMilliseconds();
-//     const now = new Date().getUTCMilliseconds();
-//     time += now - lastTick;
-//     done = true;
-//     lastTick = now;
-//     console.log(lastTick);
-//     for (const track of tracks) {
-//       if (track[0]) done = false;
-//       if (track[0][0] < now + 50) {
-//         const note = track[0];
-//         track.slice(0);
-//         yield note;
-//       }
-//     }
-//     lastTick = now;
-//   }
-// }
 
 async function run() {
   const filename =
-    process.argv[2] || require("path").resolve(__dirname, "../db/midiFiles/OnlineMidi.mid");
+    process.argv[2] || require("path").resolve(__dirname, "../db/midiFiles/OnlineMid.mid");
   const tracks = await loadMidi(filename);
-  midiReader(tracks).pipe(process.stdout);
+  const counterIterator = midiTrackGenerator(tracks);
+  (async (iterator) => {
+    for await (const item of midiTrackGenerator(tracks)) {
+      item && console.log(item);
+    }
+  })(counterIterator);
 }
-run();

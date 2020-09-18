@@ -1,15 +1,20 @@
-import { loadSFSet } from "./sound-font-loader";
-
-const ctx = new WebAudioContext();
-const keyboardKeys = "awsedftgyhj".split("");
-const oscilators = [...keyboardKeys.keys()]
-  .map((key) => key + 60)
-  .map((midi) => {
-    Math.pow(2, (midi - 69) / 12) * 440;
+import { loadSFSet, sfNames } from "./sound-font-loader";
+import { createServer } from "http";
+import { loadMidi, midiTrackGenerator } from "./convert-midi";
+let fontPlayer, tracks;
+async function init() {
+  return [await loadSFSet("FatBoy", await sfNames("FatBoy")), await loadMidi("./OnlineMid.mid")];
+}
+init()
+  .then(([fontPlayer, tracks]) => {
+    createServer(async (req, res) => {
+      if (req.url.includes("fontplayer")) {
+        res.end(JSON.stringify(fontPlayer));
+      }
+      for await (const note of midiTrackGenerator(tracks)) {
+        res.write(JSON.stringify(note));
+      }
+      res.end();
+    }).listen(3000);
   })
-  .map((freq) => {
-    let oscillator = ctx.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.value = freq;
-    oscillator.gain = 0;
-  });
+  .catch(console.error);
