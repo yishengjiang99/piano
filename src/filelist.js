@@ -1,3 +1,4 @@
+import {MenuList} from "@material-ui/core";
 import React from "react";
 
 import { useState } from "react";
@@ -35,4 +36,4 @@ const FileList = ({ channels, files, postMessage }) => {
   );
 };
 
-export default FileList;
+export default FileList; //()=><div><Button>page2</Button><Filelist props={{ channels, files, postMessage }}></div>;

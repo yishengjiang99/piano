@@ -292,11 +292,10 @@ const Sequence = ({
 
   return (
     <>
-      <h5>{instrument} {active ? "ACTIVE" : ""}</h5>
       <div
         className={styles.gridContainer}
         style={{
-          backgroundColor: "rbga(0,0,0,0)",
+          backgroundColor: "rbga(33,33,33,03)",
           height: rows * BAR_HEIGHT,
           width: cols * BAR_WIDTH * zoomX,
         }}
