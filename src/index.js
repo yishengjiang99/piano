@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { IndexPage } from "./App";
 import * as serviceWorker from "./serviceWorker";
-import { Screen } from './bach';
-import { setContext, MembraneSynth } from 'tone';
+
 
 function App() {
   const [latestUserEvent, setLatestUserEvent] = useState(null);
@@ -16,14 +15,12 @@ function App() {
   }, []);
   return <>
   <IndexPage windowUserEvent={latestUserEvent} />
-  <Screen  windowUserEvent={latestUserEvent} ></Screen>
   </>
 }
 ReactDOM.render(<App />, document.getElementById("root"));
 
 window.addEventListener("audioCtxGot", function ({ detail }) {
   const { ctx, masterGain, analyser } = detail;
-  setContext(ctx);
 
 }, { once: true })
 

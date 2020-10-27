@@ -112,7 +112,6 @@ export const IndexPage = ({ windowUserEvent }) => {
   };
   return (
     <>
-      <Screen></Screen>
       <AppBar>
         <SimplePopover title="OSCx3">
           <ControlPanel settings={settings} dispatch={dispatch}></ControlPanel>
@@ -187,6 +186,8 @@ export const IndexPage = ({ windowUserEvent }) => {
           ))}
         </div>
       </div>
+      <Screen></Screen>
+
     </>
   );
 };
