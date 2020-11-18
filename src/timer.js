@@ -47,12 +47,10 @@ const Timer = () => {
     if (msg.lastMessage.n) {
       setSeek(msg.lastMessage.n);
     }
-
   }, [msg.lastMessage]);
 
   return (
     <div style={{ width: "80em" }}>
-
       <div ref={toolbarRef}>
         <button
           onClick={(e) => {
@@ -69,8 +67,8 @@ const Timer = () => {
         {playing ? (
           <button onClick={(e) => setPlaying(false) && postMessage("pause")}>Pause</button>
         ) : (
-            <button onClick={(e) => setPlaying(true) && postMessage("start")}>Play</button>
-          )}
+          <button onClick={(e) => setPlaying(true) && postMessage("start")}>Play</button>
+        )}
         <button
           onClick={(e) => {
             postMessage("+5");
@@ -80,7 +78,6 @@ const Timer = () => {
         </button>
         <span>{seek}</span>
         <span>{time}</span>
-
       </div>
       <progress value={time / 1000} max="22"></progress>
       <div>{JSON.stringify(msg.lastMessage)}</div>

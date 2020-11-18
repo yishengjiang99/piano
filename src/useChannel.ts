@@ -1,30 +1,32 @@
-import { useRef, useEffect, useCallback, useReducer } from "react";
-export type MsgState = {
-  lastMessage: string;
-  messages: string[];
+const { BroadcastChannel } = require("broadcast-channel");
+
+import { useRef, useEffect, createContext, useReducer } from "react";
+export type MsgState<T = {}> = {
+  lastMessage: T | null;
+  messages: T[];
 };
-const initialState: MsgState = {
-  lastMessage: "",
-  messages: new Array(12).fill(""),
-};
-function reducer(prevState: MsgState, data: string): MsgState {
+function reducer<T>(prevState: MsgState<T>, data: T): MsgState<T> {
   prevState.lastMessage = data;
   prevState.messages.push(data);
   prevState.messages.shift();
   return prevState;
 }
+type R<T> = (prevState: MsgState<T>, msg: T) => MsgState<T>;
 
-export function useChannel<T>(name: string): [MsgState, MsgState[]] {
-  const [messageState, dispatch] = useReducer(reducer, initialState);
+export function useChannel<T = {}>(name: string): [MsgState<T>, (msg: T) => void] {
+  const [messageState, dispatch] = useReducer<R<T>>(reducer, {
+    lastMessage: null,
+    messages: [],
+  });
 
   let channel = useRef(new BroadcastChannel(name));
-  function postMessage(msg: string) {
+  function postMessage(msg: T) {
     channel.current.postMessage(msg);
   }
 
   useEffect(() => {
-    channel.current.onmessage = function ({ data }) {
-      dispatch(data);
+    channel.current.onmessage = function (e: MessageEvent) {
+      dispatch(e.data);
     };
     return function cleanup() {
       channel.current && channel.current.close();
@@ -32,3 +34,6 @@ export function useChannel<T>(name: string): [MsgState, MsgState[]] {
   }, [name]);
   return [messageState, postMessage];
 }
+const CounterStepContext = createContext(1);
+
+export const useChannelContext = () => {};

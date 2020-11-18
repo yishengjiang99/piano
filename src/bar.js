@@ -35,7 +35,7 @@ export const Screen = function (props) {
     }
 
     return (
-        <div ref={containerRef} style={{ backgroundColor: 'transparent', zIndex:-200,color: 'white', position:"fixed",top:0,left:0, width: '100vw', height: '100vh' }}>
+        <div ref={containerRef} style={{ backgroundColor: 'black', color: 'white', width: '100vw', height: '100vh' }}>
             <div class='cp' style={{ position: 'fixed', top: 20, left: 20 }}>
                 <span>Now: {clockState.clock}</span>
                 <button onClick={() => clockState.running ? stop() : start()}>{clockState.running ? "stop" : "start"}</button>
