@@ -29,9 +29,8 @@ const useEvent = new BroadcastChannel("userEvent");
 const wschannel = new BroadcastChannel("wschannel");
 wschannel.onmessage = handleWs;
 
-async function handleWs({ data }) {
-  if (data.cmd && data.cmd === "updateSetting") {
-    const { key, idx, value } = data;
+async function handleWs({ data: { cmd, key, idx, value } }) {
+  if (cmd === "updateSetting") {
     _settings[key][idx] = value;
     value = parseFloat(value);
     if (key == "compression") {
@@ -49,7 +48,8 @@ async function handleWs({ data }) {
       }
     }
   }
-async function handleUserEvent({data}){
+}
+async function handleUserEvent({ data }) {
   if (data.cmd && (data.cmd === "keyboard" || data.cmd === "playback")) {
     await getContext();
     data.instrument = data.instrument || "piano";

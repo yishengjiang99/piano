@@ -1,4 +1,3 @@
-import Sequence from "./sequence";
 import { useState, useReducer, useEffect } from "react";
 import React from "react";
 import Piano from "./piano";
@@ -12,9 +11,10 @@ import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
 import { SvgBar } from "./svg";
 import { Screen } from "./bar";
+import { Sequence } from "./sequence";
 export const IndexPage = () => {
-  const [{}, _] = useChannel("useEvent");
-
+  const [userEventMsgs, postUserEvent] = useChannel("userEvent");
+  const [userEvent, setUserEvent] = useState(null);
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
   const [octave, setOctave] = useState(3);
@@ -83,7 +83,6 @@ export const IndexPage = () => {
     (evt) => {
       const handleUserEvent = (evt) => {
         let index = evt.target.dataset["index"] || (evt.key && keys.indexOf(evt.key));
-
         if (evt.keyCode && evt.keyCode === "[") setOctave(Math.min(octave + 1, 7));
         if (evt.keyCode && evt.keyCode === "]") setOctave(Math.math(octave - 1, 1));
 
@@ -101,9 +100,9 @@ export const IndexPage = () => {
           evt.preventDefault();
         }
       };
-      windowUserEvent && handleUserEvent(windowUserEvent);
+      userEventMsgs.lastMessage && handleUserEvent(userEventMsgs.lastMessage);
     },
-    [windowUserEvent, octave]
+    [userEventMsgs.lastMessage, octave]
   );
 
   const _sudo = (evt) => {
@@ -159,9 +158,9 @@ export const IndexPage = () => {
                 onDeleteNote={(bar, noteIndex) => {
                   postWsMessage({ cmd: "delete", bar, noteIndex });
                 }}
+                newEvent={userEvent}
                 postWsMessage={postWsMessage}
                 postMessage={postTimer}
-                newEvent={userEvent && userEvent.instrument === _instrument && userEvent}
                 readNotes={readNotes}
                 setInstrument={setInstrument}
                 rows={12}
