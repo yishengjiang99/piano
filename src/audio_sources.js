@@ -1,26 +1,9 @@
-// const {MembraneSynth, MetalSynth, MetalSynthOptions, MembraneSynthOptions, Frequency, NoiseSynth} = require("tone")
+
 const { Envelope } = require("./envelope");
 const { noteToMajorTriad, frequencyToMidi } = require("./sound-keys");
-var Soundfont = require("soundfont-player");
-let sfinnst;
 export const initAudioSources = async (ctx, inputNode, _settings) => {
-  Soundfont.instrument(
-    ctx,
-    "https://gleitz.github.io/midi-js-soundfonts/FatBoy/acoustic_grand_piano-mp3.js"
-  ).then((inst) => (sfinnst = inst));
-
   const noteCache = {};
   return {
-    soundFont: function (freq) {
-      const note = frequencyToMidi(freq);
-
-      return {
-        trigger: () => sfinnst.play(note),
-        triggerRelease: () => {},
-        hold: () => {},
-        triggerEnvelop: () => sfinnst.play(note),
-      };
-    },
     getLPSaw: function (freq) {
       const osc = new OscillatorNode(ctx, { type: "sawtooth", frequency: freq });
       const lpf = new BiquadFilterNode(ctx, { type: "lowpass", frequency: 2 * freq });
@@ -55,7 +38,7 @@ export const initAudioSources = async (ctx, inputNode, _settings) => {
           osc.start(0);
         });
       outputGain.connect(inputNode);
-      var gainEnvelope = Envelope(_settings.adsr, ctx, outputGain.gain);
+ var gainEnvelope = Envelope(_settings.adsr, ctx, outputGain.gain);
       return gainEnvelope;
     },
   };
