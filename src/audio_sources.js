@@ -1,3 +1,4 @@
+
 const { Envelope } = require("./envelope");
 const { noteToMajorTriad, frequencyToMidi } = require("./sound-keys");
 export const initAudioSources = async (ctx, inputNode, _settings) => {
@@ -37,7 +38,7 @@ export const initAudioSources = async (ctx, inputNode, _settings) => {
           osc.start(0);
         });
       outputGain.connect(inputNode);
-      var gainEnvelope = new Envelope(_settings.adsr, ctx, outputGain.gain);
+ var gainEnvelope = Envelope(_settings.adsr, ctx, outputGain.gain);
       return gainEnvelope;
     },
   };

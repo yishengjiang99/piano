@@ -1,4 +1,5 @@
 var host = "wss://www.grepawk.com/signal"; //:4000";
+host = "ws://localhost:3000/upload";
 var msgChannel = new BroadcastChannel("wschannel");
 msgChannel.onmessage = ({ data }) => {
   if (typeof data === "string" && socket) socket.send(data);
@@ -38,8 +39,8 @@ connectSocketIfNotOpen(host).then((ws) => {
       const lines = txt.replace("filecontent\n", ""); //.split("\n");
       msgChannel.postMessage({
         cmd: "filecontent",
-        data: lines
-      })
+        data: lines,
+      });
     }
     //   if(socket.binaryType)
     try {

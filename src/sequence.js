@@ -1,336 +1,242 @@
-/* eslint-disable no-unused-vars */
-import styles from "./sequence.module.css";
-import React from "react";
-
-import { useState, useEffect, useRef } from "react";
-import { idxToFreq } from "./sound-keys";
-import { useChannel } from "./useChannel.js";
-
-const Sequence = ({
-  active,
-  instrument,
-  setInstrument,
-  octave,
-  storeNewNote,
-  onDeleteNote,
-  newEvent,
-  rows,
-  cols,
-  tracks,
-  seek,
-  onNewNote,
-  postWsMessage,
-  readNotes
-}) => {
-  const [debugMessage, postDebug] = useChannel("debug");
-
-  const [currentBar, setCurrentBar] = useState(-1);
-  const [barCursor, setBarCursor] = useState(0);
-  const [pendingNotes, setPendingNotes] = useState({});
-  const [lastNoteTime, setLastNoteTime] = useState(null);
-  const [fftc, postFftc] = useChannel("fftc", 2);
-  const [zoomX, setZoomX] = useState(1);
-  const canvasRef = useRef();
-  const canvasHudRef = useRef();
-  const canvasFFTRef = useRef();
-  const secondsPerBar = 0.25;
-  const BAR_WIDTH = 90;
-  const BAR_HEIGHT = 10;
-  const canvasWidth = BAR_WIDTH * cols;
-  const canvasHeight = BAR_HEIGHT * rows;
-  // var canvasWidth, canvasHeight, BAR_WIDTH, BAR_HEIGHT, canvasHudCtx, canvasCtx, canvasFFTCtx;
-
-  // const note_hz = notesOfOctave(octave).concat( notesOfOctave(octave+1)); // notesOfOctave(octave+1)
-  // const fftSize = 1024;
-  useEffect(() => {
-    const _drawAxis = () => {
-      const canvasCtx = canvasRef.current.getContext("2d");
-      canvasCtx.strokeStyle = "rbga(1,1,1,1)";
-      canvasCtx.strokeWidth = "1px";
-      for (let i = 0; i < rows; i++) {
-        canvasCtx.moveTo(0, i * BAR_HEIGHT);
-        canvasCtx.lineTo(canvasWidth, i * BAR_HEIGHT);
-        canvasCtx.stroke();
-      }
-      for (let j = 0; j < cols; j++) {
-        canvasCtx.moveTo(j * BAR_WIDTH, 0);
-        canvasCtx.lineTo(j * BAR_WIDTH, canvasHeight);
-        canvasCtx.stroke();
-      }
-    };
-
-    const canvasCtx = canvasRef.current.getContext("2d");
-    const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-    barCursor > 0 &&
-      canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight) &&
-      canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    _drawAxis(canvasCtx);
-  }, [canvasRef, canvasFFTRef, barCursor, canvasWidth, canvasHeight, rows, cols]);
-
-  function paintABar(paintBar) {
-    const canvasCtx = canvasRef.current.getContext("2d");
-
-    if (paintBar.color === "clear") {
-      canvasCtx.clearRect(
-        (paintBar.bar - barCursor) * BAR_WIDTH,
-        paintBar.index * BAR_HEIGHT,
-        BAR_WIDTH * (paintBar.length / 250) - 1,
-        BAR_HEIGHT - 1
-      );
-    } else {
-      canvasCtx.fillStyle = paintBar.color || "blue";
-
-      canvasCtx.fillRect(
-        (paintBar.bar - barCursor) * BAR_WIDTH,
-        paintBar.index * BAR_HEIGHT,
-        BAR_WIDTH * (paintBar.length / 250) - 1,
-        BAR_HEIGHT - 1
-      );
-    }
+"use strict";
+exports.__esModule = true;
+exports.Sequence = void 0;
+var react_1 = require("react");
+var sound_keys_1 = require("./sound-keys");
+var useChannel_1 = require("./useChannel");
+var secondsPerBar = 0.25;
+var BAR_WIDTH = 90;
+var BAR_HEIGHT = 10;
+var gridAxis = function (canvasCtx, rows, cols) {
+  canvasCtx.clearRect(0, 0, cols * BAR_WIDTH, rows * BAR_HEIGHT);
+  canvasCtx.strokeStyle = "rbga(1,1,1,1)";
+  for (var i = 0; i < rows; i++) {
+    canvasCtx.moveTo(0, i * BAR_HEIGHT);
+    canvasCtx.lineTo(cols * BAR_WIDTH, i * BAR_HEIGHT);
+    canvasCtx.stroke();
   }
-  const _canvasClick = (e) => {
-    if (!active) {
-      setInstrument(instrument);
-      return;
-    }
-    const canvasCtx = canvasRef.current.getContext("2d");
-    const [x, y] = [e.nativeEvent.layerX, e.nativeEvent.layerY];
-
-    var blue = canvasCtx.getImageData(x, y, 1, 1).data[2] > 200;
-    const noteIndex = Math.floor(y / BAR_HEIGHT);
-    const barIndex = Math.floor(x / BAR_WIDTH);
-    const note = {
+  for (var j = 0; j < cols; j++) {
+    canvasCtx.moveTo(j * BAR_WIDTH, 0);
+    canvasCtx.lineTo(j * BAR_WIDTH, rows * BAR_HEIGHT);
+    canvasCtx.stroke();
+  }
+};
+function paintABar(canvasCtx, paintBar) {
+  if (!canvasCtx) return;
+  if (paintBar.color === "clear") {
+    canvasCtx.clearRect(
+      paintBar.bar * BAR_WIDTH,
+      paintBar.index * BAR_HEIGHT,
+      BAR_WIDTH * (paintBar.length / 250) - 1,
+      BAR_HEIGHT - 1
+    );
+  } else {
+    canvasCtx.fillStyle = paintBar.color || "blue";
+    canvasCtx.fillRect(
+      paintBar.bar * BAR_WIDTH,
+      paintBar.index * BAR_HEIGHT,
+      BAR_WIDTH * (paintBar.length / 250) - 1,
+      BAR_HEIGHT - 1
+    );
+  }
+}
+var GRID_CELL_STATE;
+(function (GRID_CELL_STATE) {
+  GRID_CELL_STATE[(GRID_CELL_STATE["NEW"] = 1)] = "NEW";
+  GRID_CELL_STATE[(GRID_CELL_STATE["PENDING"] = 2)] = "PENDING";
+  GRID_CELL_STATE[(GRID_CELL_STATE["PRESSING"] = 3)] = "PRESSING";
+  GRID_CELL_STATE[(GRID_CELL_STATE["ON"] = 4)] = "ON";
+  GRID_CELL_STATE[(GRID_CELL_STATE["OFF"] = 5)] = "OFF";
+})(GRID_CELL_STATE || (GRID_CELL_STATE = {}));
+export const Sequence = function (_a) {
+  var postWsMessage = _a.postWsMessage,
+    active = _a.active,
+    newEvent = _a.newEvent,
+    rows = _a.rows,
+    cols = _a.cols,
+    onNewNote = _a.onNewNote;
+  var _b = react_1.useState(
+      new Array(cols * rows).fill({
+        state: GRID_CELL_STATE.NEW,
+        updated: null,
+        history: [],
+      })
+    ),
+    grid = _b[0],
+    setGrid = _b[1];
+  var _c = useChannel_1.useChannel("debug"),
+    debugMessage = _c[0],
+    postDebug = _c[1];
+  var _d = react_1.useState(-1),
+    currentBar = _d[0],
+    setCurrentBar = _d[1];
+  var _e = react_1.useState(0),
+    barCursor = _e[0],
+    setBarCursor = _e[1];
+  var canvasRef = react_1.createRef();
+  react_1.useEffect(
+    function () {
+      var cctx =
+        canvasRef.current && canvasRef.current.getContext("2d") !== null
+          ? canvasRef.current.getContext("2d")
+          : null;
+      if (cctx) gridAxis(cctx, rows, cols);
+    },
+    [canvasRef.current, rows, cols]
+  );
+  var _canvasClick = function (e) {
+    var canvasCtx = canvasRef.current.getContext("2d");
+    var _a = [e.nativeEvent.clientX, e.nativeEvent.clientY],
+      x = _a[0],
+      y = _a[1];
+    var noteIndex = Math.floor(y / BAR_HEIGHT);
+    var barIndex = Math.floor(x / BAR_WIDTH);
+    var note = {
       bar: barIndex,
       index: noteIndex,
       length: 200,
-      frequency: idxToFreq(noteIndex % 12, 3 + Math.floor(noteIndex / 12)),
+      color: "blue",
+      frequency: sound_keys_1.idxToFreq(noteIndex % 12, 3 + Math.floor(noteIndex / 12)),
     };
-
-
-    if (blue) {
-      onDeleteNote(barIndex + barCursor, noteIndex);
-      paintABar({ ...note, color: "clear" });
-    } else {
-      paintABar(note);
-      onNewNote(note);
-    }
+    paintABar(canvasCtx, note);
   };
-  useEffect(() => {
-    if (readNotes) {
-      const canvasCtx = canvasRef.current.getContext("2d");
-
-      readNotes.split("\n").forEach(line => {
-        line = line.split(',');
-        canvasCtx.fillStyle = "blue";
-        const bar = parseInt(line[0]);// + .0;
-        const index = parseInt(line[2]);// + .0;
-        const start = parseFloat(line[3]);// + .0;
-        const end = parseFloat(line[4]);// + .0;
-        postWsMessage({
-          cmd: "readnotes",
-          bar,
-          index,
-          type: "keydown",
-          freq: parseFloat(line[1]),
-          time: start
-        })
-        const length = end - start;
-
-        if (bar >= barCursor && bar < barCursor + cols) {
-          canvasCtx.fillRect(
-            (bar - barCursor) * BAR_WIDTH,
-            index * BAR_HEIGHT,
-            BAR_WIDTH * (length / 250) - 1,
-            BAR_HEIGHT - 1
-          );
-        }
-      })
-    }
-  }, [readNotes, postDebug])
-  useEffect(() => {
-    if (fftc.lastMessage) {
-      const { minDecibels, rmns, dataArray, time, binCount, sampleRate } = fftc.lastMessage;
-      const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-      const x0 = (currentBar % cols) * BAR_WIDTH;
-      canvasFFTCtx.fillStyle = "black";
-      canvasFFTCtx.fillRect(x0, 0, BAR_WIDTH, canvasHeight);
-      canvasFFTCtx.clearRect(x0, 0, BAR_WIDTH, canvasHeight);
-      var m = 0;
-      var _binHeight = canvasHeight / 50;
-      for (let i = 0; i < 50; i++) {
-        const _binHeight =
-          i < 10 ? canvasHeight / 20 :
-            i < 20 ? canvasHeight / 30 :
-              i < 40 ? canvasHeight / 40 :
-                canvasHeight / 100;
-
-        let hue = (i / binCount) * 360;
-        canvasFFTCtx.fillStyle = "red";
-        var _binWidth = (dataArray[i] / 360) * BAR_WIDTH;
-        canvasFFTCtx.fillRect(x0, _binHeight * i, _binWidth, _binHeight);
+  react_1.useEffect(
+    function () {
+      var _a;
+      //key start, release, hold
+      if (newEvent === null) {
+        return; // false
       }
-
-      // document.getElementById("status").contentText = sum;
-    }
-  }, [fftc.lastMessage, currentBar, barCursor, canvasHeight]);
-
-
-  useEffect(() => {
-    if (currentBar > 0 && currentBar % cols === 0) {
-      requestAnimationFrame(() => {
-        const canvasHudCtx = canvasHudRef.current.getContext("2d");
-        canvasHudCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-        const canvasFFTCtx = canvasFFTRef.current.getContext("2d");
-        canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-      })
-    }
-  }, [barCursor]);
-
-  useEffect(() => {
-    //key start, release, hold
-    if (newEvent === null) {
-      return; // false
-    }
-    function painNote({ bar, index, attackLength }) {
-      requestAnimationFrame(() => {
-        postDebug("attack length " + attackLength);
-        const canvasCtx = canvasRef.current.getContext("2d");
-        canvasCtx.fillRect(
-          (bar % cols) * BAR_WIDTH,
-          index * BAR_HEIGHT,
-          (BAR_WIDTH * attackLength) / 250 - 1,
-          BAR_HEIGHT - 1
-        );
-      });
-    }
-    const { type, time, start, freq, index, duration, instrument } = newEvent;
-    postDebug([type, time, start, duration].join("--"));
-    const idx_symbol = Symbol(index);
-    let isInit = pendingNotes[idx_symbol] === null;
-    const envelop = pendingNotes[idx_symbol] || { start: time, release: null };
-
-    switch (type) {
-      case "keydown":
-      case "mousedown":
-        if (!lastNoteTime || time - lastNoteTime > secondsPerBar) {
-          requestAnimationFrame(function () {
-            const canvasHudCtx = canvasHudRef.current.getContext("2d");
-            canvasHudCtx.fillStyle = "rgba(0,111,0,0.3)";
-            canvasHudCtx.clearRect(0, 0, ((currentBar + 1) % cols) * BAR_WIDTH, canvasHeight);
-            canvasHudCtx.fillRect(((currentBar + 1) % cols) * BAR_WIDTH, 0, BAR_WIDTH, canvasHeight);
-            setCurrentBar((prev) => prev + 1);
-            setBarCursor((barCursor) => {
-              if (currentBar - barCursor >= cols) {
-                return barCursor + cols;
-              } else {
-                return barCursor;
-              }
-            })
-            setLastNoteTime(time);
-          })
-        }
-        envelop.start = time;
-        pendingNotes[idx_symbol] = envelop;
-        postWsMessage({
-          cmd: "keyboard",
-          bar: currentBar,
-          time,
-          freq,
-          index,
-          instrument,
-          type: "keypress",
-        });
-
-        break;
-      // eslint-disable-next-line no-fallthrough
-      case "keypress":
-        envelop.hold = time;
-        if (!envelop.start) envelop.start = time;
-
-        postWsMessage({
-          cmd: "keyboard",
-          bar: currentBar,
-          time,
-          freq,
-          instrument,
-          index,
-          type: "keypress",
-        });
-        break;
-      case "mouseup":
-      case "keyup":
-        postWsMessage({
-          cmd: "keyboard",
-          bar: currentBar,
-          time,
-          freq,
-          instrument,
-          index,
-          type: "keyup",
-        });
-        const starttime =
-          (pendingNotes[idx_symbol] && pendingNotes[idx_symbol].start) || time - 125;
-        painNote({ bar: currentBar, index, attackLength: time - starttime });
-        onNewNote({
-          ...newEvent,
-          type: "compose",
-          bar: currentBar,
-          adsr: [starttime, time],
-        });
-        setPendingNotes(pendingNotes);
-        break;
-      default:
-        postDebug(type + " " + time);
-        break;
-    }
-
-    return function cleanup() {
-      console.log(pendingNotes);
-      //   postDebug(JSON.stringify(pendingNotes));
-    };
-  }, [newEvent]);
-
+      var type = newEvent.type,
+        time = newEvent.time,
+        start = newEvent.start,
+        index = newEvent.index,
+        duration = newEvent.duration,
+        instrument = newEvent.instrument;
+      switch (type) {
+        case "keydown":
+          postWsMessage({
+            cmd: "keyboard",
+            bar: currentBar,
+            time: time,
+            index: index,
+            instrument: instrument,
+            type: "keypress",
+          });
+          setGrid(function (prev) {
+            prev[currentBar * index] = {
+              state: GRID_CELL_STATE.PENDING,
+              updated: new Date(),
+              history: [],
+            };
+            return prev;
+          });
+          break;
+        // eslint-disable-next-line no-fallthrough
+        case "keypress":
+          postWsMessage({
+            cmd: "keyboard",
+            bar: currentBar,
+            time: time,
+            instrument: instrument,
+            index: index,
+            type: "keypress",
+          });
+          setGrid(function (prev) {
+            var _a = prev[currentBar * index],
+              state = _a.state,
+              updated = _a.updated;
+            prev[currentBar * index] = {
+              state: GRID_CELL_STATE.PRESSING,
+              updated: new Date(),
+              history: [{ state: state, updated: updated }],
+            };
+            return prev;
+          });
+          break;
+        case "mouseup":
+        case "keyup":
+          postWsMessage({
+            cmd: "keyboard",
+            bar: currentBar,
+            time: time,
+            instrument: instrument,
+            index: index,
+            type: "keyup",
+          });
+          var _b = grid[currentBar * index],
+            state_1 = _b.state,
+            updated_1 = _b.updated,
+            history_1 = _b.history;
+          var envelop = [
+            history_1[0].updated,
+            history_1[1] ? history_1[1].updated : null,
+            new Date(),
+          ];
+          setGrid(function (prev) {
+            prev[currentBar * index] = {
+              state: GRID_CELL_STATE.ON,
+              updated: new Date(),
+              history: [{ state: state_1, updated: updated_1 }],
+            };
+            return prev;
+          });
+          onNewNote({
+            type: type,
+            time: time,
+            instrument: instrument,
+            index: index,
+            bar: currentBar,
+            adsr: envelop,
+          });
+          var note = {
+            bar: currentBar,
+            index: index,
+            length: 200,
+            color: "blue",
+            frequency: sound_keys_1.idxToFreq(index),
+          };
+          paintABar(
+            (_a = canvasRef.current) === null || _a === void 0 ? void 0 : _a.getContext("2d"),
+            note
+          );
+          break;
+        default:
+          postDebug(type + " " + time);
+          break;
+      }
+      return function cleanup() {
+        //   postDebug(JSON.stringify(pendingNotes));
+      };
+    },
+    [newEvent]
+  );
+  react_1.useEffect(function () {}, [grid]);
   return (
     <>
+      <h5>
+        {"instrument"} {active ? "ACTIVE" : ""}
+      </h5>
       <div
-        className={styles.gridContainer}
         style={{
-          backgroundColor: "rbga(33,33,33,03)",
+          backgroundColor: "rbga(0,0,0,0)",
           height: rows * BAR_HEIGHT,
-          width: cols * BAR_WIDTH * zoomX,
+          width: cols * BAR_WIDTH,
         }}
       >
         <canvas
-          key={11}
-          style={{ position: "absolute" }}
           ref={canvasRef}
-          onClick={(e) => _canvasClick(e)}
+          style={{ position: "absolute" }}
+          onClick={function (e) {
+            return _canvasClick(e);
+          }}
           height={rows * BAR_HEIGHT}
-          width={cols * BAR_WIDTH * zoomX}
-        ></canvas>
-        <canvas
-          key={313}
-          style={{ position: "absolute", zIndex: -1 }}
-          ref={canvasFFTRef}
-          onClick={(e) => _canvasClick(e)}
-          height={rows * BAR_HEIGHT}
-          width={cols * BAR_WIDTH * zoomX}
-        ></canvas>
-        <canvas
-          key={533}
-          style={{ position: "relative" }}
-          ref={canvasHudRef}
-          onClick={_canvasClick}
-          height={rows * BAR_HEIGHT}
-          width={cols * BAR_WIDTH * zoomX}
+          width={cols * BAR_WIDTH}
         ></canvas>
       </div>
-      <div>{currentBar}|{barCursor}</div>
+      <div>
+        {currentBar}|{barCursor}
+      </div>
     </>
   );
 };
-
-function sleep(sec) {
-  return new Promise((resolve) => setTimeout(resolve, sec * 1000));
-}
-export default Sequence;

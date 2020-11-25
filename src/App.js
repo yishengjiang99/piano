@@ -1,4 +1,3 @@
-import Sequence from "./sequence";
 import { useState, useReducer, useEffect } from "react";
 import React from "react";
 import Piano from "./piano";
@@ -10,9 +9,12 @@ import { _settings, instruments } from "./audioCtx";
 import { ControlPanel, ADSR, Volumes, OctaveControl } from "./ControlPanel.js";
 import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
-import { SvgBar } from './svg';
-import { Screen } from './bar';
-export const IndexPage = ({ windowUserEvent }) => {
+import { SvgBar } from "./svg";
+import { Screen } from "./bar";
+import { Sequence } from "./sequence";
+export const IndexPage = () => {
+  const [userEventMsgs, postUserEvent] = useChannel("userEvent");
+  const [userEvent, setUserEvent] = useState(null);
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
   const [octave, setOctave] = useState(3);
@@ -21,7 +23,6 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [files, setFiles] = useState([]);
   const [channels, setChannels] = useState([]);
   const [seek, setSeek] = useState(0);
-  const [userEvent, setUserEvent] = useState(null);
   const [remoteEvent, setRemoteEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   const [scheduler, setScheduler] = useState(null);
@@ -29,8 +30,8 @@ export const IndexPage = ({ windowUserEvent }) => {
   const [readNotes, setReadNotes] = useState();
   const [instrument, setInstrument] = useState("osc3");
   const [audioState, setAudioState] = useState({
-    peak: 0
-  })
+    peak: 0,
+  });
   const updateSettingReducer = (prevState, update) => {
     const { key, idx, value } = update;
 
@@ -73,7 +74,7 @@ export const IndexPage = ({ windowUserEvent }) => {
       setSeek(msg.n);
     }
     if (msg.cmd === "audioState") {
-      setAudioState(msg)
+      setAudioState(msg);
     }
   }, [timerMsg, setDebug, setSeek, debug]);
   // max-width: 600px; margin: 40px auto 60px
@@ -82,7 +83,6 @@ export const IndexPage = ({ windowUserEvent }) => {
     (evt) => {
       const handleUserEvent = (evt) => {
         let index = evt.target.dataset["index"] || (evt.key && keys.indexOf(evt.key));
-
         if (evt.keyCode && evt.keyCode === "[") setOctave(Math.min(octave + 1, 7));
         if (evt.keyCode && evt.keyCode === "]") setOctave(Math.math(octave - 1, 1));
 
@@ -95,16 +95,15 @@ export const IndexPage = ({ windowUserEvent }) => {
             duration: evt._targetInst && evt._targetInst.actualDuration,
             freq: notesOfOctave(octave)[index],
             index: index,
-            instrument: instrument
+            instrument: instrument,
           });
           evt.preventDefault();
         }
       };
-      windowUserEvent && handleUserEvent(windowUserEvent);
+      userEventMsgs.lastMessage && handleUserEvent(userEventMsgs.lastMessage);
     },
-    [windowUserEvent, octave]
+    [userEventMsgs.lastMessage, octave]
   );
-
 
   const _sudo = (evt) => {
     const input = evt.target.value;
@@ -134,18 +133,20 @@ export const IndexPage = ({ windowUserEvent }) => {
         }}
       >
         <div>
-          <SvgBar width={200} label='rms' value={audioState.rms}></SvgBar>
+          <SvgBar width={200} label="rms" value={audioState.rms}></SvgBar>
 
           <FileList postMessage={postWsMessage} files={files} channels={channels}></FileList>
-          {audioState.peak}<meter value={audioState.peak} max="100"></meter>
+          {audioState.peak}
+          <meter value={audioState.peak} max="100"></meter>
         </div>
         <main>
           <h2>
-            <input type={"text"} contentEditable={true} onInput={_sudo} value="mix sound" />
+            <input type={"text"} contentEditable={true} onChange={_sudo} value="mix sound" />
           </h2>
-          {['getLPSaw', 'osc3', 'soundFont', 'getDrums'].map(_instrument => {
+          {["getLPSaw", "osc3", "soundFont", "getDrums"].map((_instrument, i) => {
             return (
               <Sequence
+                key={i}
                 instrument={_instrument}
                 active={_instrument === instrument}
                 seek={seek}
@@ -157,37 +158,33 @@ export const IndexPage = ({ windowUserEvent }) => {
                 onDeleteNote={(bar, noteIndex) => {
                   postWsMessage({ cmd: "delete", bar, noteIndex });
                 }}
+                newEvent={userEvent}
                 postWsMessage={postWsMessage}
                 postMessage={postTimer}
-                newEvent={userEvent && userEvent.instrument === _instrument && userEvent}
                 readNotes={readNotes}
                 setInstrument={setInstrument}
                 rows={12}
                 cols={10}
                 ocatave={octave}
               />
-            )
+            );
           })}
 
           <Timer seek={seek}></Timer>
-          <SimplePopover onClick={() => setInstrument("piano")} title='piano'><Piano octave={octave}></Piano></SimplePopover>
-
-
+          <SimplePopover onClick={() => setInstrument("piano")} title="piano">
+            <Piano octave={octave}></Piano>
+          </SimplePopover>
         </main>
         <div id="console" style={{ height: 699, overflowY: "scroll" }}>
           <p>
             <b>{debugMessage.lastMessage}</b>
-
           </p>
 
-
-          {debugMessage.messages.splice(-20).map((line) => (
-            <div>{line}</div>
+          {debugMessage.messages.splice(-20).map((line, i) => (
+            <div key={i}>{line}</div>
           ))}
         </div>
       </div>
-      <Screen></Screen>
-
     </>
   );
 };

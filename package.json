@@ -6,20 +6,13 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "dependencies": {
-    "@material-ui/core": "^4.10.2",
+    "@material-ui/core": "^4.11.1",
     "@material-ui/icons": "^4.9.1",
-    "@tonejs/midi": "^2.0.25",
-    "jest-each": "^26.2.0",
-    "parcel": "^1.12.4",
-    "parcel-bundler": "^1.12.4",
-    "react": "^16.13.1",
-    "react-dag": "^2.0.0-alpha-8",
+    "react": "^16.14.0",
     "react-dom": "^16.13.1",
-    "react-router": "^5.2.0",
-    "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.1",
+    "react-scripts": "^4.0.1",
     "soundfont-player": "^0.12.0",
-    "tone": "^14.7.39"
+    "typescript": "^4.1.2"
   },
   "scripts": {
     "build": "react-scripts build",
@@ -48,6 +41,13 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.11.1"
+    "@babel/core": "^7.12.8",
+    "@testing-library/jest-dom": "^5.11.6",
+    "@testing-library/react": "^11.2.2",
+    "@testing-library/react-hooks": "^3.4.2",
+    "@typed/react": "^1.0.1",
+    "@types/jest": "^26.0.15",
+    "@types/react-dom": "^16.9.10",
+    "@typescript-eslint/eslint-plugin": "^4.8.2"
   }
 }
