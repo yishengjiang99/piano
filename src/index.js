@@ -1,32 +1,18 @@
-import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
-import { IndexPage } from "./App";
-import * as serviceWorker from "./serviceWorker";
-
-
-function App() {
-  const [latestUserEvent, setLatestUserEvent] = useState(null);
-  useEffect(() => {
-    window.addEventListener("keydown", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("keypress", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("keyup", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("mousedown", (e) => setLatestUserEvent(e), { capture: true });
-    window.addEventListener("mouseup", (e) => setLatestUserEvent(e), { capture: true });
-  }, []);
-  return <>
-  <IndexPage windowUserEvent={latestUserEvent} />
-  </>
+"use strict";
+exports.__esModule = true;
+var react_1 = require("react");
+var react_dom_1 = require("react-dom");
+var App_1 = require("./App");
+var serviceWorker = require("./serviceWorker");
+react_dom_1["default"].render(<App_1.IndexPage />, document.getElementById("root"));
+var channel = new BroadcastChannel("useEvent");
+function setLatestUserEvent(e) {
+    if (!e.repeat)
+        channel.postMessage({ type: e.type, time: e.timeStamp });
 }
-ReactDOM.render(<App />, document.getElementById("root"));
-
-window.addEventListener("audioCtxGot", function ({ detail }) {
-  const { ctx, masterGain, analyser } = detail;
-
-}, { once: true })
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
+window.addEventListener("keydown", setLatestUserEvent);
+window.addEventListener("keypress", setLatestUserEvent);
+window.addEventListener("keyup", setLatestUserEvent);
+// window.addEventListener("mousedown", setLatestUserEvent);
+// window.addEventListener("mouseup", setLatestUserEvent);
 serviceWorker.register();
-
-// audioWorker.register();

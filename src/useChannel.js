@@ -1,47 +1,35 @@
-import { useRef, useEffect, useCallback, useReducer } from "react";
-export function useChannel(name, size = 5) {
-  const [messageState, dispatch] = useReducer(
-    (state, data) => {
-      state.lastMessage = data;
-      state.messages[state.cursor % size] = data;
-      state.cursor++;
-      state.total++;
-      return state;
-    },
-    {
+"use strict";
+exports.__esModule = true;
+exports.useChannel = void 0;
+var react_1 = require("react");
+function reducer(prevState, data) {
+  prevState.lastMessage = data;
+  prevState.messages.push(data);
+  prevState.messages.shift();
+  return prevState;
+}
+function useChannel(name) {
+  var _a = react_1.useReducer(reducer, {
       lastMessage: null,
-      messages: new Array(size).fill(),
-      cursor: 0,
-      total: 0
-    }
-  );
-
-  let channel = useRef(new BroadcastChannel(name));
+      messages: [],
+    }),
+    messageState = _a[0],
+    dispatch = _a[1];
+  var channel = react_1.useRef(new BroadcastChannel(name));
   function postMessage(msg) {
     channel.current.postMessage(msg);
   }
-
-  useEffect(() => {
-    channel.current.onmessage = function ({ data }) {
-      dispatch(data);
-    };
-    return function cleanup() {
-      channel.current && channel.current.close();
-      channel = null;
-    };
-  }, [name]);
-  return [
-    {
-      lastMessage: messageState.lastMessage,
-      total: messageState.cursor,
-      messages:
-        messageState.cursor > size
-          ? messageState.messages
-            .slice(0, (messageState.cursor % size) - 1)
-            .concat(["*" + messageState.messages[(messageState.cursor % size) - 1]])
-            .concat(messageState.messages.slice((messageState.cursor % size) - 1))
-          : messageState.messages.slice(0, messageState.cursor + 1),
+  react_1.useEffect(
+    function () {
+      channel.current.onmessage = function (e) {
+        dispatch(e.data);
+      };
+      return function cleanup() {
+        channel.current && channel.current.close();
+      };
     },
-    postMessage,
-  ];
+    [name]
+  );
+  return [messageState, postMessage];
 }
+exports.useChannel = useChannel;

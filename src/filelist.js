@@ -1,19 +1,16 @@
-import {MenuList} from "@material-ui/core";
 import React from "react";
 
 import { useState } from "react";
 const FileList = ({ channels, files, postMessage }) => {
   const [open, setOpen] = React.useState(true);
   return (
-    <table style={{marginRight:'3em'}}>
+    <table style={{ marginRight: "3em" }}>
       <tbody>
         {files.map((f, idx) => (
           <tr key={idx}>
             <td>{f}</td>
             <td>
-              <button onClick={() =>postMessage("read "+f)}>
-                read
-              </button>
+              <button onClick={() => postMessage("read " + f)}>read</button>
             </td>
           </tr>
         ))}
@@ -36,4 +33,4 @@ const FileList = ({ channels, files, postMessage }) => {
   );
 };
 
-export default FileList; //()=><div><Button>page2</Button><Filelist props={{ channels, files, postMessage }}></div>;
+export default FileList;

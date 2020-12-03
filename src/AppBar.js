@@ -45,7 +45,7 @@ export default function ({ children }) {
   };
   return (
     <AppBar
-      position="block"
+      position="sticky"
       className={clsx(classes.appBar, {
         [classes.appBarShift]: open,
       })}

@@ -1,5 +1,6 @@
 const { Envelope } = require("./envelope");
 const { noteToMajorTriad, frequencyToMidi } = require("./sound-keys");
+
 export const initAudioSources = async (ctx, inputNode, _settings) => {
   const noteCache = {};
   return {
