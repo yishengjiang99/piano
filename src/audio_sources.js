@@ -1,6 +1,6 @@
-
 const { Envelope } = require("./envelope");
 const { noteToMajorTriad, frequencyToMidi } = require("./sound-keys");
+var Soundfont = require("soundfont-player");
 export const initAudioSources = async (ctx, inputNode, _settings) => {
   const noteCache = {};
   return {
@@ -13,7 +13,6 @@ export const initAudioSources = async (ctx, inputNode, _settings) => {
       const env = Envelope(_settings.adsr, ctx, gain.gain);
       return env;
     },
-
     osc3: function (freq) {
       const hashkey = freq;
       if (noteCache[hashkey] && ctx.currentTime - noteCache[hashkey].started > 5)
@@ -38,7 +37,7 @@ export const initAudioSources = async (ctx, inputNode, _settings) => {
           osc.start(0);
         });
       outputGain.connect(inputNode);
- var gainEnvelope = Envelope(_settings.adsr, ctx, outputGain.gain);
+      var gainEnvelope = new Envelope(_settings.adsr, ctx, outputGain.gain);
       return gainEnvelope;
     },
   };
