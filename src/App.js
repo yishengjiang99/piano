@@ -1,3 +1,4 @@
+import Sequence from "./sequence";
 import { useState, useReducer, useEffect } from "react";
 import React from "react";
 import Piano from "./piano";
@@ -11,10 +12,7 @@ import AppBar from "./AppBar";
 import { keys, notesOfOctave } from "./sound-keys.js";
 import { SvgBar } from "./svg";
 import { Screen } from "./bar";
-import { Sequence } from "./sequence";
-export const IndexPage = () => {
-  const [userEventMsgs, postUserEvent] = useChannel("userEvent");
-  const [userEvent, setUserEvent] = useState(null);
+export const IndexPage = ({ windowUserEvent }) => {
   const [wsMessage, postWsMessage] = useChannel("wschannel");
   const [timerMsg, postTimer] = useChannel("clock");
   const [octave, setOctave] = useState(3);
@@ -23,6 +21,7 @@ export const IndexPage = () => {
   const [files, setFiles] = useState([]);
   const [channels, setChannels] = useState([]);
   const [seek, setSeek] = useState(0);
+  const [userEvent, setUserEvent] = useState(null);
   const [remoteEvent, setRemoteEvent] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   const [scheduler, setScheduler] = useState(null);
@@ -83,6 +82,7 @@ export const IndexPage = () => {
     (evt) => {
       const handleUserEvent = (evt) => {
         let index = evt.target.dataset["index"] || (evt.key && keys.indexOf(evt.key));
+
         if (evt.keyCode && evt.keyCode === "[") setOctave(Math.min(octave + 1, 7));
         if (evt.keyCode && evt.keyCode === "]") setOctave(Math.math(octave - 1, 1));
 
@@ -100,9 +100,9 @@ export const IndexPage = () => {
           evt.preventDefault();
         }
       };
-      userEventMsgs.lastMessage && handleUserEvent(userEventMsgs.lastMessage);
+      windowUserEvent && handleUserEvent(windowUserEvent);
     },
-    [userEventMsgs.lastMessage, octave]
+    [windowUserEvent, octave]
   );
 
   const _sudo = (evt) => {
@@ -141,12 +141,11 @@ export const IndexPage = () => {
         </div>
         <main>
           <h2>
-            <input type={"text"} contentEditable={true} onChange={_sudo} value="mix sound" />
+            <input type={"text"} contentEditable={true} onInput={_sudo} value="mix sound" />
           </h2>
-          {["getLPSaw", "osc3", "soundFont", "getDrums"].map((_instrument, i) => {
+          {["getLPSaw", "osc3", "soundFont", "getDrums"].map((_instrument) => {
             return (
               <Sequence
-                key={i}
                 instrument={_instrument}
                 active={_instrument === instrument}
                 seek={seek}
@@ -158,9 +157,9 @@ export const IndexPage = () => {
                 onDeleteNote={(bar, noteIndex) => {
                   postWsMessage({ cmd: "delete", bar, noteIndex });
                 }}
-                newEvent={userEvent}
                 postWsMessage={postWsMessage}
                 postMessage={postTimer}
+                newEvent={userEvent && userEvent.instrument === _instrument && userEvent}
                 readNotes={readNotes}
                 setInstrument={setInstrument}
                 rows={12}
@@ -180,8 +179,8 @@ export const IndexPage = () => {
             <b>{debugMessage.lastMessage}</b>
           </p>
 
-          {debugMessage.messages.splice(-20).map((line, i) => (
-            <div key={i}>{line}</div>
+          {debugMessage.messages.splice(-20).map((line) => (
+            <div>{line}</div>
           ))}
         </div>
       </div>

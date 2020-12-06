@@ -1,5 +1,5 @@
 import { Note } from "@material-ui/icons";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState, useReducer } from "react";
 import useAnimationTime from "./useAnimationTime";
 const minNote = 22;
 const maxNote = 82;
@@ -14,7 +14,7 @@ export const Screen = function ({ newNote }) {
   const [[screenWidth, screenHeight], setWH] = useState([110, 110]);
   const containerRef = useRef(null);
   const svgRef = useRef(null);
-  const [onScreenNotes, dispatch] = useReducer((state, action) => {}, new BufferRing(250));
+  const [onScreenNotes, dispatch] = useReducer((state, action) => {}, []);
   useEffect({}, [newNote]);
   useLayoutEffect(() => {
     if (
