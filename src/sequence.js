@@ -3,13 +3,13 @@ import React from "react";
 
 import { useState, useEffect, useRef } from "react";
 import { getContext, getNote, getNotes } from "./audioCtx";
-import { idxToFreq, keyboardToFreq, notesOfOctave} from "./sound-keys";
+import { idxToFreq, keyboardToFreq, notesOfOctave } from "./sound-keys";
 import { connect, actions } from "./redux/store.js";
-import { useChannel } from './useChannel.js'
+import { useChannel } from "./useChannel.js";
 const secondsPerBar = 0.25;
 const BAR_WIDTH = 90;
-const BAR_HEIGHT=20; 
-var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx,canvasFFTCtx;
+const BAR_HEIGHT = 20;
+var canvasWidth, canvasHeight, cellWidth, cellHeight, canvasHudCtx, canvasCtx, canvasFFTCtx;
 
 function mapStateToProps(state) {
   return {
@@ -45,12 +45,10 @@ const Sequence = ({
   const canvasRef = useRef();
   const canvasHudRef = useRef();
   const canvasFFTRef = useRef();
- 
+
   // const note_hz = notesOfOctave(octave).concat( notesOfOctave(octave+1)); // notesOfOctave(octave+1)
   // const fftSize = 1024;
 
-
- 
   const pushNote = async (note, _ctx) => {
     let bar = currentBar;
     if (note.type == "keydown" && note.time - lastNoteTime > secondsPerBar) {
@@ -61,9 +59,9 @@ const Sequence = ({
     if (note.type == "keypress") {
       var pendingNote = pendingNotes[note.index];
       if (!pendingNote) {
-        throw new Error("pending note for " + note.index + "not found");
+        return;
       }
-      if (note.time - lastNoteTime > secondsPerBar) {
+      if (note.time - lastNoteTime > secondsPerBar) { 
         note.length = pendingNote.time - note.time;
         setPaintBar(note);
         bar = currentBar + 1;
@@ -101,7 +99,6 @@ const Sequence = ({
     }
   };
 
-
   const _resizeCanvas = () => {
     canvasWidth = canvasRef.current.parentElement.clientWidth;
     cellWidth = canvasWidth / cols;
@@ -131,7 +128,12 @@ const Sequence = ({
     console.log(blue);
     const noteIndex = Math.floor(y / cellHeight);
     const barIndex = Math.floor(x / cellWidth);
-    const note = { bar: barIndex, index: noteIndex, length: 200, frequency: idxToFreq(noteIndex%12,3+Math.floor(noteIndex/12))};
+    const note = {
+      bar: barIndex,
+      index: noteIndex,
+      length: 200,
+      frequency: idxToFreq(noteIndex % 12, 3 + Math.floor(noteIndex / 12)),
+    };
 
     if (blue) {
       onDeleteNote(barIndex + barCursor, noteIndex);
@@ -142,10 +144,9 @@ const Sequence = ({
       getNotes([note.frequency]).trigger();
     }
   };
-  useEffect(()=>{
-    if(fftc.lastMessage){
-
-      const {minDecibels,rmns, dataArray,time,binCount,sampleRate } = fftc.lastMessage;
+  useEffect(() => {
+    if (fftc.lastMessage) {
+      const { minDecibels, rmns, dataArray, time, binCount, sampleRate } = fftc.lastMessage;
       // var normalize = Array(rows).fill(0);
       // dataArray.map( (v,idx) => {
       //   const hz = sampleRate/2/binCount;
@@ -154,32 +155,27 @@ const Sequence = ({
       //   if(bin>=0 && bin<rows) normalize[idx] += v;
       // })
 
-
       const x0 = (currentBar - barCursor) * BAR_WIDTH;
-      canvasFFTCtx.fillStyle='black';
-      canvasFFTCtx.fillRect(x0,0,cellWidth,canvasHeight);
+      canvasFFTCtx.fillStyle = "black";
+      canvasFFTCtx.fillRect(x0, 0, cellWidth, canvasHeight);
       canvasFFTCtx.clearRect(x0, 0, cellWidth, canvasHeight);
-      const _binHeight = canvasHeight/binCount;
-      for (let i = 0; i <binCount; i++) {
+      const _binHeight = canvasHeight / binCount;
+      for (let i = 0; i < binCount; i++) {
         let hue = (i / binCount) * 360;
         canvasFFTCtx.fillStyle = "red";
-        var _binWidth = dataArray[i]/127*cellWidth*2
-       canvasFFTCtx.fillRect(x0, _binHeight*i, _binWidth, _binHeight);
-       //canvasFFTCtx.strokeText(rmns, x0, i*cellHeight, 100);
-          if(i==33){
-        canvasFFTCtx.strokeText(_binWidth, 55, 33, 100);//, i*cellHeight, 100);
+        var _binWidth = (dataArray[i] / 127) * cellWidth * 2;
+        canvasFFTCtx.fillRect(x0, _binHeight * i, _binWidth, _binHeight);
+        //canvasFFTCtx.strokeText(rmns, x0, i*cellHeight, 100);
+        if (i == 33) {
+          canvasFFTCtx.strokeText(_binWidth, 55, 33, 100); //, i*cellHeight, 100);
+        }
       }
-      }
-    
+
       canvasFFTCtx.strokeText(rmns, 0, 10, 100);
-     // document.getElementById("status").contentText = sum;
-      
+      // document.getElementById("status").contentText = sum;
     }
+  }, [fftc.lastMessage, currentBar]);
 
-    
-  },[fftc.lastMessage, currentBar]);
-
-  
   useEffect(() => {
     //on mount
     _resizeCanvas();
@@ -219,7 +215,7 @@ const Sequence = ({
 
     canvasHudCtx.fillRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
     canvasFFTCtx.fillStyle = "rgba(0,111,0,0.0)";
-    canvasFFTCtx.clearRect(currentBar * cellWidth, 0,cellWidth, canvasHeight);
+    canvasFFTCtx.clearRect(currentBar * cellWidth, 0, cellWidth, canvasHeight);
 
     postMessage({ n: currentBar, cmd: "tick" });
   }, [currentBar]);
@@ -231,8 +227,9 @@ const Sequence = ({
     canvasHudCtx.fillRect(((seek - 1) % cols) * cellWidth, 0, cellWidth, canvasHeight);
   }, [seek]);
   useEffect(() => {
-    barCursor > 0 && canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight) 
-    && canvasFFTCtx.clearRect(0,0,canvasWidth,canvasHeight);
+    barCursor > 0 &&
+      canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight) &&
+      canvasFFTCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     _drawAxis();
   }, [barCursor]);
   useEffect(() => {
@@ -265,7 +262,7 @@ const Sequence = ({
           backgroundColor: "rbga(0,0,0,0)",
           position: "relative",
           height: rows * BAR_HEIGHT,
-          width: cols * BAR_WIDTH*zoomX,
+          width: cols * BAR_WIDTH * zoomX,
         }}
       >
         <canvas
@@ -274,23 +271,23 @@ const Sequence = ({
           ref={canvasRef}
           onClick={(e) => _canvasClick(e)}
           height={rows * BAR_HEIGHT}
-          width={cols * BAR_WIDTH*zoomX}
+          width={cols * BAR_WIDTH * zoomX}
         ></canvas>
         <canvas
-        key={313}
-        style={{ position: "absolute",zIndex:-1 }}
-        ref={canvasFFTRef}
-        onClick={e=>_canvasClick(e)}
-        height={rows * BAR_HEIGHT}
-        width={cols * BAR_WIDTH*zoomX}
-      ></canvas>
+          key={313}
+          style={{ position: "absolute", zIndex: -1 }}
+          ref={canvasFFTRef}
+          onClick={(e) => _canvasClick(e)}
+          height={rows * BAR_HEIGHT}
+          width={cols * BAR_WIDTH * zoomX}
+        ></canvas>
         <canvas
           key={533}
           style={{ position: "relative" }}
           ref={canvasHudRef}
           onClick={_canvasClick}
           height={rows * BAR_HEIGHT}
-          width={cols * BAR_WIDTH*zoomX}
+          width={cols * BAR_WIDTH * zoomX}
         ></canvas>
       </div>
       <div></div>
