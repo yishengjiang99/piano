@@ -1,21 +1,19 @@
-
 var host = "wss://api.grepawk.com/signal"; //:4000";
 var msgChannel = new BroadcastChannel("wschannel");
 msgChannel.onmessage = ({ data }) => {
-  if (typeof data ==='string' && socket) socket.send(data);  
-  if (data.cmd && socket){
-    if(data.cmd=='updateSetting') return;
-    
-    if(data.cmd ==='compose' && data.adsr){
-      const {type,time,freq,index,bar, adsr} = data;
-      const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
-      socket.send(JSON.stringify({cmd:"compose", csv:csvstr}));
-      console.log("sending "+JSON.stringify({cmd:"compose", csv:csvstr}));
+  if (typeof data === "string" && socket) {
+  }
+  if (data.cmd && socket) {
+    if (data.cmd == "updateSetting") return;
 
-    }else{
+    if (data.cmd === "compose" && data.adsr) {
+      const { type, time, freq, index, bar, adsr } = data;
+      const csvstr = [time, freq, index, adsr.attackStart, adsr.releaseStart].join(",");
+      socket.send(JSON.stringify({ cmd: "compose", csv: csvstr }));
+      //console.log("sending " + JSON.stringify({ cmd: "compose", csv: csvstr }));
+    } else {
       socket.send(JSON.stringify(data));
     }
-
   }
 };
 const output = (str) => {
@@ -27,6 +25,10 @@ var socket;
 function connectSocketIfNotOpen(host) {
   return new Promise((resolve, reject) => {
     socket = new WebSocket(host);
+    Reflect.defineProperty(socket, "send", (m) => {
+      if (socket.CLOSED) return;
+      _send(m);
+    });
     socket.onopen = (e) => {
       resolve(socket);
     };
