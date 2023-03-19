@@ -62,10 +62,7 @@ const BgSound = ({ src, userTriggered, index }) => {
           param={"volume"}
           onInput={(e, v) => {
             if (!userTriggered) setUserTriggered(true);
-            inputNode.gain.gain.setValueAtTime(
-              v,
-              inputNode.inputNode.context.currentTime
-            );
+            inputNode.gain.gain.setValueAtTime(v, inputNode.inputNode.context.currentTime);
           }}
         />
       ) : null}
@@ -144,16 +141,10 @@ const Playlist = (props) => {
     <Card display="inline">
       <CardHeader title={basename(nowPlaying)} />
       <CardContent>
-        <BgSound
-          index={props.index || 0}
-          userTriggered={userTriggered}
-          src={nowPlaying}
-        />
+        <BgSound index={props.index || 0} userTriggered={userTriggered} src={nowPlaying} />
         <div>
           {sounds &&
-            (props.mode && props.mode == "buttons"
-              ? soundButtons(sounds)
-              : soundSelectBar(sounds))}
+            (props.mode && props.mode == "buttons" ? soundButtons(sounds) : soundSelectBar(sounds))}
         </div>
       </CardContent>
     </Card>

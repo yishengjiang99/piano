@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 const channel = {
   onmessage,
   postMessage,
@@ -13,6 +14,7 @@ let timerStart;
 let noteNote;
 let paused = false;
 postMessage("onload");
+
 const ontick = () => {
   if (paused) return;
   const perfTimeClock = (n / 4) * interval;
@@ -24,19 +26,14 @@ const ontick = () => {
   n++;
 };
 
-onmessage = (e) => {
+addEventListener("messageError", (e) => console.err);
+addEventListener("message", (e) => {
   var data = e.data;
   console.log(data);
   if (data == "reset") {
     n = 0;
     clearInterval(t);
   }
-  postMessage({
-    update: {
-      time: (n / 4) * interval,
-      tick: n / 4,
-    },
-  });
   var m;
   if ((m = data.match(/interval (\d+)/))) {
     interval = parseInt(m[1]);
@@ -48,7 +45,9 @@ onmessage = (e) => {
     n = parseInt(m[1]);
   } else {
     switch (data) {
+      case "play":
       case "start":
+        if (t) break; //alrady started
         n = 0;
         t = setInterval(ontick, interval / 4);
         break;
@@ -70,8 +69,8 @@ onmessage = (e) => {
         t = null;
         break;
       default:
+        channel.postMessage(data);
         break;
     }
   }
-  ontick();
-};
+});

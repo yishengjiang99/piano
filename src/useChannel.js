@@ -29,5 +29,8 @@ export function useChannel(name) {
       channel = null;
     };
   }, [name]);
+  if (name === "wschannel") {
+    return [messageState, () => {}];
+  }
   return [messageState, postMessage];
 }

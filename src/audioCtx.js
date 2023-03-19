@@ -1,5 +1,6 @@
 import { noteToMajorTriad, noteToMinorTriad, melody, SAMPLE_RATE } from "./sound-keys.js";
 
+const MIN_RAMP_TIME = 0.000244140625;
 let keyCounter = 0,
   fftTimer = null;
 
@@ -13,13 +14,10 @@ export function Envelope(adsr, audioParam) {
     keyCounter += 3000;
     attackStart = ctx.currentTime;
     state = "attacking";
-    audioParam.setValueCurveAtTime([0, 1.0], ctx.currentTime, attack);
-    audioParam.setValueCurveAtTime([1.0, sustain * 1.0], ctx.currentTime + attack, decay);
-    audioParam.setTargetAtTime(0.0000001, ctx.currentTime + attack + decay, release);
+    audioParam.linearRampToValueAtTime(1.0, ctx.currentTime + attack);
+    audioParam.setTargetAtTime(1 - sustain, ctx.currentTime + attack, decay);
+    audioParam.setTargetAtTime(0.001, ctx.currentTime + attack + decay, release);
     audioParam.setValueAtTime(0, ctx.currentTime + attack + decay + 3);
-    if (keyCounter < 0 || fftTimer === null) {
-      fftTimer = requestAnimationFrame(fftLoop);
-    }
   };
   const triggerRelease = () => {
     state = "releasing";
@@ -31,7 +29,6 @@ export function Envelope(adsr, audioParam) {
     if (attackStart + attack > ctx.currentTime) return;
     extended.push(ctx.currentTime);
     audioParam.cancelScheduledValues(0);
-
     audioParam.linearRampToValueAtTime(sustain * 1.0, ctx.currentTime + decay);
   };
   return {

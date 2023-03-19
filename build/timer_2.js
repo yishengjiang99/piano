@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 const channel = {
   onmessage,
   postMessage,
@@ -24,19 +25,14 @@ const ontick = () => {
   n++;
 };
 
-onmessage = (e) => {
+addEventListener("messageError", (e) => console.err);
+addEventListener("message", (e) => {
   var data = e.data;
   console.log(data);
   if (data == "reset") {
     n = 0;
     clearInterval(t);
   }
-  postMessage({
-    update: {
-      time: (n / 4) * interval,
-      tick: n / 4,
-    },
-  });
   var m;
   if ((m = data.match(/interval (\d+)/))) {
     interval = parseInt(m[1]);
@@ -70,8 +66,11 @@ onmessage = (e) => {
         t = null;
         break;
       default:
+        channel.postMessage(data);
         break;
     }
   }
   ontick();
-};
+});
+
+onmessage = (event) => console.log();

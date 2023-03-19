@@ -1,5 +1,5 @@
 import Sequence from "./sequence";
-import { useContext, useState, useReducer, useEffect } from "react";
+import { useContext, useState, useReducer, useEffect, useeRf } from "react";
 import React from "react";
 
 import Piano from "./piano";
@@ -33,15 +33,6 @@ export const IndexPage = (props) => {
     };
   };
   const [settings, dispatch] = useReducer(updateSettingReducer, _settings);
-
-  useEffect(() => {
-    if (!websocket) {
-      setWebsocket(new Worker("./wsworker.js"));
-    }
-    if (!scheduler) {
-      setScheduler(new Worker("./offlinetimer.js"));
-    }
-  }, []);
   useEffect(() => {
     const msg = wsMessage.lastMessage;
     if (!msg) return;

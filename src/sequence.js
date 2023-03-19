@@ -61,7 +61,7 @@ const Sequence = ({
       if (!pendingNote) {
         return;
       }
-      if (note.time - lastNoteTime > secondsPerBar) { 
+      if (note.time - lastNoteTime > secondsPerBar) {
         note.length = pendingNote.time - note.time;
         setPaintBar(note);
         bar = currentBar + 1;
@@ -79,7 +79,7 @@ const Sequence = ({
     } else if (note.type == "keyup") {
       var pendingNote = pendingNotes[note.index];
       if (!pendingNote) {
-        throw new Error("pending note for " + note.index + "not found");
+        return;
       }
       note.bar = bar;
       pendingNote.envelope.triggerRelease();
@@ -141,7 +141,7 @@ const Sequence = ({
     } else {
       setPaintBar(note);
       onNewNote(note);
-      getNotes([note.frequency]).trigger();
+      // getNotes([note.frequency]).trigger();
     }
   };
   useEffect(() => {

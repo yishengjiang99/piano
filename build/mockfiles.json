@@ -1,0 +1,9 @@
+[
+  {
+    "name": "c major triads",
+    "tracks": ["adgadgaegaegadgadgaegarg", "a--a--d--d--a--d--a--d--"],
+    "settingOffset": [{ "xpath": "osc3-waveform-1", "set": "sine" }],
+    "credit": "yisheng",
+    "day": "2020-07-04"
+  }
+]
